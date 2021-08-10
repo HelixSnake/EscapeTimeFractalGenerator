@@ -1,0 +1,2 @@
+﻿  main.cpp
+E:\CPlusPlusPractice\imgui\backends\imgui_impl_opengl3.h(83,1): fatal error C1189: #error:  "Cannot detect OpenGL loader!"
