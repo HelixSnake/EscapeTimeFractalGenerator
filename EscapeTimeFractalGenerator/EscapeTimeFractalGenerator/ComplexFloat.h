@@ -11,5 +11,6 @@ struct ComplexFloat
 	ComplexFloat operator+(const ComplexFloat other);
 	ComplexFloat operator-(const ComplexFloat other);
 	ComplexFloat operator*(const ComplexFloat other);
+	CF_Float AbsoluteValue();
 };
 

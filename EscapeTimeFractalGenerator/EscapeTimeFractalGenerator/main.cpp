@@ -17,6 +17,36 @@
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
 
+bool Draw(GLFWwindow* window)
+{
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	// Black/white checkerboard
+	float pixels[] = {
+		0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f
+	};
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
+
+	GLuint fbo = 0;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, tex, 0);
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); 
+	int width = 0;
+	int height = 0;
+	glfwGetWindowSize(window, &width, &height);
+	glBlitFramebuffer(0, 0, 2, 2, 0, 0, width, height,
+		GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	return true;
+}
+
 int main(int argc, char* argv[])
 {
 	glfwInit();
@@ -56,7 +86,7 @@ int main(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Draw OpenGL 
-
+		Draw(window);
 
 		glfwSwapBuffers(window);
 	}
