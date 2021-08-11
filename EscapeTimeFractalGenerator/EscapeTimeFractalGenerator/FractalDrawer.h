@@ -24,7 +24,7 @@ protected:
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
 	GLFWwindow* window = nullptr;
-	void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
-	void DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, GLuint rampTexture, glm::vec3 transform);
+	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
+	static void DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, float* rampColors, int rampColorsWidth, glm::vec3 transform);
 };
 
