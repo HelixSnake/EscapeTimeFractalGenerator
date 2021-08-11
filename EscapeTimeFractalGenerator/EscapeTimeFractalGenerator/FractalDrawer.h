@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include <thread>
+#include <chrono>
+#include <future>
 //GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -17,14 +19,20 @@ public:
 	FractalDrawer(int width, int height, GLFWwindow* window);
 	~FractalDrawer();
 	void SetRampTexture(GLuint textureID);
-	bool Draw();
+	void Resize(int width, int height);
+	bool Draw(bool update);
 protected:
 	GLuint rampTexture = 0;
-	float *pixelBuffer1, *pixelBuffer2, *currentPixelBuffer = nullptr;
+	GLuint fractalTexture = 0;
+	float *pixelBuffer, *rampColors = nullptr;
+	int ramTexWidth = 0;
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
+	bool fractalThreadNeedsRun = true;
+	std::atomic_bool haltDrawingThread = false;
 	GLFWwindow* window = nullptr;
+	std::future<bool> drawFractalThread;
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
-	static void DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, float* rampColors, int rampColorsWidth, glm::vec3 transform);
+	static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, std::atomic_bool &halt);
 };
 

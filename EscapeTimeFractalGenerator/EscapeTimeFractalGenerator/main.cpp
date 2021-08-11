@@ -103,20 +103,17 @@ int main(int argc, char* argv[])
 		int nextWindowHeight = 0;
 		glfwGetWindowSize(window, &nextWindowWidth, &nextWindowHeight);
 		//TODO: make threadsafe
-		/*
+		bool shouldUpdate = false;
 		if (currentWindowWidth != nextWindowWidth || currentWindowHeight != nextWindowHeight)
 		{
-			delete[] pixelBuffer1;
-			delete[] pixelBuffer2;
 			currentWindowWidth = nextWindowWidth;
 			currentWindowHeight = nextWindowHeight;
-			pixelBuffer1 = new float[3 * currentWindowWidth * currentWindowHeight];
-			pixelBuffer2 = new float[3 * currentWindowWidth * currentWindowHeight];
+			shouldUpdate = true;
+			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight);
 		}
-		*/
 
 		// Draw OpenGL 
-		fractalDrawer->Draw();
+		fractalDrawer->Draw(shouldUpdate);
 
 		glfwSwapBuffers(window);
 	}

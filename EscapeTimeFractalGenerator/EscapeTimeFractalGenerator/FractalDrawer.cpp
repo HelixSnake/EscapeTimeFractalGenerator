@@ -1,7 +1,6 @@
 #include "FractalDrawer.h"
 #include "ComplexFractal.h"
-#include <thread>
-#include <mutex>
+
 std::mutex mtx;
 
 FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window) 
@@ -9,21 +8,32 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	this->pixelBufferHeight = height;
 	this->pixelBufferWidth = width;
 	this->window = window;
-	pixelBuffer1 = new float[width * height * 3];
-	pixelBuffer2 = new float[width * height * 3];
-	currentPixelBuffer = pixelBuffer1;
+	pixelBuffer = new float[width * height * 3];
+	glGenTextures(1, &fractalTexture);
 }
 
 FractalDrawer::~FractalDrawer()
 {
-		delete[] pixelBuffer1;
-		delete[] pixelBuffer2;
+		delete[] pixelBuffer;
+		if (rampColors != nullptr)
+		{
+			delete[] rampColors;
+		}
+		glDeleteTextures(1, &fractalTexture);
 }
 
 
 void FractalDrawer::SetRampTexture(GLuint textureID)
 {
 	rampTexture = textureID;
+	// Build Ramp Color Array
+	if (rampTexture != 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, rampTexture);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ramTexWidth);
+		rampColors = new float[ramTexWidth * 3];
+		glGetnTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, ramTexWidth * 3 * sizeof(float), rampColors);
+	}
 }
 
 void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b)
@@ -35,7 +45,7 @@ void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixe
 	pixelBuffer[startIndex + 2] = b;
 }
 
-void FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, float* rampColors, int rampColorsWidth, glm::vec3 transform)
+bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, std::atomic_bool &halt)
 {
 	std::lock_guard<std::mutex> lock1{ mtx };
 	std::cout << "drawing fractal" << std::endl;
@@ -48,6 +58,11 @@ void FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pi
 	{
 		for (int j = 0; j < pixelBufferWidth; j++)
 		{
+			if (halt)
+			{
+				halt = false;
+				return false;
+			}
 			float x = (float)j / pixelBufferWidth;
 			float y = (float)i / pixelBufferHeight;
 			x = (x - transform.x) * transform.z * pixelBufferWidth / pixelBufferHeight;
@@ -73,37 +88,55 @@ void FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pi
 			}
 		}
 	}
+	return true;
 }
 
-bool FractalDrawer::Draw()
+void FractalDrawer::Resize(int width, int height)
 {
-	// Build Ramp Color Array
-	float* rampColors = nullptr;
-	int ramTexWidth = 0;
-	if (rampTexture != 0)
+	if (drawFractalThread.valid())
 	{
-		glBindTexture(GL_TEXTURE_2D, rampTexture);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ramTexWidth);
-		rampColors = new float[ramTexWidth * 3];
-		glGetnTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, ramTexWidth * 3 * sizeof(float), rampColors);
+		haltDrawingThread = true;
+		drawFractalThread.wait();
 	}
+	mtx.lock();
+	delete[] pixelBuffer;
+	pixelBuffer = new float[width * height * 3];
+	pixelBufferWidth = width;
+	pixelBufferHeight = height;
+	mtx.unlock();
+}
+
+bool FractalDrawer::Draw(bool update)
+{
+	fractalThreadNeedsRun = fractalThreadNeedsRun || update;
 	//Draw Fractal
-	std::thread drawFractal(DrawFractal, currentPixelBuffer, pixelBufferWidth, pixelBufferHeight, rampColors, ramTexWidth, glm::vec3(0.5, 0.5, 2));
-	drawFractal.join();
-	//DrawFractal(currentPixelBuffer, pixelBufferWidth, pixelBufferHeight, rampTexture, glm::vec3(0.5, 0.5, 2));
-	GLuint tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
+	if (!drawFractalThread.valid() && fractalThreadNeedsRun)
+	{
+		drawFractalThread = std::async(std::launch::async, &DrawFractal, pixelBuffer, pixelBufferWidth, pixelBufferHeight, rampColors, ramTexWidth, glm::vec3(0.5, 0.5, 2), std::ref(haltDrawingThread));
+		fractalThreadNeedsRun = false;
+	}
+	//DrawFractal(currentPixelBuffer, pixelBufferWidth, pixelBufferHeight, rampColors, ramTexWidth, glm::vec3(0.5, 0.5, 2));
+	
+	glBindTexture(GL_TEXTURE_2D, fractalTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, currentPixelBuffer);
+	std::future_status drawingStatus = std::future_status::timeout;
+	if (drawFractalThread.valid())
+	{
+		drawingStatus = drawFractalThread.wait_for(std::chrono::seconds(0));
+		if (drawingStatus == std::future_status::ready && drawFractalThread.get() == true)
+		{
+			mtx.lock();
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
+			mtx.unlock();
+		}
+	}
 
 	GLuint fbo = 0;
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
 	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D, tex, 0);
+		GL_TEXTURE_2D, fractalTexture, 0);
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	int width = 0;
@@ -112,11 +145,5 @@ bool FractalDrawer::Draw()
 	glBlitFramebuffer(0, 0, pixelBufferWidth, pixelBufferHeight, 0, 0, width, height,
 		GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glDeleteFramebuffers(1, &fbo);
-	glDeleteTextures(1, &tex);
-
-	if (rampColors != nullptr)
-	{
-		delete[] rampColors;
-	}
 	return true;
 }
