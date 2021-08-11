@@ -1,2 +1,4 @@
 ﻿  main.cpp
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(63,41): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(64,18): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   EscapeTimeFractalGenerator.vcxproj -> E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Debug\EscapeTimeFractalGenerator.exe

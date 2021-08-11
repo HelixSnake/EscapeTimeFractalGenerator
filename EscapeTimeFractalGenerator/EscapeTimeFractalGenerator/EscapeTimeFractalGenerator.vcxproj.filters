@@ -24,7 +24,7 @@
     <ClCompile Include="ComplexFloat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="JuliaFractal.cpp">
+    <ClCompile Include="MandelbrotFractal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,8 +35,13 @@
     <ClInclude Include="ComplexFloat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="JuliaFractal.h">
+    <ClInclude Include="MandelbrotFractal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="colorRamp.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

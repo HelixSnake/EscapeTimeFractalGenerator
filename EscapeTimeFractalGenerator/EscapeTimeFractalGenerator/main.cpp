@@ -3,6 +3,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+//SOIL
+#include <SOIL.h>
 //GLFW
 #include <GLFW/glfw3.h>
 
@@ -11,11 +13,29 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include "JuliaFractal.h"
+
+#include "MandelbrotFractal.h"
 
 
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
+const char* COLOR_RAMP_FILENAME = "colorRamp.png";
+
+GLuint LoadRampTexture()
+{
+	GLuint textureID = 0;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	int width, height, channels;
+	unsigned char* image = SOIL_load_image(COLOR_RAMP_FILENAME, &width, &height, &channels, SOIL_LOAD_RGB);
+	if (image == nullptr)
+	{
+		std::cout << "Ramp texture not found" << std::endl;
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	//SOIL_free_image_data(image);
+	return textureID;
+}
 
 void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b)
 {
@@ -26,32 +46,49 @@ void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, 
 	pixelBuffer[startIndex + 2] = b;
 }
 
-void DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight)
+void DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, GLuint rampTexture)
 {
-	JuliaFractal fractal = JuliaFractal(ComplexFloat(0, 0), 20);
+	MandelbrotFractal fractal = MandelbrotFractal(ComplexFloat(0, 0), 40);
+	glBindTexture(GL_TEXTURE_2D, rampTexture);
+	GLint ramTexWidth;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ramTexWidth);
+	GLfloat* rampColor = new GLfloat[ramTexWidth*3];
+	glReadPixels(0, 0, ramTexWidth, 1, GL_RGB, GL_FLOAT, rampColor);
 	for (int i = 0; i < pixelBufferHeight; i++)
 	{
 		for (int j = 0; j < pixelBufferWidth; j++)
 		{
 			float x = (float)j / pixelBufferWidth;
 			float y = (float)i / pixelBufferHeight;
-			x = x * 3 - 2;
-			y = y * 2 - 1;
+			x = (x - 0.5) * 3 * pixelBufferWidth / pixelBufferHeight;
+			y = (y - 0.5) * 3;
 			float value = fractal.CalculateEscapeTime(x, y);
-			DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, value, value, value);
+			//float value = 0;
+			int rampIndex = ((int)(ramTexWidth * value)) * 3;
+			if (rampIndex > ramTexWidth - 1) rampIndex = ramTexWidth - 1;
+			if (value == 0)
+			{
+				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0, 0, 0);
+			}
+			else
+			{
+				//DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, rampColor[rampIndex], rampColor[rampIndex + 1], rampColor[rampIndex + 2
+				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, value, value, value);
+			}
 		}
 	}
+	delete[] rampColor;
 }
-bool Draw(GLFWwindow* window, float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight)
+bool Draw(GLFWwindow* window, float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, GLuint rampTexture)
 {
+	//Draw Fractal
+	DrawFractal(pixelBuffer, pixelBufferWidth, pixelBufferHeight, rampTexture);
+
 	GLuint tex;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	
-	//Draw Fractal
-	DrawFractal(pixelBuffer, pixelBufferWidth, pixelBufferHeight);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
 
@@ -103,6 +140,7 @@ int main(int argc, char* argv[])
 	int currentWindowHeight = 0;
 	glfwGetWindowSize(window, &currentWindowWidth, &currentWindowHeight);
 	float* pixelBuffer = new float[3 * currentWindowWidth * currentWindowHeight];
+	GLuint rampTexture = LoadRampTexture();
 	while (!glfwWindowShouldClose(window))
 	{
 		// Check if any events have been activiated (key pressed, 
@@ -115,9 +153,19 @@ int main(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Refresh pixelBuffer on resize (TODO)
+		int nextWindowWidth = 0;
+		int nextWindowHeight = 0;
+		glfwGetWindowSize(window, &nextWindowWidth, &nextWindowHeight);
+		if (currentWindowWidth != nextWindowWidth || currentWindowHeight != nextWindowHeight)
+		{
+			delete[] pixelBuffer;
+			currentWindowWidth = nextWindowWidth;
+			currentWindowHeight = nextWindowHeight;
+			pixelBuffer = new float[3 * currentWindowWidth * currentWindowHeight];
+		}
 
 		// Draw OpenGL 
-		Draw(window, pixelBuffer, currentWindowWidth, currentWindowHeight);
+		Draw(window, pixelBuffer, currentWindowWidth, currentWindowHeight, rampTexture);
 
 		glfwSwapBuffers(window);
 	}
