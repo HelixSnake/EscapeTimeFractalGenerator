@@ -1,7 +1,11 @@
 #include "FractalDrawer.h"
 #include "ComplexFractal.h"
+#include <math.h>;
 
 std::mutex mtx;
+const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
+const int NUM_ITERATIONS = 40;
+const float VALUE_POWER = 0.4;
 
 FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window) 
 {
@@ -10,6 +14,8 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	this->window = window;
 	pixelBuffer = new float[width * height * 3];
 	glGenTextures(1, &fractalTexture);
+	transform = STARTING_TRANSFORM;
+	startTime = high_resolution_clock::now();
 }
 
 FractalDrawer::~FractalDrawer()
@@ -45,13 +51,13 @@ void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixe
 	pixelBuffer[startIndex + 2] = b;
 }
 
-bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, std::atomic_bool &halt)
+bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt)
 {
 	std::lock_guard<std::mutex> lock1{ mtx };
 	std::cout << "drawing fractal" << std::endl;
-	ComplexFractal fractal = ComplexFractal(40);
-	fractal.SetStartingFunction([](ComplexFloat input) {return input; });
-	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue) {return previousValue * previousValue + ComplexFloat(input.imaginary, input.real); });
+	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
+	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
+	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {return previousValue * previousValue + ComplexFloat(sin(time), cos(time)); });
 
 	
 	for (int i = 0; i < pixelBufferHeight; i++)
@@ -67,14 +73,14 @@ bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pi
 			float y = (float)i / pixelBufferHeight;
 			x = (x - transform.x) * transform.z * pixelBufferWidth / pixelBufferHeight;
 			y = (y - transform.y) * transform.z;
-			float value = fractal.CalculateEscapeTime(x, y);
+			float value = fractal.CalculateEscapeTime(x, y, time);
 			if (value == 0)
 			{
 				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0, 0, 0);
 			}
 			else
 			{
-				float newValue = pow(value, 0.4);
+				float newValue = pow(value, VALUE_POWER);
 				if (rampColors != nullptr)
 				{
 					int rampIndex = ((int)((float)rampColorsWidth * (1 - newValue)));
@@ -112,7 +118,9 @@ bool FractalDrawer::Draw(bool update)
 	//Draw Fractal
 	if (!drawFractalThread.valid() && fractalThreadNeedsRun)
 	{
-		drawFractalThread = std::async(std::launch::async, &DrawFractal, pixelBuffer, pixelBufferWidth, pixelBufferHeight, rampColors, ramTexWidth, glm::vec3(0.5, 0.5, 2), std::ref(haltDrawingThread));
+		steady_clock::time_point currentTime = high_resolution_clock::now();
+		float time = duration_cast<milliseconds>(currentTime - startTime).count() * 0.001;
+		drawFractalThread = std::async(std::launch::async, &DrawFractal, pixelBuffer, pixelBufferWidth, pixelBufferHeight, rampColors, ramTexWidth, transform, time, std::ref(haltDrawingThread));
 		fractalThreadNeedsRun = false;
 	}
 	//DrawFractal(currentPixelBuffer, pixelBufferWidth, pixelBufferHeight, rampColors, ramTexWidth, glm::vec3(0.5, 0.5, 2));

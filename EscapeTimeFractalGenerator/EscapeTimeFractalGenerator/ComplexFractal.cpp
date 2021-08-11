@@ -9,26 +9,26 @@ ComplexFractal::ComplexFractal(int iterations)
 {
 	this->iterations = iterations;
 }
-void ComplexFractal::SetFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat previousValue))
+void ComplexFractal::SetFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat previousValue, float time))
 {
 	ComplexFunction = func;
 }
-void ComplexFractal::SetStartingFunction(ComplexFloat(*func)(ComplexFloat input))
+void ComplexFractal::SetStartingFunction(ComplexFloat(*func)(ComplexFloat input, float time))
 {
 	StartingValueFunction = func;
 }
-float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y)
+float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 {
 	ComplexFloat value = ComplexFloat(0, 0);
 	if (StartingValueFunction != nullptr)
 	{ 
-		value = StartingValueFunction(ComplexFloat(x, y));
+		value = StartingValueFunction(ComplexFloat(x, y), time);
 	}
 	for (int i = 0; i < iterations; i++)
 	{
 		if (ComplexFunction != nullptr)
 		{
-			value = ComplexFunction(ComplexFloat(x, y), value);
+			value = ComplexFunction(ComplexFloat(x, y), value, time);
 		}
 		else
 		{

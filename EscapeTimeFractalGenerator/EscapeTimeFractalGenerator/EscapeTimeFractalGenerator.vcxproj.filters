@@ -18,13 +18,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EscapeTimeFractal.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ComplexFloat.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MandelbrotFractal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ComplexFractal.cpp">
@@ -35,13 +29,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EscapeTimeFractal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ComplexFloat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MandelbrotFractal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ComplexFractal.h">

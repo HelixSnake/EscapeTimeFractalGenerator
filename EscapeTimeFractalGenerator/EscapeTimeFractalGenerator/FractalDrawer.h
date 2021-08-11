@@ -13,6 +13,8 @@
 //GLM
 #include <glm/vec3.hpp>
 
+using namespace std::chrono;
+
 class FractalDrawer
 {
 public:
@@ -22,6 +24,8 @@ public:
 	void Resize(int width, int height);
 	bool Draw(bool update);
 protected:
+	steady_clock::time_point startTime;
+	glm::vec3 transform;
 	GLuint rampTexture = 0;
 	GLuint fractalTexture = 0;
 	float *pixelBuffer, *rampColors = nullptr;
@@ -33,6 +37,6 @@ protected:
 	GLFWwindow* window = nullptr;
 	std::future<bool> drawFractalThread;
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
-	static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, std::atomic_bool &halt);
+	static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
 };
 
