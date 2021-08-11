@@ -1,4 +1,5 @@
 #include "MandelbrotFractal.h"
+#include "math.h"
 
 MandelbrotFractal::MandelbrotFractal()
 {
@@ -21,11 +22,12 @@ float MandelbrotFractal::CalculateEscapeTime(CF_Float x, CF_Float y)
 	for (int i = 0; i < iterations; i++)
 	{
 		value = value * value + ComplexFloat(x, y);
-		if (value.AbsoluteValue() > 4)
+		float ratio = 100.0 / value.AbsoluteValue();
+		if (ratio < 1)
 		{
 			if (iterations != 0)
 			{
-				return (float)i / iterations;
+				return (((float)i) + pow(ratio, 0.5)) / (float)iterations;
 			}
 		}
 	}

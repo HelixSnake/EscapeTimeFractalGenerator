@@ -120,7 +120,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\CPlusPlusPractice\imgui;E:\CPlusPlusPractice\imgui\backends;E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\include;E:\CPlusPlusPractice\glew-2.1.0\include;E:\CPlusPlusPractice\soil\inc\SOIL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\CPlusPlusPractice\imgui;E:\CPlusPlusPractice\imgui\backends;E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\include;E:\CPlusPlusPractice\glew-2.1.0\include;E:\CPlusPlusPractice\soil\inc\SOIL;E:\CPlusPlusPractice\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,7 +128,8 @@
       <AdditionalLibraryDirectories>E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\lib-vc2019;E:\CPlusPlusPractice\glew-2.1.0\lib\Release\x64;E:\CPlusPlusPractice\soil\build\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>soil.lib;opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib; msvcrtd.lib;</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\CPlusPlusPractice\imgui;E:\CPlusPlusPractice\imgui\backends;E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\include;E:\CPlusPlusPractice\glew-2.1.0\include;E:\CPlusPlusPractice\soil\inc\SOIL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\CPlusPlusPractice\imgui;E:\CPlusPlusPractice\imgui\backends;E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\include;E:\CPlusPlusPractice\glew-2.1.0\include;E:\CPlusPlusPractice\soil\inc\SOIL;E:\CPlusPlusPractice\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,18 +150,23 @@
       <AdditionalLibraryDirectories>E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\lib-vc2019;E:\CPlusPlusPractice\glew-2.1.0\lib\Release\x64;E:\CPlusPlusPractice\soil\build\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>soil.lib;opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib; msvcrtd.lib;</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ComplexFloat.cpp" />
+    <ClCompile Include="ComplexFractal.cpp" />
     <ClCompile Include="EscapeTimeFractal.cpp" />
+    <ClCompile Include="FractalDrawer.cpp" />
     <ClCompile Include="MandelbrotFractal.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComplexFloat.h" />
+    <ClInclude Include="ComplexFractal.h" />
     <ClInclude Include="EscapeTimeFractal.h" />
+    <ClInclude Include="FractalDrawer.h" />
     <ClInclude Include="MandelbrotFractal.h" />
   </ItemGroup>
   <ItemGroup>
