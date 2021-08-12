@@ -87,11 +87,31 @@ int main(int argc, char* argv[])
 	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight, window);
 	GLuint rampTexture = LoadRampTexture();
 	fractalDrawer->SetRampTexture(rampTexture);
+	auto deltaTimeStart = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(window))
 	{
+		auto deltaTimeEnd = std::chrono::high_resolution_clock::now();
+		float deltaTime = std::chrono::duration_cast<std::chrono::nanoseconds>(deltaTimeEnd - deltaTimeStart).count() / 1000000000.0;
+		deltaTimeStart = std::chrono::high_resolution_clock::now();
 		// Check if any events have been activiated (key pressed, 
 		//mouse moved etc.) and call corresponding response functions 
 		glfwPollEvents();
+
+		//zoom?
+		int leftMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+		int rightMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+		double mbxpos, mbypos;
+		glfwGetCursorPos(window, &mbxpos, &mbypos);
+		mbxpos /= currentWindowWidth;
+		mbypos /= currentWindowHeight;
+		if (leftMBstate == GLFW_PRESS)
+		{
+			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(0.5, deltaTime));
+		}
+		else if (rightMBstate == GLFW_PRESS)
+		{
+			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(2, deltaTime));
+		}
 
 		// Render 
 		// Clear the colorbuffer 

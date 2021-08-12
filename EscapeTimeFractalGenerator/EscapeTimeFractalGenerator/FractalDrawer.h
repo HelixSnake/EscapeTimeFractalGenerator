@@ -24,10 +24,13 @@ public:
 	~FractalDrawer();
 	void SetRampTexture(GLuint textureID);
 	void Resize(int width, int height);
+	void Zoom(float x, float y, float amount);
 	bool Draw(bool update);
 protected:
 	steady_clock::time_point startTime;
 	glm::vec3 transform;
+	glm::vec3 lastTransform;
+	glm::vec3 lastlastTransform;
 	GLuint rampTexture = 0;
 	GLuint fractalTexture = 0;
 	float *pixelBuffer, *rampColors = nullptr;
@@ -39,9 +42,12 @@ protected:
 	GLFWwindow* window = nullptr;
 	std::future<bool> drawFractalThread;
 	std::future<bool> drawFractalThreads[NUM_FRACTAL_DRAW_THREADS];
+	std::atomic<float> threadProgress[NUM_FRACTAL_DRAW_THREADS];
+    std::mutex Mutexes[NUM_FRACTAL_DRAW_THREADS];
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
 	static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
-	static bool DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int ystart, int yend, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool& halt);
-
+	static bool DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int ystart, int yend, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool& halt, std::atomic<float>& threadProgress, std::mutex &threadLock);
+	void LockAllMutexes();
+	void UnlockAllMutexes();
 };
 

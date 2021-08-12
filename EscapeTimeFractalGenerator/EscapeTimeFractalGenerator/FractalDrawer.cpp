@@ -1,11 +1,14 @@
 #include "FractalDrawer.h"
 #include "ComplexFractal.h"
 #include <math.h>;
+#include <glm/vec2.hpp>;
+#include <glm/common.hpp>;
 
 std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
-const int NUM_ITERATIONS = 30;
+const int NUM_ITERATIONS = 1000;
 const float VALUE_POWER = 0.4;
+const float LENGTH_LIMIT = 4;
 
 FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window) 
 {
@@ -42,6 +45,23 @@ void FractalDrawer::SetRampTexture(GLuint textureID)
 	}
 }
 
+void FractalDrawer::LockAllMutexes() 
+{
+	mtx.lock();
+	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
+	{
+		Mutexes[i].lock();
+	}
+}
+void FractalDrawer::UnlockAllMutexes()
+{
+	mtx.unlock();
+	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
+	{
+		Mutexes[i].unlock();
+	}
+}
+
 void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b)
 {
 	if (x < 0 || x >= pixelBufferWidth || y < 0 || y >= pixelBufferHeight) return;
@@ -51,16 +71,20 @@ void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixe
 	pixelBuffer[startIndex + 2] = b;
 }
 
-bool FractalDrawer::DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int ystart, int yend, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool& halt)
+bool FractalDrawer::DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int ystart, int yend, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool& halt, std::atomic<float>& threadProgress, std::mutex &mutex)
 {
+	std::lock_guard<std::mutex> lock1{ mutex };
 	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
+	fractal.lengthLimit = LENGTH_LIMIT;
 	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
 	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {
-		const float JULIA_NUMBER = 0.5;
-		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER - cos(2 * time) * JULIA_NUMBER * 0.5, sin(time) * JULIA_NUMBER - sin(2 * time) * JULIA_NUMBER * 0.5);
+		const float JULIA_NUMBER = 0.75;
+		return previousValue * previousValue * previousValue + ComplexFloat(cos(2) * JULIA_NUMBER, sin(2) * JULIA_NUMBER);
 		});
 	for (int i = ystart; i < yend; i++)
 	{
+		// no need to check "yend - ystart" for 0 because if they are, the code won't get here anyways
+		threadProgress = (float)(i - ystart) / (yend - ystart);
 		for (int j = 0; j < pixelBufferWidth; j++)
 		{
 			if (halt)
@@ -149,12 +173,23 @@ void FractalDrawer::Resize(int width, int height)
 		haltDrawingThread = true;
 		drawFractalThread.wait();
 	}
-	mtx.lock();
+	LockAllMutexes();
 	delete[] pixelBuffer;
 	pixelBuffer = new float[width * height * 3];
 	pixelBufferWidth = width;
 	pixelBufferHeight = height;
-	mtx.unlock();
+	UnlockAllMutexes();
+}
+
+
+void FractalDrawer::Zoom(float x, float y, float amount)
+{
+	//convert x y point to "World space" by replicating transform performed on pixels
+	float newX = (x - transform.x) * transform.z;
+	float newY = (y - transform.y) * transform.z;
+	transform.z *= amount;
+	transform.x -= (newX / transform.z) * (1 - amount);
+	transform.y -= (newY / transform.z) * (1 - amount);
 }
 
 bool FractalDrawer::Draw(bool update)
@@ -171,24 +206,24 @@ bool FractalDrawer::Draw(bool update)
 	{
 		steady_clock::time_point currentTime = high_resolution_clock::now();
 		float time = duration_cast<milliseconds>(currentTime - startTime).count() * 0.001;
-		//drawFractalThread = std::async(std::launch::async, &DrawFractal, pixelBuffer, pixelBufferWidth, pixelBufferHeight, rampColors, ramTexWidth, transform, time, std::ref(haltDrawingThread));
 		for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 		{
 			int chunksize = pixelBufferHeight / 16; //needs to be 15 to get all pixels
 			int ystart = i * chunksize;
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
-			drawFractalThreads[i] = std::async(std::launch::async, &DrawFractalChunk, pixelBuffer, pixelBufferWidth, pixelBufferHeight, ystart, yend, rampColors, ramTexWidth, transform, time, std::ref(haltDrawingThread));
+			threadProgress[i] = 0;
+			drawFractalThreads[i] = std::async(std::launch::async, &DrawFractalChunk, pixelBuffer, pixelBufferWidth, pixelBufferHeight, ystart, yend, rampColors, ramTexWidth, transform, time, std::ref(haltDrawingThread), std::ref(threadProgress[i]), std::ref(Mutexes[i]));
 		}
 		fractalThreadNeedsRun = false;
 	}
-	//DrawFractal(currentPixelBuffer, pixelBufferWidth, pixelBufferHeight, rampColors, ramTexWidth, glm::vec3(0.5, 0.5, 2));
-	
+
 	glBindTexture(GL_TEXTURE_2D, fractalTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	std::future_status drawingStatus[NUM_FRACTAL_DRAW_THREADS];
 	bool allThreadsValid = true;
 	bool allThreadsReady = true;
+	bool renderedThisFrame = false;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
 		//any threads are valid
@@ -199,7 +234,7 @@ bool FractalDrawer::Draw(bool update)
 		for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 		{
 			drawingStatus[i] = drawFractalThreads[i].wait_for(std::chrono::seconds(0));
-			allThreadsReady = allThreadsReady || (drawingStatus[i] == std::future_status::ready);
+			allThreadsReady = allThreadsReady && (drawingStatus[i] == std::future_status::ready);
 		}
 		if (allThreadsReady)
 		{
@@ -207,9 +242,12 @@ bool FractalDrawer::Draw(bool update)
 			{
 				drawFractalThreads[i].get();
 			}
-			mtx.lock();
+			LockAllMutexes();
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
-			mtx.unlock();
+			lastlastTransform = lastTransform;
+			lastTransform = transform;
+			renderedThisFrame = true;
+			UnlockAllMutexes();
 		}
 	}
 
@@ -223,8 +261,31 @@ bool FractalDrawer::Draw(bool update)
 	int width = 0;
 	int height = 0;
 	glfwGetWindowSize(window, &width, &height);
-	glBlitFramebuffer(0, 0, pixelBufferWidth, pixelBufferHeight, 0, 0, width, height,
-		GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	float avgThreadProgress = 1;
+	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
+	{
+		avgThreadProgress += threadProgress[i];
+	}
+	avgThreadProgress /= NUM_FRACTAL_DRAW_THREADS;
+	avgThreadProgress = avgThreadProgress;
+	std::cout << avgThreadProgress << std::endl;
+	if (renderedThisFrame == true) avgThreadProgress = 0;
+
+	float scaleDiff = lastlastTransform.z / lastTransform.z;
+	glm::vec2 rendRectX = glm::vec2(0, 1);
+	glm::vec2 rendRectY = glm::vec2(0, 1);
+	glm::vec2 rendRectNewX = rendRectX;
+	glm::vec2 rendRectNewY = rendRectY;
+	if (scaleDiff != 1)
+	{
+		rendRectNewX = rendRectX * scaleDiff + lastTransform.x - lastlastTransform.x + (lastlastTransform.x * (1 - scaleDiff));
+		rendRectNewY = rendRectY * scaleDiff + lastTransform.y - lastlastTransform.y + (lastlastTransform.y * (1 - scaleDiff));
+	}
+	rendRectX = glm::mix(rendRectX, rendRectNewX, avgThreadProgress);
+	rendRectY = glm::mix(rendRectY, rendRectNewY, avgThreadProgress);
+	glBlitFramebuffer(0, 0, pixelBufferWidth, pixelBufferHeight, rendRectX.x * width, rendRectY.x * height, rendRectX.y * width, rendRectY.y * height,
+		GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	glDeleteFramebuffers(1, &fbo);
 	return true;
 }
