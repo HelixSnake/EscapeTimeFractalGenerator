@@ -55,7 +55,10 @@ bool FractalDrawer::DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, i
 {
 	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
 	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
-	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {return previousValue * previousValue + ComplexFloat(sin(time), cos(time * 0.7853975)); });
+	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {
+		const float JULIA_NUMBER = 0.5;
+		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER - cos(2 * time) * JULIA_NUMBER * 0.5, sin(time) * JULIA_NUMBER - sin(2 * time) * JULIA_NUMBER * 0.5);
+		});
 	for (int i = ystart; i < yend; i++)
 	{
 		for (int j = 0; j < pixelBufferWidth; j++)
