@@ -111,7 +111,6 @@ int main(int argc, char* argv[])
 			shouldUpdate = true;
 			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight);
 		}
-
 		// Draw OpenGL 
 		fractalDrawer->Draw(true);
 

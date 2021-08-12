@@ -3,7 +3,7 @@
 class ComplexFractal
 {
 public:
-    float blendPower = 1;
+    float blendPower = 0.5;
     float lengthLimit = 100;
     ComplexFractal();
     ComplexFractal(int iterations);
