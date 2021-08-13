@@ -19,6 +19,7 @@ void ComplexFractal::SetStartingFunction(ComplexFloat(*func)(ComplexFloat input,
 }
 float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 {
+	//default algorithm for starting position
 	ComplexFloat value = ComplexFloat(0, 0);
 	float lengthlimitsqr = lengthLimit * lengthLimit;
 	if (StartingValueFunction != nullptr)
@@ -33,7 +34,7 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 		}
 		else
 		{
-			//default algorithm
+			//default algorithm for recursive function
 			value = value * value + ComplexFloat(x, y);
 		}
 		if (value.AbsoluteValueSqr() > lengthlimitsqr)
@@ -41,6 +42,7 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 			if (iterations != 0)
 			{
 				float ratio = lengthLimit / value.AbsoluteValue();
+				// Adding the ratio ^ blendpower adds gradients between the iterations, smoothing out the sharp edges between colors
 				return (((float)i) + pow(ratio, blendPower)) / (float)iterations;
 			}
 		}

@@ -29,6 +29,14 @@ public:
 	void Zoom(float x, float y, float amount);
 	bool Draw(bool update);
 protected:
+
+	// Change these to modify the drawn fractal equations!
+	static ComplexFloat FRACTAL_STARTING_FUNCTION(ComplexFloat input, float time) { return input; };
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION(ComplexFloat input, ComplexFloat previousValue, float time) {
+		const float JULIA_NUMBER = 0.75;
+		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
+	};
+
 	long double totalTime = 0;
 	steady_clock::time_point lastTime;
 	CF_Float transformx;
@@ -53,6 +61,7 @@ protected:
 	std::future<bool> drawFractalThreads[NUM_FRACTAL_DRAW_THREADS];
 	std::atomic<int> threadProgress[NUM_FRACTAL_DRAW_THREADS];
     std::mutex Mutexes[NUM_FRACTAL_DRAW_THREADS];
+	glm::vec3 clearColor = glm::vec3(0.5, 0.5, 0.5);
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
 	static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
 	bool DrawFractalChunk(int index, float time, CF_Float tfx, CF_Float tfy, CF_Float tfscale);

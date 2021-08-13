@@ -6,7 +6,7 @@
 
 std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
-const int NUM_ITERATIONS = 200;
+const int NUM_ITERATIONS = 256;
 const float VALUE_POWER = 0.4;
 const float LENGTH_LIMIT = 10;
 
@@ -35,6 +35,7 @@ FractalDrawer::~FractalDrawer()
 
 void FractalDrawer::SetRampTexture(GLuint textureID)
 {
+	LockAllMutexes();
 	rampTexture = textureID;
 	// Build Ramp Color Array
 	if (rampTexture != 0)
@@ -44,6 +45,7 @@ void FractalDrawer::SetRampTexture(GLuint textureID)
 		rampColors = new float[ramTexWidth * 3];
 		glGetnTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, ramTexWidth * 3 * sizeof(float), rampColors);
 	}
+	UnlockAllMutexes();
 }
 
 void FractalDrawer::LockAllMutexes() 
@@ -77,13 +79,8 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
 	fractal.lengthLimit = LENGTH_LIMIT;
-	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
-	//fractal.SetStartingFunction([](ComplexFloat input, float time) {return ComplexFloat(0, 0); });
-	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {
-		const float JULIA_NUMBER = 0.75;
-		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
-		//return previousValue * previousValue + input;
-		});
+	fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION);
+	fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION);
 	int currentThreadProgress = 0;
 	for (int i = index; i < pixelBufferHeight; i += NUM_FRACTAL_DRAW_THREADS)
 	{
@@ -216,7 +213,7 @@ bool FractalDrawer::Draw(bool update)
 		lastTime = currentTime;
 		for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 		{
-			int chunksize = pixelBufferHeight / 16; //needs to be 15 to get all pixels
+			int chunksize = pixelBufferHeight / 16;
 			int ystart = i * chunksize;
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
 			threadProgress[i] = 0;
@@ -292,13 +289,14 @@ bool FractalDrawer::Draw(bool update)
 	CF_Float rendRectNewX2 = 1;
 	CF_Float rendRectNewY1 = 0;
 	CF_Float rendRectNewY2 = 1;
-	//guide: oldTX = old transform X, oldTZ = old transform Z, newTX = new transform X, newTZ = new transform Z, pBW & pBH = pixel buffer width and height
+	//guide: oldTX = old transform X, oldTZ = old transform Z(scale), newTX = new transform X, newTZ = new transform Z(scale), pBW & pBH = pixel buffer width and height
 	//oldCX = corner before transformation, newCX = corner after transformation (this is the value we're trying to find)
+	//x is the position on screen of the cursor, ranging from 0 to 1 horizontally and vertically
 	//invert zoom function:
 	//newTX = oldTX - ((x * pBW / pBH - oldTX) * newTZ / oldTZ) * (1 - oldTZ / newTZ);
 	//solve for x
 	//x = ((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ + oldTX) / pBW * pBH;
-	//unfortunately, when 1 - amount = 0, we have a divide by 0 error; we could check for that, but the proper solution is to optimize that division out of the equation
+	//unfortunately, when 1 - oldTX / newTZ = 0, we have a divide by 0 error; we could check for that, but the proper solution is to optimize that division out of the equation
 	//scale to point formula: 
 	//newCX = (oldCX - x) * oldTZ / newTZ + x;
 	//simplify so x only shows up once: 
@@ -319,6 +317,8 @@ bool FractalDrawer::Draw(bool update)
 	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, avgThreadProgress);
 	rendRectY1 = glm::mix(rendRectY1, rendRectNewY1, avgThreadProgress);
 	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, avgThreadProgress);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 	glBlitFramebuffer(0, 0, pixelBufferWidth, pixelBufferHeight, rendRectX1 * width, rendRectY1 * height, rendRectX2 * width, rendRectY2 * height,
 		GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	glDeleteFramebuffers(1, &fbo);
