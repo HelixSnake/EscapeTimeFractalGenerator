@@ -1,6 +1,6 @@
 #pragma once
 
-#define CF_Float float
+#define CF_Float long double
 struct ComplexFloat
 {
 	CF_Float real;

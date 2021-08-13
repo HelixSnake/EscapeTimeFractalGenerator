@@ -21,6 +21,7 @@ const int NUM_FRACTAL_DRAW_THREADS = 16;
 class FractalDrawer
 {
 public:
+	bool enableAnimation = true;
 	FractalDrawer(int width, int height, GLFWwindow* window);
 	~FractalDrawer();
 	void SetRampTexture(GLuint textureID);
@@ -28,7 +29,8 @@ public:
 	void Zoom(float x, float y, float amount);
 	bool Draw(bool update);
 protected:
-	steady_clock::time_point startTime;
+	long double totalTime = 0;
+	steady_clock::time_point lastTime;
 	CF_Float transformx;
 	CF_Float transformy;
 	CF_Float transformz;

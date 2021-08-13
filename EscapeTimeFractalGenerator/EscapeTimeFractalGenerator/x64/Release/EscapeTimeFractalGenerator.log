@@ -3,17 +3,46 @@ E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\Escap
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(4,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(5,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(10,30): warning C4305: 'initializing': truncation from 'double' to 'float'
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(133,152): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(213,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,135): warning C4244: 'argument': conversion from 'float' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,115): warning C4244: 'argument': conversion from 'float' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,94): warning C4244: 'argument': conversion from 'float' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,74): warning C4244: 'argument': conversion from 'float' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(108,20): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(156,20): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(322,135): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(322,115): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(322,94): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(322,74): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\type_traits(1601,77): warning C4244: 'argument': conversion from 'long double' to 'float', possible loss of data
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1456): message : see reference to function template instantiation 'bool std::invoke<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int,long double,long double,long double,long double>(_Callable &&,_Ty1 &&,int &&,long double &&,long double &&,long double &&,long double &&) noexcept(false)' being compiled
+          with
+          [
+              _Callable=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double),
+              _Ty1=FractalDrawer *
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1463): message : see reference to function template instantiation 'bool std::_Invoke_stored_explicit<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int,long double,long double,long double,long double,0,1,2,3,4,5,6>(std::tuple<bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer *,int,long double,long double,long double,long double> &&,std::integer_sequence<size_t,0,1,2,3,4,5,6>)' being compiled
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1490): message : see reference to function template instantiation 'bool std::_Invoke_stored<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int,long double,long double,long double,long double>(std::tuple<bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer *,int,long double,long double,long double,long double> &&)' being compiled
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1490): message : while compiling class template member function 'bool std::_Fake_no_copy_callable_adapter<_Fty,FractalDrawer *,int &,long double &,long double &,long double &,long double &>::operator ()(void)'
+          with
+          [
+              _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\type_traits(1585): message : see reference to function template instantiation 'bool std::_Fake_no_copy_callable_adapter<_Fty,FractalDrawer *,int &,long double &,long double &,long double &,long double &>::operator ()(void)' being compiled
+          with
+          [
+              _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1512): message : see reference to class template instantiation 'std::_Fake_no_copy_callable_adapter<_Fty,FractalDrawer *,int &,long double &,long double &,long double &,long double &>' being compiled
+          with
+          [
+              _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
+          ]
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(223): message : see reference to function template instantiation 'std::future<bool> std::async<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int&,long double&,long double&,long double&,long double&>(std::launch,_Fty &&,FractalDrawer *&&,int &,long double &,long double &,long double &,long double &)' being compiled
+          with
+          [
+              _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
+          ]
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  2 of 951 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+  2 of 954 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Release\vc120.pdb'; linking object as if no debug info
   EscapeTimeFractalGenerator.vcxproj -> E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Release\EscapeTimeFractalGenerator.exe

@@ -88,6 +88,8 @@ int main(int argc, char* argv[])
 	GLuint rampTexture = LoadRampTexture();
 	fractalDrawer->SetRampTexture(rampTexture);
 	auto deltaTimeStart = std::chrono::high_resolution_clock::now();
+	bool animateFractal = true;
+	bool SpaceBarPressed = false;
 	while (!glfwWindowShouldClose(window))
 	{
 		auto deltaTimeEnd = std::chrono::high_resolution_clock::now();
@@ -100,6 +102,7 @@ int main(int argc, char* argv[])
 		//zoom?
 		int leftMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 		int rightMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+		int spaceBar = glfwGetKey(window, GLFW_KEY_SPACE);
 		double mbxpos, mbypos;
 		glfwGetCursorPos(window, &mbxpos, &mbypos);
 		mbxpos /= currentWindowWidth;
@@ -112,6 +115,17 @@ int main(int argc, char* argv[])
 		{
 			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(2, deltaTime));
 		}
+		if (spaceBar == GLFW_PRESS)
+		{
+			if (!SpaceBarPressed)
+			animateFractal = !animateFractal;
+			SpaceBarPressed = true;
+		}
+		else
+		{
+			SpaceBarPressed = false;
+		}
+		fractalDrawer->enableAnimation = animateFractal;
 
 		// Render 
 		// Clear the colorbuffer 
@@ -132,7 +146,7 @@ int main(int argc, char* argv[])
 			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight);
 		}
 		// Draw OpenGL 
-		fractalDrawer->Draw(true);
+		fractalDrawer->Draw(shouldUpdate || animateFractal);
 
 		glfwSwapBuffers(window);
 	}

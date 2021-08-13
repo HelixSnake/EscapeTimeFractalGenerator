@@ -20,7 +20,6 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	transformx = STARTING_TRANSFORM.x;
 	transformy = STARTING_TRANSFORM.y;
 	transformz = STARTING_TRANSFORM.z;
-	startTime = high_resolution_clock::now();
 }
 
 FractalDrawer::~FractalDrawer()
@@ -97,7 +96,7 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 			}
 			CF_Float x = (CF_Float)j / pixelBufferWidth;
 			CF_Float y = (CF_Float)i / pixelBufferHeight;
-			x = (x - tfx) * tfscale * pixelBufferWidth / pixelBufferHeight;
+			x = (x * pixelBufferWidth / pixelBufferHeight - tfx) * tfscale;
 			y = (y - tfy) * tfscale;
 			CF_Float value = fractal.CalculateEscapeTime(x, y, time);
 			if (value == 0)
@@ -190,7 +189,7 @@ void FractalDrawer::Resize(int width, int height)
 void FractalDrawer::Zoom(float x, float y, float amount)
 {
 	//convert x y point to "World space" by replicating transform performed on pixels
-	CF_Float newX = (x - transformx) * transformz;
+	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - transformx) * transformz;
 	CF_Float newY = (y - transformy) * transformz;
 	transformz *= amount;
 	transformx -= (newX / transformz) * (1 - amount);
@@ -210,14 +209,18 @@ bool FractalDrawer::Draw(bool update)
 	if (!anyThreadsValid && fractalThreadNeedsRun)
 	{
 		steady_clock::time_point currentTime = high_resolution_clock::now();
-		float time = duration_cast<milliseconds>(currentTime - startTime).count() * 0.001;
+		if (enableAnimation)
+		{
+			totalTime = totalTime + duration_cast<nanoseconds>(currentTime - lastTime).count() / 1000000000.0;
+		}
+		lastTime = currentTime;
 		for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 		{
 			int chunksize = pixelBufferHeight / 16; //needs to be 15 to get all pixels
 			int ystart = i * chunksize;
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
 			threadProgress[i] = 0;
-			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, time, transformx, transformy, transformz);
+			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, totalTime, transformx, transformy, transformz);
 		}
 		fractalThreadNeedsRun = false;
 	}
@@ -289,11 +292,27 @@ bool FractalDrawer::Draw(bool update)
 	CF_Float rendRectNewX2 = 1;
 	CF_Float rendRectNewY1 = 0;
 	CF_Float rendRectNewY2 = 1;
+	//guide: oldTX = old transform X, oldTZ = old transform Z, newTX = new transform X, newTZ = new transform Z, pBW & pBH = pixel buffer width and height
+	//oldCX = corner before transformation, newCX = corner after transformation (this is the value we're trying to find)
+	//invert zoom function:
+	//newTX = oldTX - ((x * pBW / pBH - oldTX) * newTZ / oldTZ) * (1 - oldTZ / newTZ);
+	//solve for x
+	//x = ((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ + oldTX) / pBW * pBH;
+	//unfortunately, when 1 - amount = 0, we have a divide by 0 error; we could check for that, but the proper solution is to optimize that division out of the equation
+	//scale to point formula: 
+	//newCX = (oldCX - x) * oldTZ / newTZ + x;
+	//simplify so x only shows up once: 
+	//newCX = (oldCX * oldTZ / newTZ) + x * (1 - oldTZ / newTZ);
+	//combine:
+	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ + oldTX) / pBW * pBH) * (1 - oldTZ / newTZ);
+	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ * (1 - oldTZ / newTZ) + oldTX * (1 - oldTZ / newTZ)) / pBW * pBH);
+	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) * oldTZ / newTZ + oldTX * (1 - oldTZ / newTZ)) / pBW * pBH);
+	//for Y it's the same equation, except you don't need pBW or pBH and all instances of X are replaced with Y.
 	if (scaleDiff != 1)
 	{
-		rendRectNewX1 = rendRectX1 * scaleDiff + lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff));
+		rendRectNewX1 = rendRectX1 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
 		rendRectNewY1 = rendRectY1 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
-		rendRectNewX2 = rendRectX2 * scaleDiff + lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff));
+		rendRectNewX2 = rendRectX2 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
 		rendRectNewY2 = rendRectY2 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
 	}
 	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, avgThreadProgress);
