@@ -28,9 +28,8 @@ ComplexFloat ComplexFloat::operator-(ComplexFloat other)
 ComplexFloat ComplexFloat::operator*(ComplexFloat other)
 {
 	ComplexFloat output;
-	output.real = other.real * this->real;
+	output.real = other.real * this->real - other.imaginary * this->imaginary;
 	output.imaginary = other.imaginary * this->real + this->imaginary * other.real;
-	output.real -= other.imaginary * this->imaginary;
 	return output;
 }
 

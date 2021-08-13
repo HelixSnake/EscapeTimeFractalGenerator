@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight);
 		}
 		// Draw OpenGL 
-		fractalDrawer->Draw(true);
+		fractalDrawer->Draw(shouldUpdate);
 
 		glfwSwapBuffers(window);
 	}

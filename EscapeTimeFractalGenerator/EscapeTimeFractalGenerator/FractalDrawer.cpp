@@ -6,7 +6,7 @@
 
 std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
-const int NUM_ITERATIONS = 200;
+const int NUM_ITERATIONS = 500;
 const float VALUE_POWER = 0.4;
 const float LENGTH_LIMIT = 10;
 
@@ -17,7 +17,9 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	this->window = window;
 	pixelBuffer = new float[width * height * 3];
 	glGenTextures(1, &fractalTexture);
-	transform = STARTING_TRANSFORM;
+	transformx = STARTING_TRANSFORM.x;
+	transformy = STARTING_TRANSFORM.y;
+	transformz = STARTING_TRANSFORM.z;
 	startTime = high_resolution_clock::now();
 }
 
@@ -71,32 +73,33 @@ void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixe
 	pixelBuffer[startIndex + 2] = b;
 }
 
-bool FractalDrawer::DrawFractalChunk(int index, float time, glm::vec3 transform)
+bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
 	fractal.lengthLimit = LENGTH_LIMIT;
-	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
+	//fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
+	fractal.SetStartingFunction([](ComplexFloat input, float time) {return ComplexFloat(0, 0); });
 	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {
 		const float JULIA_NUMBER = 0.75;
-		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
+		//return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
+		return previousValue * previousValue + input;
 		});
 	int currentThreadProgress = 0;
 	for (int i = index; i < pixelBufferHeight; i += NUM_FRACTAL_DRAW_THREADS)
 	{
-		// no need to check "yend - ystart" for 0 because if they are, the code won't get here anyways
-		threadProgress[index] = currentThreadProgress;
 		for (int j = 0; j < pixelBufferWidth; j++)
 		{
+			threadProgress[index] = currentThreadProgress;
 			if (haltDrawingThread)
 			{
 				return false;
 			}
-			float x = (float)j / pixelBufferWidth;
-			float y = (float)i / pixelBufferHeight;
-			x = (x - transform.x) * transform.z * pixelBufferWidth / pixelBufferHeight;
-			y = (y - transform.y) * transform.z;
-			float value = fractal.CalculateEscapeTime(x, y, time);
+			CF_Float x = (CF_Float)j / pixelBufferWidth;
+			CF_Float y = (CF_Float)i / pixelBufferHeight;
+			x = (x - tfx) * tfscale * pixelBufferWidth / pixelBufferHeight;
+			y = (y - tfy) * tfscale;
+			CF_Float value = fractal.CalculateEscapeTime(x, y, time);
 			if (value == 0)
 			{
 				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0, 0, 0);
@@ -115,8 +118,8 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, glm::vec3 transform)
 				else
 					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, newValue, newValue, newValue);
 			}
+			currentThreadProgress++;
 		}
-		currentThreadProgress++;
 	}
 	return true;
 }
@@ -139,11 +142,12 @@ bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pi
 				halt = false;
 				return false;
 			}
-			float x = (float)j / pixelBufferWidth;
-			float y = (float)i / pixelBufferHeight;
-			x = (x - transform.x) * transform.z * pixelBufferWidth / pixelBufferHeight;
-			y = (y - transform.y) * transform.z;
-			float value = fractal.CalculateEscapeTime(x, y, time);
+			CF_Float x = (CF_Float)j / pixelBufferWidth;
+			CF_Float y = (CF_Float)i / pixelBufferHeight;
+			CF_Float ratio = (CF_Float)pixelBufferWidth / pixelBufferHeight;
+			x = (x - (CF_Float)transform.x) * (CF_Float)transform.z * ratio;
+			y = (y - (CF_Float)transform.y) * (CF_Float)transform.z;
+			CF_Float value = fractal.CalculateEscapeTime(x, y, time);
 			if (value == 0)
 			{
 				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0, 0, 0);
@@ -186,16 +190,16 @@ void FractalDrawer::Resize(int width, int height)
 void FractalDrawer::Zoom(float x, float y, float amount)
 {
 	//convert x y point to "World space" by replicating transform performed on pixels
-	float newX = (x - transform.x) * transform.z;
-	float newY = (y - transform.y) * transform.z;
-	transform.z *= amount;
-	transform.x -= (newX / transform.z) * (1 - amount);
-	transform.y -= (newY / transform.z) * (1 - amount);
+	CF_Float newX = (x - transformx) * transformz;
+	CF_Float newY = (y - transformy) * transformz;
+	transformz *= amount;
+	transformx -= (newX / transformz) * (1 - amount);
+	transformy -= (newY / transformz) * (1 - amount);
 }
 
 bool FractalDrawer::Draw(bool update)
 {
-	fractalThreadNeedsRun = fractalThreadNeedsRun || update;
+	fractalThreadNeedsRun = fractalThreadNeedsRun || update || lastTransformz != transformz;
 	//Draw Fractal
 	bool anyThreadsValid = false;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
@@ -213,7 +217,7 @@ bool FractalDrawer::Draw(bool update)
 			int ystart = i * chunksize;
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
 			threadProgress[i] = 0;
-			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, time, transform);
+			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, time, transformx, transformy, transformz);
 		}
 		fractalThreadNeedsRun = false;
 	}
@@ -245,8 +249,12 @@ bool FractalDrawer::Draw(bool update)
 			}
 			LockAllMutexes();
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
-			lastlastTransform = lastTransform;
-			lastTransform = transform;
+			lastLastTransformx = lastTransformx;
+			lastLastTransformy = lastTransformy;
+			lastLastTransformz = lastTransformz;
+			lastTransformx = transformx;
+			lastTransformy = transformy;
+			lastTransformz = transformz;
 			renderedThisFrame = true;
 			UnlockAllMutexes();
 		}
@@ -268,24 +276,31 @@ bool FractalDrawer::Draw(bool update)
 	{
 		avgThreadProgress += threadProgress[i];
 	}
-	avgThreadProgress /= pixelBufferHeight;
-	avgThreadProgress = avgThreadProgress;
+	avgThreadProgress /= pixelBufferHeight * pixelBufferWidth;
 	//std::cout << avgThreadProgress << std::endl;
 	if (renderedThisFrame == true) avgThreadProgress = 0;
 
-	float scaleDiff = lastlastTransform.z / lastTransform.z;
-	glm::vec2 rendRectX = glm::vec2(0, 1);
-	glm::vec2 rendRectY = glm::vec2(0, 1);
-	glm::vec2 rendRectNewX = rendRectX;
-	glm::vec2 rendRectNewY = rendRectY;
+	CF_Float scaleDiff = lastLastTransformz / lastTransformz;
+	CF_Float rendRectX1 = 0;
+	CF_Float rendRectX2 = 1;
+	CF_Float rendRectY1 = 0;
+	CF_Float rendRectY2 = 1;
+	CF_Float rendRectNewX1 = 0;
+	CF_Float rendRectNewX2 = 1;
+	CF_Float rendRectNewY1 = 0;
+	CF_Float rendRectNewY2 = 1;
 	if (scaleDiff != 1)
 	{
-		rendRectNewX = rendRectX * scaleDiff + lastTransform.x - lastlastTransform.x + (lastlastTransform.x * (1 - scaleDiff));
-		rendRectNewY = rendRectY * scaleDiff + lastTransform.y - lastlastTransform.y + (lastlastTransform.y * (1 - scaleDiff));
+		rendRectNewX1 = rendRectX1 * scaleDiff + lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff));
+		rendRectNewY1 = rendRectY1 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
+		rendRectNewX2 = rendRectX2 * scaleDiff + lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff));
+		rendRectNewY2 = rendRectY2 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
 	}
-	rendRectX = glm::mix(rendRectX, rendRectNewX, avgThreadProgress);
-	rendRectY = glm::mix(rendRectY, rendRectNewY, avgThreadProgress);
-	glBlitFramebuffer(0, 0, pixelBufferWidth, pixelBufferHeight, rendRectX.x * width, rendRectY.x * height, rendRectX.y * width, rendRectY.y * height,
+	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, avgThreadProgress);
+	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, avgThreadProgress);
+	rendRectY1 = glm::mix(rendRectY1, rendRectNewY1, avgThreadProgress);
+	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, avgThreadProgress);
+	glBlitFramebuffer(0, 0, pixelBufferWidth, pixelBufferHeight, rendRectX1 * width, rendRectY1 * height, rendRectX2 * width, rendRectY2 * height,
 		GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	glDeleteFramebuffers(1, &fbo);
 	return true;

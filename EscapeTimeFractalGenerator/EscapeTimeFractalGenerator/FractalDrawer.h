@@ -12,6 +12,7 @@
 
 //GLM
 #include <glm/vec3.hpp>
+#include "ComplexFloat.h"
 
 using namespace std::chrono;
 
@@ -28,9 +29,15 @@ public:
 	bool Draw(bool update);
 protected:
 	steady_clock::time_point startTime;
-	glm::vec3 transform;
-	glm::vec3 lastTransform;
-	glm::vec3 lastlastTransform;
+	CF_Float transformx;
+	CF_Float transformy;
+	CF_Float transformz;
+	CF_Float lastTransformx;
+	CF_Float lastTransformy;
+	CF_Float lastTransformz;
+	CF_Float lastLastTransformx;
+	CF_Float lastLastTransformy;
+	CF_Float lastLastTransformz;
 	GLuint rampTexture = 0;
 	GLuint fractalTexture = 0;
 	float *pixelBuffer, *rampColors = nullptr;
@@ -46,7 +53,7 @@ protected:
     std::mutex Mutexes[NUM_FRACTAL_DRAW_THREADS];
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
 	static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
-	bool DrawFractalChunk(int index, float time, glm::vec3 transform);
+	bool DrawFractalChunk(int index, float time, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
 	void LockAllMutexes();
 	void UnlockAllMutexes();
 };
