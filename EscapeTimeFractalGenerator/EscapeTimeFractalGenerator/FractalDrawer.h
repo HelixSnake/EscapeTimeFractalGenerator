@@ -42,11 +42,11 @@ protected:
 	GLFWwindow* window = nullptr;
 	std::future<bool> drawFractalThread;
 	std::future<bool> drawFractalThreads[NUM_FRACTAL_DRAW_THREADS];
-	std::atomic<float> threadProgress[NUM_FRACTAL_DRAW_THREADS];
+	std::atomic<int> threadProgress[NUM_FRACTAL_DRAW_THREADS];
     std::mutex Mutexes[NUM_FRACTAL_DRAW_THREADS];
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
 	static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
-	static bool DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int ystart, int yend, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool& halt, std::atomic<float>& threadProgress, std::mutex &threadLock);
+	bool DrawFractalChunk(int index, float time, glm::vec3 transform);
 	void LockAllMutexes();
 	void UnlockAllMutexes();
 };

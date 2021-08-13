@@ -6,9 +6,9 @@
 
 std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
-const int NUM_ITERATIONS = 1000;
+const int NUM_ITERATIONS = 200;
 const float VALUE_POWER = 0.4;
-const float LENGTH_LIMIT = 4;
+const float LENGTH_LIMIT = 10;
 
 FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window) 
 {
@@ -71,25 +71,25 @@ void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixe
 	pixelBuffer[startIndex + 2] = b;
 }
 
-bool FractalDrawer::DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int ystart, int yend, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool& halt, std::atomic<float>& threadProgress, std::mutex &mutex)
+bool FractalDrawer::DrawFractalChunk(int index, float time, glm::vec3 transform)
 {
-	std::lock_guard<std::mutex> lock1{ mutex };
+	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
 	fractal.lengthLimit = LENGTH_LIMIT;
 	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
 	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {
 		const float JULIA_NUMBER = 0.75;
-		return previousValue * previousValue * previousValue + ComplexFloat(cos(2) * JULIA_NUMBER, sin(2) * JULIA_NUMBER);
+		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
 		});
-	for (int i = ystart; i < yend; i++)
+	int currentThreadProgress = 0;
+	for (int i = index; i < pixelBufferHeight; i += NUM_FRACTAL_DRAW_THREADS)
 	{
 		// no need to check "yend - ystart" for 0 because if they are, the code won't get here anyways
-		threadProgress = (float)(i - ystart) / (yend - ystart);
+		threadProgress[index] = currentThreadProgress;
 		for (int j = 0; j < pixelBufferWidth; j++)
 		{
-			if (halt)
+			if (haltDrawingThread)
 			{
-				halt = false;
 				return false;
 			}
 			float x = (float)j / pixelBufferWidth;
@@ -106,8 +106,8 @@ bool FractalDrawer::DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, i
 				float newValue = pow(value, VALUE_POWER);
 				if (rampColors != nullptr)
 				{
-					int rampIndex = ((int)((float)rampColorsWidth * (1 - newValue)));
-					if (rampIndex > rampColorsWidth - 1) rampIndex = rampColorsWidth - 1;
+					int rampIndex = ((int)((float)ramTexWidth * (1 - newValue)));
+					if (rampIndex > ramTexWidth - 1) rampIndex = ramTexWidth - 1;
 					rampIndex *= 3;
 					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
 					//DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, value, value, value);
@@ -116,6 +116,7 @@ bool FractalDrawer::DrawFractalChunk(float* pixelBuffer, int pixelBufferWidth, i
 					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, newValue, newValue, newValue);
 			}
 		}
+		currentThreadProgress++;
 	}
 	return true;
 }
@@ -212,7 +213,7 @@ bool FractalDrawer::Draw(bool update)
 			int ystart = i * chunksize;
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
 			threadProgress[i] = 0;
-			drawFractalThreads[i] = std::async(std::launch::async, &DrawFractalChunk, pixelBuffer, pixelBufferWidth, pixelBufferHeight, ystart, yend, rampColors, ramTexWidth, transform, time, std::ref(haltDrawingThread), std::ref(threadProgress[i]), std::ref(Mutexes[i]));
+			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, time, transform);
 		}
 		fractalThreadNeedsRun = false;
 	}
@@ -262,14 +263,14 @@ bool FractalDrawer::Draw(bool update)
 	int height = 0;
 	glfwGetWindowSize(window, &width, &height);
 
-	float avgThreadProgress = 1;
+	float avgThreadProgress = 0;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
 		avgThreadProgress += threadProgress[i];
 	}
-	avgThreadProgress /= NUM_FRACTAL_DRAW_THREADS;
+	avgThreadProgress /= pixelBufferHeight;
 	avgThreadProgress = avgThreadProgress;
-	std::cout << avgThreadProgress << std::endl;
+	//std::cout << avgThreadProgress << std::endl;
 	if (renderedThisFrame == true) avgThreadProgress = 0;
 
 	float scaleDiff = lastlastTransform.z / lastTransform.z;
