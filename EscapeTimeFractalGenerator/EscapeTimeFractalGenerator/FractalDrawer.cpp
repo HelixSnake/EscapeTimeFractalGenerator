@@ -6,7 +6,7 @@
 
 std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
-const int NUM_ITERATIONS = 500;
+const int NUM_ITERATIONS = 200;
 const float VALUE_POWER = 0.4;
 const float LENGTH_LIMIT = 10;
 
@@ -78,12 +78,12 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
 	fractal.lengthLimit = LENGTH_LIMIT;
-	//fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
-	fractal.SetStartingFunction([](ComplexFloat input, float time) {return ComplexFloat(0, 0); });
+	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
+	//fractal.SetStartingFunction([](ComplexFloat input, float time) {return ComplexFloat(0, 0); });
 	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {
 		const float JULIA_NUMBER = 0.75;
-		//return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
-		return previousValue * previousValue + input;
+		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
+		//return previousValue * previousValue + input;
 		});
 	int currentThreadProgress = 0;
 	for (int i = index; i < pixelBufferHeight; i += NUM_FRACTAL_DRAW_THREADS)

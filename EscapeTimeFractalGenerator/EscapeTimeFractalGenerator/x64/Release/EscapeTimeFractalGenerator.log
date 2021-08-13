@@ -3,18 +3,17 @@ E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\Escap
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(4,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(5,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(10,30): warning C4305: 'initializing': truncation from 'double' to 'float'
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(109,20): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(157,20): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(133,152): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(213,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,135): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,115): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,94): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,74): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,135): warning C4244: 'argument': conversion from 'float' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,115): warning C4244: 'argument': conversion from 'float' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,94): warning C4244: 'argument': conversion from 'float' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(303,74): warning C4244: 'argument': conversion from 'float' to 'GLint', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  2 of 958 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+  2 of 951 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    1 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Release\vc120.pdb'; linking object as if no debug info
   EscapeTimeFractalGenerator.vcxproj -> E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Release\EscapeTimeFractalGenerator.exe

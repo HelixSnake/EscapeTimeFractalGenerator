@@ -1,6 +1,6 @@
 #pragma once
 
-#define CF_Float long double
+#define CF_Float float
 struct ComplexFloat
 {
 	CF_Float real;
@@ -12,5 +12,6 @@ struct ComplexFloat
 	ComplexFloat operator-(const ComplexFloat other);
 	ComplexFloat operator*(const ComplexFloat other);
 	CF_Float AbsoluteValue();
+	CF_Float AbsoluteValueSqr();
 };
 

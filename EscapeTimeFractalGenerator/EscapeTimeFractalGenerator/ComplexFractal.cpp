@@ -20,6 +20,7 @@ void ComplexFractal::SetStartingFunction(ComplexFloat(*func)(ComplexFloat input,
 float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 {
 	ComplexFloat value = ComplexFloat(0, 0);
+	float lengthlimitsqr = lengthLimit * lengthLimit;
 	if (StartingValueFunction != nullptr)
 	{ 
 		value = StartingValueFunction(ComplexFloat(x, y), time);
@@ -35,11 +36,11 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 			//default algorithm
 			value = value * value + ComplexFloat(x, y);
 		}
-		float ratio = lengthLimit / value.AbsoluteValue();
-		if (ratio < 1)
+		if (value.AbsoluteValueSqr() > lengthlimitsqr)
 		{
 			if (iterations != 0)
 			{
+				float ratio = lengthLimit / value.AbsoluteValue();
 				return (((float)i) + pow(ratio, blendPower)) / (float)iterations;
 			}
 		}

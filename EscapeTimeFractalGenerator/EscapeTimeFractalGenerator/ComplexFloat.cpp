@@ -35,5 +35,9 @@ ComplexFloat ComplexFloat::operator*(ComplexFloat other)
 
 CF_Float ComplexFloat::AbsoluteValue()
 {
-	return (CF_Float)sqrtl((long double)(this->real * this->real + this->imaginary * this->imaginary));
+	return (CF_Float)sqrtf(this->real * this->real + this->imaginary * this->imaginary);
+}
+CF_Float ComplexFloat::AbsoluteValueSqr()
+{
+	return this->real * this->real + this->imaginary * this->imaginary;
 }
