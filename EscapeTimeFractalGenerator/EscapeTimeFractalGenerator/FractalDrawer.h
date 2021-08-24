@@ -66,6 +66,7 @@ protected:
 	int ramTexWidth = 0;
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
+	float upScale = 1;
 	bool fractalThreadNeedsRun = true;
 	std::atomic_bool haltDrawingThread = false;
 	GLFWwindow* window = nullptr;

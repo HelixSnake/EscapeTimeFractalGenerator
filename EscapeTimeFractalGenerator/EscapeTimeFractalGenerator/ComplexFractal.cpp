@@ -34,8 +34,7 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 	}
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
 	ComplexFloat prevValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
-	float newLengthLimit = lengthLimit;
-	float newLengthLimitSqr = newLengthLimit * newLengthLimit;
+	float lengthLimitSqr = lengthLimit * lengthLimit;
 	for (int i = 0; i < iterations; i++)
 	{
 		if (ComplexFunction != nullptr)
@@ -48,11 +47,12 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 			value = value * value + ComplexFloat(x, y);
 		}
 		float absValSqr = value.AbsoluteValueSqr();
-		if (absValSqr > newLengthLimitSqr)
+		if (absValSqr > lengthLimitSqr)
 		{
-			//float ratio = (newLengthLimit) / value.AbsoluteValue();
+			float ratio = (lengthLimit) / value.AbsoluteValue();
+			ratio = glm::clamp(ratio, 0.0f, 1.0f); // Extra insurance to keep the function below from spitting out NAN if ratio < 0 or infinity if lengthLimit == 1
 			//please for the love of God do not ask me why this works but it's necessary to make the gradient appear linear
-			float ratio = pow((newLengthLimit) / value.AbsoluteValue(), 1/log(newLengthLimit))* 1.58;
+			ratio = pow(ratio, 1/log(lengthLimit))* 1.58;
 			return (float)i + ratio;
 		}
 		ComplexFloat deviation = value - prevValue;
