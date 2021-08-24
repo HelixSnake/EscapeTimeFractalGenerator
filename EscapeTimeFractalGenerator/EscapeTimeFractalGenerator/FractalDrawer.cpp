@@ -8,8 +8,8 @@ std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
 //const float VALUE_POWER = 0.4;
 //const float VALUE_MULT = 0.01;
-const float VALUE_PERIOD = 100;
-const float LENGTH_LIMIT = 10;
+//const float VALUE_PERIOD = 100;
+//const float LENGTH_LIMIT = 100;
 
 FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window) 
 {
@@ -88,7 +88,7 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(iterations, minDeviation);
-	fractal.lengthLimit = LENGTH_LIMIT;
+	fractal.lengthLimit = lengthLimit;
 	fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION);
 	fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION);
 	int currentThreadProgress = 0;
@@ -114,6 +114,7 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 			{
 				//logarithmic function keeps period similar at all zoom levels
 				float newValue = glm::fract(log(value) / period);
+				//float newValue = glm::fract(value / period);
 				if (rampColors != nullptr)
 				{
 					int rampIndex = ((int)((float)ramTexWidth * (1 - newValue)));
@@ -210,6 +211,13 @@ void FractalDrawer::SetMinDeviation(float minDeviation)
 {
 	LockAllMutexes();
 	this->minDeviation = minDeviation;
+	UnlockAllMutexes();
+}
+
+void FractalDrawer::SetLengthLimit(float lengthLimit)
+{
+	LockAllMutexes();
+	this->lengthLimit = lengthLimit;
 	UnlockAllMutexes();
 }
 

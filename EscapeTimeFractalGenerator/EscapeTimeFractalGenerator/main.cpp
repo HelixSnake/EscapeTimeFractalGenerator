@@ -26,7 +26,9 @@
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
 const GLint UI_WINDOW_WIDTH = 500;
-const GLint UI_WINDOW_HEIGHT =300;
+const GLint UI_WINDOW_HEIGHT = 300;
+const int START_ITERATIONS = 100;
+const double START_LENGTH_LIMIT = 100;
 const double SMALL_DOUBLE_VALUE = 0.000000000000001;
 const double ZOOM_PER_SECOND = 2.0;
 const char* COLOR_RAMP_FILENAME = "colorRamp.png";
@@ -39,6 +41,7 @@ struct FractalInfo
 	float upscale = 1;
 	float period = 100;
 	double minDeviation = 0;
+	double lengthLimit = 10;
 };
 
 void ClearPixelBuffer(float* buffer, int size)
@@ -96,6 +99,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 	ImGui::InputFloat("Upscale", &fractalInfo.upscale);
 	ImGui::InputFloat("Period", &fractalInfo.period);
 	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0f, 8.0f);
+	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0f, "%.3f");
 	ImGui::Text("Set this value to something small to improve rendering time");
 	ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
 	if (ImGui::Button("Update"))
@@ -164,13 +168,15 @@ int main(int argc, char* argv[])
 	bool updateButton = false;
 	//fractal properties
 	FractalInfo fracInfo;
-	fracInfo.iterations = 40;
+	fracInfo.iterations = START_ITERATIONS;
 	fracInfo.upscale = 1;
 	fracInfo.period = 1; 
 	fracInfo.minDeviation = SMALL_DOUBLE_VALUE;
+	fracInfo.lengthLimit = START_LENGTH_LIMIT;
 	fractalDrawer->SetIterations(fracInfo.iterations);
 	fractalDrawer->SetPeriod(fracInfo.period);
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
+	fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
@@ -235,6 +241,7 @@ int main(int argc, char* argv[])
 			fractalDrawer->SetIterations(fracInfo.iterations);
 			fractalDrawer->SetPeriod(fracInfo.period);
 			fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
+			fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 		}
 		fractalDrawer->Draw(updateOnResize || updateButton);
 

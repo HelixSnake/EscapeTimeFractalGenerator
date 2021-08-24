@@ -29,6 +29,7 @@ public:
 	void SetIterations(int iterations);
 	void SetPeriod(float period);
 	void SetMinDeviation(float minDeviation);
+	void SetLengthLimit(float lengthLimit);
 	void Zoom(float x, float y, float amount);
 	bool Draw(bool update);
 protected:
@@ -46,6 +47,7 @@ protected:
 	std::atomic_int iterations = 40;
 	std::atomic<float> period = 100;
 	std::atomic<float> minDeviation = 0;
+	std::atomic<float> lengthLimit = 10;
 
 	long double totalTime = 0;
 	steady_clock::time_point lastTime;
