@@ -1,3 +1,0 @@
-﻿  FractalDrawer.cpp
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(77,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  EscapeTimeFractalGenerator.vcxproj -> E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Debug\EscapeTimeFractalGenerator.exe
