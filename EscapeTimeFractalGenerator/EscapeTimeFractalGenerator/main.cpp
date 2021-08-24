@@ -25,8 +25,10 @@
 
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
-const GLint UI_WINDOW_WIDTH = 400;
+const GLint UI_WINDOW_WIDTH = 500;
 const GLint UI_WINDOW_HEIGHT =300;
+const double SMALL_DOUBLE_VALUE = 0.000000000000001;
+const double ZOOM_PER_SECOND = 2.0;
 const char* COLOR_RAMP_FILENAME = "colorRamp.png";
 const char* IMGUI_GLSL_VERSION = "#version 130";
 
@@ -36,6 +38,7 @@ struct FractalInfo
 	int iterations = 40;
 	float upscale = 1;
 	float period = 100;
+	double minDeviation = 0;
 };
 
 void ClearPixelBuffer(float* buffer, int size)
@@ -88,10 +91,13 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 
 	// render your GUI
 	ImGui::Begin("Main Window");
+	ImGui::SetWindowSize(ImVec2(0, 0));
 	ImGui::InputInt("Iterations:", &fractalInfo.iterations);
 	ImGui::InputFloat("Upscale", &fractalInfo.upscale);
 	ImGui::InputFloat("Period", &fractalInfo.period);
 	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0f, 8.0f);
+	ImGui::Text("Set this value to something small to improve rendering time");
+	ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
 	if (ImGui::Button("Update"))
 	{
 		updateButton = true;
@@ -161,8 +167,10 @@ int main(int argc, char* argv[])
 	fracInfo.iterations = 40;
 	fracInfo.upscale = 1;
 	fracInfo.period = 1; 
+	fracInfo.minDeviation = SMALL_DOUBLE_VALUE;
 	fractalDrawer->SetIterations(fracInfo.iterations);
 	fractalDrawer->SetPeriod(fracInfo.period);
+	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
@@ -184,11 +192,11 @@ int main(int argc, char* argv[])
 		mbypos /= currentWindowHeight;
 		if (leftMBstate == GLFW_PRESS)
 		{
-			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(0.5, deltaTime));
+			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(1.0 / ZOOM_PER_SECOND, deltaTime));
 		}
 		else if (rightMBstate == GLFW_PRESS)
 		{
-			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(2, deltaTime));
+			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(ZOOM_PER_SECOND, deltaTime));
 		}
 		if (spaceBar == GLFW_PRESS)
 		{
@@ -226,6 +234,7 @@ int main(int argc, char* argv[])
 		{
 			fractalDrawer->SetIterations(fracInfo.iterations);
 			fractalDrawer->SetPeriod(fracInfo.period);
+			fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 		}
 		fractalDrawer->Draw(updateOnResize || updateButton);
 
@@ -235,6 +244,7 @@ int main(int argc, char* argv[])
 		//Render IMGUI stuff
 		RenderUIWindow(uiWindow, updateButton, fracInfo);
 	}
+	delete fractalDrawer;
 	glfwTerminate();
 
 	return EXIT_SUCCESS;

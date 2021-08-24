@@ -1,14 +1,16 @@
 ﻿  main.cpp
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(171,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(187,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(187,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(187,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(191,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(191,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(191,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(173,41): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(179,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(195,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(195,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(195,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(199,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(199,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(199,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(237,43): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  1 of 2486 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  1 of 2491 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     23 functions had inline decision re-evaluated but remain unchanged
   Finished generating code

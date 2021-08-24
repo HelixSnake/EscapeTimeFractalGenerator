@@ -31,12 +31,15 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 
 FractalDrawer::~FractalDrawer()
 {
-		delete[] pixelBuffer;
-		if (rampColors != nullptr)
-		{
-			delete[] rampColors;
-		}
-		glDeleteTextures(1, &fractalTexture);
+	haltDrawingThread = true;
+	LockAllMutexes();
+	delete[] pixelBuffer;
+	if (rampColors != nullptr)
+	{
+		delete[] rampColors;
+	}
+	glDeleteTextures(1, &fractalTexture);
+	UnlockAllMutexes();
 }
 
 
@@ -84,7 +87,7 @@ void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixe
 bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
-	ComplexFractal fractal = ComplexFractal(iterations);
+	ComplexFractal fractal = ComplexFractal(iterations, minDeviation);
 	fractal.lengthLimit = LENGTH_LIMIT;
 	fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION);
 	fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION);
@@ -200,6 +203,13 @@ void FractalDrawer::SetPeriod(float period)
 {
 	LockAllMutexes();
 	this->period = period;
+	UnlockAllMutexes();
+}
+
+void FractalDrawer::SetMinDeviation(float minDeviation)
+{
+	LockAllMutexes();
+	this->minDeviation = minDeviation;
 	UnlockAllMutexes();
 }
 
