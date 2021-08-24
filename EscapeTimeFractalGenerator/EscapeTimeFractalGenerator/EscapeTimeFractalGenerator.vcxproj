@@ -166,7 +166,7 @@
     <ClInclude Include="FractalDrawer.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="colorRamp.png" />
+    <Image Include="..\..\..\..\Pictures\colorRamp.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

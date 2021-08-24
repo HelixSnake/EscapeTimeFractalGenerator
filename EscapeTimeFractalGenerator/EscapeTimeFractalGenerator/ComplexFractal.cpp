@@ -37,7 +37,8 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 			//default algorithm for recursive function
 			value = value * value + ComplexFloat(x, y);
 		}
-		if (value.AbsoluteValueSqr() > lengthlimitsqr)
+		float absValSqr = value.AbsoluteValueSqr();
+		if (absValSqr > lengthlimitsqr)
 		{
 			if (iterations != 0)
 			{

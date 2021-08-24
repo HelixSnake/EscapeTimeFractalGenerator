@@ -40,7 +40,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="colorRamp.png">
+    <Image Include="..\..\..\..\Pictures\colorRamp.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

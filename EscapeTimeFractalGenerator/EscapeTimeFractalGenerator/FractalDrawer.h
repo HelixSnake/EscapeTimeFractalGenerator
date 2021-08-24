@@ -31,10 +31,13 @@ public:
 protected:
 
 	// Change these to modify the drawn fractal equations!
-	static ComplexFloat FRACTAL_STARTING_FUNCTION(ComplexFloat input, float time) { return input; };
+	static ComplexFloat FRACTAL_STARTING_FUNCTION(ComplexFloat input, float time) 
+	{ return ComplexFloat(0,0); };
+	//{ return input; };
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION(ComplexFloat input, ComplexFloat previousValue, float time) {
-		const float JULIA_NUMBER = 0.75;
-		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
+		//const float JULIA_NUMBER = 0.75;
+		//return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
+		return previousValue * previousValue + input;
 	};
 
 	long double totalTime = 0;

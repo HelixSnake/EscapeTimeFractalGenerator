@@ -6,7 +6,7 @@
 
 std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
-const int NUM_ITERATIONS = 256;
+const int NUM_ITERATIONS = 1000;
 const float VALUE_POWER = 0.4;
 const float LENGTH_LIMIT = 10;
 
@@ -102,11 +102,12 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 			}
 			else
 			{
-				float newValue = pow(value, VALUE_POWER);
+				float newValue = glm::fract(-log(1-value) + pow(value, VALUE_POWER));
 				if (rampColors != nullptr)
 				{
 					int rampIndex = ((int)((float)ramTexWidth * (1 - newValue)));
 					if (rampIndex > ramTexWidth - 1) rampIndex = ramTexWidth - 1;
+					if (rampIndex < 0) rampIndex = 0;
 					rampIndex *= 3;
 					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
 					//DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, value, value, value);
@@ -279,6 +280,7 @@ bool FractalDrawer::Draw(bool update)
 	avgThreadProgress /= pixelBufferHeight * pixelBufferWidth;
 	//std::cout << avgThreadProgress << std::endl;
 	if (renderedThisFrame == true) avgThreadProgress = 0;
+	//avgThreadProgress = 0;
 
 	CF_Float scaleDiff = lastLastTransformz / lastTransformz;
 	CF_Float rendRectX1 = 0;

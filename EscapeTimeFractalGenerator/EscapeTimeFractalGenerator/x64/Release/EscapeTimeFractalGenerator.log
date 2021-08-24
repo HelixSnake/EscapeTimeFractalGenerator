@@ -1,19 +1,18 @@
-﻿  ComplexFloat.cpp
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\ComplexFloat.cpp(38,49): warning C4244: 'argument': conversion from 'long double' to 'float', possible loss of data
-  ComplexFractal.cpp
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\ComplexFractal.cpp(44,17): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\ComplexFractal.cpp(46,50): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-  FractalDrawer.cpp
+﻿  FractalDrawer.cpp
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(3,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(4,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(5,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(10,30): warning C4305: 'initializing': truncation from 'double' to 'float'
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(105,20): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(153,20): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(322,135): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(322,115): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(322,94): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(322,74): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(105,20): warning C4244: 'initializing': conversion from 'genType' to 'float', possible loss of data
+          with
+          [
+              genType=long double
+          ]
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(154,20): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(324,135): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(324,115): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(324,94): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(324,74): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\type_traits(1601,77): warning C4244: 'argument': conversion from 'long double' to 'float', possible loss of data
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1456): message : see reference to function template instantiation 'bool std::invoke<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int,long double,long double,long double,long double>(_Callable &&,_Ty1 &&,int &&,long double &&,long double &&,long double &&,long double &&) noexcept(false)' being compiled
           with
@@ -38,24 +37,16 @@ C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.2
           [
               _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
           ]
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(220): message : see reference to function template instantiation 'std::future<bool> std::async<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int&,long double&,long double&,long double&,long double&>(std::launch,_Fty &&,FractalDrawer *&&,int &,long double &,long double &,long double &,long double &)' being compiled
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(221): message : see reference to function template instantiation 'std::future<bool> std::async<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int&,long double&,long double&,long double&,long double&>(std::launch,_Fty &&,FractalDrawer *&&,int &,long double &,long double &,long double &,long double &)' being compiled
           with
           [
               _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
           ]
-  main.cpp
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(96,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(112,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(112,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(112,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(116,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(116,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(116,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  0 of 951 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  1 of 961 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    1 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Release\vc120.pdb'; linking object as if no debug info
   EscapeTimeFractalGenerator.vcxproj -> E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Release\EscapeTimeFractalGenerator.exe
