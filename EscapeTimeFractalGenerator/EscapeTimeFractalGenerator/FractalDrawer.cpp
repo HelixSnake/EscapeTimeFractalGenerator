@@ -6,8 +6,9 @@
 
 std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
-const int NUM_ITERATIONS = 1000;
-const float VALUE_POWER = 0.4;
+//const float VALUE_POWER = 0.4;
+//const float VALUE_MULT = 0.01;
+const float VALUE_PERIOD = 100;
 const float LENGTH_LIMIT = 10;
 
 FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window) 
@@ -77,7 +78,7 @@ void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixe
 bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
-	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
+	ComplexFractal fractal = ComplexFractal(iterations);
 	fractal.lengthLimit = LENGTH_LIMIT;
 	fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION);
 	fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION);
@@ -102,7 +103,8 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 			}
 			else
 			{
-				float newValue = glm::fract(-log(1-value) + pow(value, VALUE_POWER));
+				//float newValue = glm::fract(-log(1-value) + pow(value, VALUE_POWER) * VALUE_MULT);
+				float newValue = glm::fract(value/ VALUE_PERIOD);
 				if (rampColors != nullptr)
 				{
 					int rampIndex = ((int)((float)ramTexWidth * (1 - newValue)));
@@ -121,11 +123,13 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 	return true;
 }
 
+//unused legacy code, may clean up later
+/*
 bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt)
 {
 	std::lock_guard<std::mutex> lock1{ mtx };
 	std::cout << "drawing fractal" << std::endl;
-	ComplexFractal fractal = ComplexFractal(NUM_ITERATIONS);
+	ComplexFractal fractal = ComplexFractal(iterations);
 	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
 	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {return previousValue * previousValue + ComplexFloat(sin(time), cos(time * 0.7853975)); });
 
@@ -166,23 +170,25 @@ bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pi
 		}
 	}
 	return true;
-}
+}*/
 
-void FractalDrawer::Resize(int width, int height)
+void FractalDrawer::Resize(int width, int height, float sizeMult)
 {
-	if (drawFractalThread.valid())
-	{
-		haltDrawingThread = true;
-		drawFractalThread.wait();
-	}
+	haltDrawingThread = true;
 	LockAllMutexes();
 	delete[] pixelBuffer;
-	pixelBuffer = new float[width * height * 3];
-	pixelBufferWidth = width;
-	pixelBufferHeight = height;
+	pixelBuffer = new float[width * sizeMult * height * sizeMult * 3];
+	pixelBufferWidth = width * sizeMult;
+	pixelBufferHeight = height *sizeMult;
+	UnlockAllMutexes();
+	haltDrawingThread = false;
+}
+void FractalDrawer::SetIterations(int iterations)
+{
+	LockAllMutexes();
+	this->iterations = iterations;
 	UnlockAllMutexes();
 }
-
 
 void FractalDrawer::Zoom(float x, float y, float amount)
 {

@@ -25,7 +25,8 @@ public:
 	FractalDrawer(int width, int height, GLFWwindow* window);
 	~FractalDrawer();
 	void SetRampTexture(GLuint textureID);
-	void Resize(int width, int height);
+	void Resize(int width, int height, float sizeMult);
+	void SetIterations(int iterations);
 	void Zoom(float x, float y, float amount);
 	bool Draw(bool update);
 protected:
@@ -39,6 +40,8 @@ protected:
 		//return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
 		return previousValue * previousValue + input;
 	};
+
+	std::atomic_int iterations = 40;
 
 	long double totalTime = 0;
 	steady_clock::time_point lastTime;

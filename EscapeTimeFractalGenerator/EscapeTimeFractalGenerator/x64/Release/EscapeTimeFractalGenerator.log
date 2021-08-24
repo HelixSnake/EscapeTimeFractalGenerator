@@ -2,17 +2,18 @@
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(3,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(4,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(5,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(10,30): warning C4305: 'initializing': truncation from 'double' to 'float'
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(105,20): warning C4244: 'initializing': conversion from 'genType' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(107,20): warning C4244: 'initializing': conversion from 'genType' to 'float', possible loss of data
           with
           [
               genType=long double
           ]
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(154,20): warning C4244: 'initializing': conversion from 'long double' to 'float', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(324,135): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(324,115): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(324,94): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(324,74): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(180,63): warning C4244: 'initializing': conversion from 'float' to 'size_t', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(181,27): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(182,29): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(330,135): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(330,115): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(330,94): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(330,74): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\type_traits(1601,77): warning C4244: 'argument': conversion from 'long double' to 'float', possible loss of data
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1456): message : see reference to function template instantiation 'bool std::invoke<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int,long double,long double,long double,long double>(_Callable &&,_Ty1 &&,int &&,long double &&,long double &&,long double &&,long double &&) noexcept(false)' being compiled
           with
@@ -37,16 +38,50 @@ C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.2
           [
               _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
           ]
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(221): message : see reference to function template instantiation 'std::future<bool> std::async<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int&,long double&,long double&,long double&,long double&>(std::launch,_Fty &&,FractalDrawer *&&,int &,long double &,long double &,long double &,long double &)' being compiled
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(227): message : see reference to function template instantiation 'std::future<bool> std::async<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int&,long double&,long double&,long double&,long double&>(std::launch,_Fty &&,FractalDrawer *&&,int &,long double &,long double &,long double &,long double &)' being compiled
           with
           [
               _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
           ]
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  1 of 961 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+  4 of 2472 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+    23 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
+LINK : warning LNK4286: symbol '__glewDeleteBuffers' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewLinkProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewDeleteShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGenBuffers' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGetProgramInfoLog' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewDetachShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewUniformMatrix4fv' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewBlendEquationSeparate' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGenVertexArrays' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewBlendEquation' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewShaderSource' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewDeleteProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewActiveTexture' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewAttachShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewBufferData' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGetUniformLocation' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGetStringi' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewBlendFuncSeparate' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewDeleteVertexArrays' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGetProgramiv' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGetShaderInfoLog' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewUniform1i' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewCreateProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewBindBuffer' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewCreateShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGetAttribLocation' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewCompileShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewGetShaderiv' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewDrawElementsBaseVertex' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewVertexAttribPointer' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewUseProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewBindSampler' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewBindVertexArray' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
+LINK : warning LNK4286: symbol '__glewEnableVertexAttribArray' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Release\vc120.pdb'; linking object as if no debug info
   EscapeTimeFractalGenerator.vcxproj -> E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\x64\Release\EscapeTimeFractalGenerator.exe

@@ -44,7 +44,7 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 			{
 				float ratio = lengthLimit / value.AbsoluteValue();
 				// Adding the ratio ^ blendpower adds gradients between the iterations, smoothing out the sharp edges between colors
-				return (((float)i) + pow(ratio, blendPower)) / (float)iterations;
+				return (((float)i) + pow(ratio, blendPower));
 			}
 		}
 	}

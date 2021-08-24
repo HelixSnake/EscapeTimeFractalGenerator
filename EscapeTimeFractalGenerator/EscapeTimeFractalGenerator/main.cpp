@@ -10,12 +10,14 @@
 #include <GLFW/glfw3.h>
 
 //IMGUI
+#define IMGUI_IMPL_OPENGL_LOADER_GLEW
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 //GLM
 #include <glm/vec3.hpp>
+#include <glm/common.hpp>
 
 #include "FractalDrawer.h"
 #include "MandelbrotFractal.h"
@@ -23,7 +25,10 @@
 
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
+const GLint UI_WINDOW_WIDTH = 400;
+const GLint UI_WINDOW_HEIGHT =300;
 const char* COLOR_RAMP_FILENAME = "colorRamp.png";
+const char* IMGUI_GLSL_VERSION = "#version 130";
 
 void ClearPixelBuffer(float* buffer, int size)
 {
@@ -49,18 +54,66 @@ GLuint LoadRampTexture()
 	return textureID;
 }
 
+void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io)
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	io = ImGui::GetIO();
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGlfw_InitForOpenGL(uiWindow, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+}
+
+void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, int& iterations, float& upscale)
+{
+	glfwMakeContextCurrent(uiWindow);
+	glfwPollEvents();
+	glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	// feed inputs to dear imgui, start new frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// render your GUI
+	ImGui::Begin("Main Window");
+	ImGui::InputInt("Iterations:", &iterations);
+	ImGui::InputFloat("Upscale", &upscale);
+	upscale = glm::clamp(upscale, 0.0f, 4.0f);
+	if (ImGui::Button("Update"))
+	{
+		updateButton = true;
+	}
+	ImGui::End();
+
+	// Render dear imgui into screen
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	int display_w, display_h;
+	glfwGetFramebufferSize(uiWindow, &display_w, &display_h);
+	glViewport(0, 0, display_w, display_h);
+	glfwSwapBuffers(uiWindow);
+}
+
 int main(int argc, char* argv[])
 {
 	glfwInit();
+	// Create main window and UI window
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 	GLFWwindow* window = glfwCreateWindow(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT, "Escape Time Fractal Generator", nullptr, nullptr);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	GLFWwindow* uiWindow = glfwCreateWindow(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT, "Escape Time Fractal Generator UI", nullptr, nullptr);
 	int screenWidth, screenHeight;
 	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
-	if (window == nullptr)
+	if (window == nullptr || uiWindow == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -68,30 +121,39 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 	glfwMakeContextCurrent(window);
+
+	//initialize glew
 	glewExperimental = GL_TRUE;
 	if (GLEW_OK != glewInit())
 	{
 		std::cout << "Failed to initialize GLEW" << std::endl;
 		return EXIT_FAILURE;
 	}
+	//initialize imgUI
+	ImGuiIO io;
+	ImgUIInitialize(uiWindow, IMGUI_GLSL_VERSION, io);
 	// Define the viewport dimensions 
 	glViewport(0, 0, screenWidth, screenHeight);
 	int currentWindowWidth = 0;
 	int currentWindowHeight = 0;
 	glfwGetWindowSize(window, &currentWindowWidth, &currentWindowHeight);
-	//int pixelBufferSize = 3 * currentWindowWidth * currentWindowHeight;
-	//float* pixelBuffer1 = new float[pixelBufferSize];
-	//float* pixelBuffer2 = new float[pixelBufferSize];
-	//ClearPixelBuffer(pixelBuffer1, pixelBufferSize);
-	//ClearPixelBuffer(pixelBuffer2, pixelBufferSize);
+	// initialize fractal drawer class
 	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight, window);
+	//load and set ramp texture
 	GLuint rampTexture = LoadRampTexture();
 	fractalDrawer->SetRampTexture(rampTexture);
+	//initial delta time start
 	auto deltaTimeStart = std::chrono::high_resolution_clock::now();
 	bool animateFractal = true;
 	bool SpaceBarPressed = false;
-	while (!glfwWindowShouldClose(window))
+	bool updateButton = false;
+	//fractal properties
+	int fractalIterations = 40;
+	float scaleFactor = 1;
+	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
+		glfwMakeContextCurrent(window);
+		// calculate delta time
 		auto deltaTimeEnd = std::chrono::high_resolution_clock::now();
 		float deltaTime = std::chrono::duration_cast<std::chrono::nanoseconds>(deltaTimeEnd - deltaTimeStart).count() / 1000000000.0;
 		deltaTimeStart = std::chrono::high_resolution_clock::now();
@@ -137,18 +199,27 @@ int main(int argc, char* argv[])
 		int nextWindowHeight = 0;
 		glfwGetWindowSize(window, &nextWindowWidth, &nextWindowHeight);
 		//TODO: make threadsafe
-		bool shouldUpdate = false;
-		if (currentWindowWidth != nextWindowWidth || currentWindowHeight != nextWindowHeight)
+		bool updateOnResize = false;
+		if (currentWindowWidth != nextWindowWidth || currentWindowHeight != nextWindowHeight || updateButton)
 		{
 			currentWindowWidth = nextWindowWidth;
 			currentWindowHeight = nextWindowHeight;
-			shouldUpdate = true;
-			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight);
+			updateOnResize = true;
+			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight, scaleFactor);
 		}
 		// Draw OpenGL 
-		fractalDrawer->Draw(shouldUpdate || animateFractal);
+		//fractalDrawer->Draw(shouldUpdate || animateFractal);
+		if (updateButton)
+		{
+			fractalDrawer->SetIterations(fractalIterations);
+		}
+		fractalDrawer->Draw(updateOnResize || updateButton);
 
 		glfwSwapBuffers(window);
+
+		updateButton = false;
+		//Render IMGUI stuff
+		RenderUIWindow(uiWindow, updateButton, fractalIterations, scaleFactor);
 	}
 	glfwTerminate();
 
