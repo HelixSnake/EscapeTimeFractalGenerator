@@ -30,6 +30,14 @@ const GLint UI_WINDOW_HEIGHT =300;
 const char* COLOR_RAMP_FILENAME = "colorRamp.png";
 const char* IMGUI_GLSL_VERSION = "#version 130";
 
+struct FractalInfo
+{
+	//need defaults: if these values are too high it will cause the program to hang
+	int iterations = 40;
+	float upscale = 1;
+	float period = 100;
+};
+
 void ClearPixelBuffer(float* buffer, int size)
 {
 	for (int i = 0; i < size; i++)
@@ -66,7 +74,7 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 	ImGui::StyleColorsDark();
 }
 
-void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, int& iterations, float& upscale)
+void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fractalInfo)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -80,9 +88,10 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, int& iterations, f
 
 	// render your GUI
 	ImGui::Begin("Main Window");
-	ImGui::InputInt("Iterations:", &iterations);
-	ImGui::InputFloat("Upscale", &upscale);
-	upscale = glm::clamp(upscale, 0.0f, 4.0f);
+	ImGui::InputInt("Iterations:", &fractalInfo.iterations);
+	ImGui::InputFloat("Upscale", &fractalInfo.upscale);
+	ImGui::InputFloat("Period", &fractalInfo.period);
+	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0f, 8.0f);
 	if (ImGui::Button("Update"))
 	{
 		updateButton = true;
@@ -148,8 +157,12 @@ int main(int argc, char* argv[])
 	bool SpaceBarPressed = false;
 	bool updateButton = false;
 	//fractal properties
-	int fractalIterations = 40;
-	float scaleFactor = 1;
+	FractalInfo fracInfo;
+	fracInfo.iterations = 40;
+	fracInfo.upscale = 1;
+	fracInfo.period = 1; 
+	fractalDrawer->SetIterations(fracInfo.iterations);
+	fractalDrawer->SetPeriod(fracInfo.period);
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
@@ -205,13 +218,14 @@ int main(int argc, char* argv[])
 			currentWindowWidth = nextWindowWidth;
 			currentWindowHeight = nextWindowHeight;
 			updateOnResize = true;
-			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight, scaleFactor);
+			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight, fracInfo.upscale);
 		}
 		// Draw OpenGL 
 		//fractalDrawer->Draw(shouldUpdate || animateFractal);
 		if (updateButton)
 		{
-			fractalDrawer->SetIterations(fractalIterations);
+			fractalDrawer->SetIterations(fracInfo.iterations);
+			fractalDrawer->SetPeriod(fracInfo.period);
 		}
 		fractalDrawer->Draw(updateOnResize || updateButton);
 
@@ -219,7 +233,7 @@ int main(int argc, char* argv[])
 
 		updateButton = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, updateButton, fractalIterations, scaleFactor);
+		RenderUIWindow(uiWindow, updateButton, fracInfo);
 	}
 	glfwTerminate();
 

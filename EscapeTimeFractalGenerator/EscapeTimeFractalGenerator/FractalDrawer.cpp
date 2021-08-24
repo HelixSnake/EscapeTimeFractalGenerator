@@ -21,6 +21,12 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	transformx = STARTING_TRANSFORM.x;
 	transformy = STARTING_TRANSFORM.y;
 	transformz = STARTING_TRANSFORM.z;
+	lastTransformx = transformx;
+	lastTransformy = transformy;
+	lastTransformz = transformz;
+	lastLastTransformx = transformx;
+	lastLastTransformy = transformy;
+	lastLastTransformz = transformz;
 }
 
 FractalDrawer::~FractalDrawer()
@@ -103,8 +109,8 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 			}
 			else
 			{
-				//float newValue = glm::fract(-log(1-value) + pow(value, VALUE_POWER) * VALUE_MULT);
-				float newValue = glm::fract(value/ VALUE_PERIOD);
+				//logarithmic function keeps period similar at all zoom levels
+				float newValue = glm::fract(log(value) / period);
 				if (rampColors != nullptr)
 				{
 					int rampIndex = ((int)((float)ramTexWidth * (1 - newValue)));
@@ -187,6 +193,13 @@ void FractalDrawer::SetIterations(int iterations)
 {
 	LockAllMutexes();
 	this->iterations = iterations;
+	UnlockAllMutexes();
+}
+
+void FractalDrawer::SetPeriod(float period)
+{
+	LockAllMutexes();
+	this->period = period;
 	UnlockAllMutexes();
 }
 

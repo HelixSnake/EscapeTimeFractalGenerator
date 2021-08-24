@@ -1,51 +1,14 @@
-﻿  FractalDrawer.cpp
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(3,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(4,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(5,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(107,20): warning C4244: 'initializing': conversion from 'genType' to 'float', possible loss of data
-          with
-          [
-              genType=long double
-          ]
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(180,63): warning C4244: 'initializing': conversion from 'float' to 'size_t', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(181,27): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(182,29): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(330,135): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(330,115): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(330,94): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(330,74): warning C4244: 'argument': conversion from 'long double' to 'GLint', possible loss of data
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\type_traits(1601,77): warning C4244: 'argument': conversion from 'long double' to 'float', possible loss of data
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1456): message : see reference to function template instantiation 'bool std::invoke<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int,long double,long double,long double,long double>(_Callable &&,_Ty1 &&,int &&,long double &&,long double &&,long double &&,long double &&) noexcept(false)' being compiled
-          with
-          [
-              _Callable=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double),
-              _Ty1=FractalDrawer *
-          ]
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1463): message : see reference to function template instantiation 'bool std::_Invoke_stored_explicit<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int,long double,long double,long double,long double,0,1,2,3,4,5,6>(std::tuple<bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer *,int,long double,long double,long double,long double> &&,std::integer_sequence<size_t,0,1,2,3,4,5,6>)' being compiled
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1490): message : see reference to function template instantiation 'bool std::_Invoke_stored<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int,long double,long double,long double,long double>(std::tuple<bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer *,int,long double,long double,long double,long double> &&)' being compiled
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1490): message : while compiling class template member function 'bool std::_Fake_no_copy_callable_adapter<_Fty,FractalDrawer *,int &,long double &,long double &,long double &,long double &>::operator ()(void)'
-          with
-          [
-              _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
-          ]
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\type_traits(1585): message : see reference to function template instantiation 'bool std::_Fake_no_copy_callable_adapter<_Fty,FractalDrawer *,int &,long double &,long double &,long double &,long double &>::operator ()(void)' being compiled
-          with
-          [
-              _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
-          ]
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\future(1512): message : see reference to class template instantiation 'std::_Fake_no_copy_callable_adapter<_Fty,FractalDrawer *,int &,long double &,long double &,long double &,long double &>' being compiled
-          with
-          [
-              _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
-          ]
-E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\FractalDrawer.cpp(227): message : see reference to function template instantiation 'std::future<bool> std::async<bool(__cdecl FractalDrawer::* )(int,float,long double,long double,long double),FractalDrawer*,int&,long double&,long double&,long double&,long double&>(std::launch,_Fty &&,FractalDrawer *&&,int &,long double &,long double &,long double &,long double &)' being compiled
-          with
-          [
-              _Fty=bool (__cdecl FractalDrawer::* )(int,float,long double,long double,long double)
-          ]
+﻿  main.cpp
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(171,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(187,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(187,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(187,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(191,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(191,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+E:\CPlusPlusPractice\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\EscapeTimeFractalGenerator\main.cpp(191,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  4 of 2472 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+  1 of 2486 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     23 functions had inline decision re-evaluated but remain unchanged
   Finished generating code

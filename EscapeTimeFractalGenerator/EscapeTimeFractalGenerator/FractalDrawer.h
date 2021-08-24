@@ -27,6 +27,7 @@ public:
 	void SetRampTexture(GLuint textureID);
 	void Resize(int width, int height, float sizeMult);
 	void SetIterations(int iterations);
+	void SetPeriod(float period);
 	void Zoom(float x, float y, float amount);
 	bool Draw(bool update);
 protected:
@@ -42,6 +43,7 @@ protected:
 	};
 
 	std::atomic_int iterations = 40;
+	std::atomic<float> period = 100;
 
 	long double totalTime = 0;
 	steady_clock::time_point lastTime;
