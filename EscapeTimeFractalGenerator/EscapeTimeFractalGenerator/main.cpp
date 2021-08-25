@@ -42,6 +42,7 @@ struct FractalInfo
 	float period = 100;
 	double minDeviation = 0;
 	double lengthLimit = 10;
+	bool animate = false;
 };
 
 void ClearPixelBuffer(float* buffer, int size)
@@ -93,15 +94,32 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 	ImGui::NewFrame();
 
 	// render your GUI
-	ImGui::Begin("Main Window");
-	ImGui::SetWindowSize(ImVec2(0, 0));
+	bool mainWindowOpen;
+	ImGui::Begin("Main Window", &mainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove 
+		| ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+	ImGui::SetWindowSize(ImVec2(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT));
+	ImGui::SetWindowPos(ImVec2(0, 0));
 	ImGui::InputInt("Iterations:", &fractalInfo.iterations);
-	ImGui::InputFloat("Upscale", &fractalInfo.upscale);
-	ImGui::InputFloat("Period", &fractalInfo.period);
+	int upscaleInt = fractalInfo.upscale;
+	ImGui::Text("Upsample can be any value between 0 and 1, or a power of 2");
+	ImGui::InputFloat("Upsample", &fractalInfo.upscale);
 	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0f, 8.0f);
+	//keep upscale a power of 2 if it's more than 1
+	if (fractalInfo.upscale > 1.0f)
+	{
+		int upscaleAsInt = fractalInfo.upscale;
+		int newUpScaleAsInt = upscaleAsInt;
+		for (int i = 1; i < 4; i++)
+		{
+			newUpScaleAsInt &= ~(upscaleAsInt >> i);
+		}
+		fractalInfo.upscale = newUpScaleAsInt;
+	}
+	ImGui::InputFloat("Period", &fractalInfo.period);
 	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0f, "%.3f");
 	ImGui::Text("Set this value to something small to improve rendering time");
 	ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
+	ImGui::Checkbox("Animate!", &fractalInfo.animate);
 	if (ImGui::Button("Update"))
 	{
 		updateButton = true;
@@ -173,6 +191,7 @@ int main(int argc, char* argv[])
 	fracInfo.period = 1; 
 	fracInfo.minDeviation = SMALL_DOUBLE_VALUE;
 	fracInfo.lengthLimit = START_LENGTH_LIMIT;
+	fracInfo.animate = true;
 	fractalDrawer->SetIterations(fracInfo.iterations);
 	fractalDrawer->SetPeriod(fracInfo.period);
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
@@ -191,7 +210,6 @@ int main(int argc, char* argv[])
 		//zoom?
 		int leftMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 		int rightMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
-		int spaceBar = glfwGetKey(window, GLFW_KEY_SPACE);
 		double mbxpos, mbypos;
 		glfwGetCursorPos(window, &mbxpos, &mbypos);
 		mbxpos /= currentWindowWidth;
@@ -204,17 +222,6 @@ int main(int argc, char* argv[])
 		{
 			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(ZOOM_PER_SECOND, deltaTime));
 		}
-		if (spaceBar == GLFW_PRESS)
-		{
-			if (!SpaceBarPressed)
-			animateFractal = !animateFractal;
-			SpaceBarPressed = true;
-		}
-		else
-		{
-			SpaceBarPressed = false;
-		}
-		fractalDrawer->enableAnimation = animateFractal;
 
 		// Render 
 		// Clear the colorbuffer 
@@ -243,13 +250,14 @@ int main(int argc, char* argv[])
 			fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 			fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 		}
-		fractalDrawer->Draw(updateOnResize || updateButton);
+		fractalDrawer->Draw(updateOnResize || updateButton || fracInfo.animate);
 
 		glfwSwapBuffers(window);
 
 		updateButton = false;
 		//Render IMGUI stuff
 		RenderUIWindow(uiWindow, updateButton, fracInfo);
+		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;
 	glfwTerminate();

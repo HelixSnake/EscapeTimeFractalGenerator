@@ -27,6 +27,8 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	lastLastTransformx = transformx;
 	lastLastTransformy = transformy;
 	lastLastTransformz = transformz;
+	totalTime = 0;
+	lastTime = high_resolution_clock::now();
 }
 
 FractalDrawer::~FractalDrawer()
@@ -288,7 +290,6 @@ bool FractalDrawer::Draw(bool update)
 			}
 			LockAllMutexes();
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
-			glGenerateTextureMipmap(fractalTexture);
 			lastLastTransformx = lastTransformx;
 			lastLastTransformy = lastTransformy;
 			lastLastTransformz = lastTransformz;
@@ -303,8 +304,13 @@ bool FractalDrawer::Draw(bool update)
 	GLuint fbo = 0;
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+	int mipLevel = (int)glm::max(log2(upScale), 0.0f);
+	if (mipLevel != 0)
+	{
+		glGenerateTextureMipmap(fractalTexture);
+	}
 	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D, fractalTexture, (int)glm::max(log2(upScale), 0.0f));
+		GL_TEXTURE_2D, fractalTexture, mipLevel);
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	int width = 0;
@@ -360,7 +366,8 @@ bool FractalDrawer::Draw(bool update)
 	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, avgThreadProgress);
 	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glBlitFramebuffer(0, 0, width, height, rendRectX1 * width, rendRectY1 * height, rendRectX2 * width, rendRectY2 * height,
+	float frameBufferScale = pow(2, mipLevel);
+	glBlitFramebuffer(0, 0, pixelBufferWidth / frameBufferScale, pixelBufferHeight / frameBufferScale, rendRectX1 * width, rendRectY1 * height, rendRectX2 * width, rendRectY2 * height,
 		GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	glDeleteFramebuffers(1, &fbo);
 	return true;
