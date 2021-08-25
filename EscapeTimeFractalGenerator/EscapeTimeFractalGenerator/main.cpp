@@ -108,13 +108,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 	//keep upscale a power of 2 if it's more than 1
 	if (fractalInfo.upscale > 1.0f)
 	{
-		int upscaleAsInt = fractalInfo.upscale;
-		int newUpScaleAsInt = upscaleAsInt;
-		for (int i = 1; i < 3; i++)
-		{
-			newUpScaleAsInt &= ~(upscaleAsInt >> i);
-		}
-		fractalInfo.upscale = newUpScaleAsInt;
+		fractalInfo.upscale = pow(2, floor(log2(fractalInfo.upscale)));
 	}
 	ImGui::InputFloat("Period", &fractalInfo.period);
 	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0f, "%.3f");
@@ -211,6 +205,7 @@ int main(int argc, char* argv[])
 	fractalDrawer->SetPeriod(fracInfo.period);
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 	fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
+	fractalDrawer->SetFractal(fracInfo.type);
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
