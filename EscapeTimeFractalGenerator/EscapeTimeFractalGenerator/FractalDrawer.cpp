@@ -239,6 +239,11 @@ void FractalDrawer::SetFractal(FractalType fractal)
 	UnlockAllMutexes();
 }
 
+float FractalDrawer::GetProgress()
+{
+	return drawingProgress;
+}
+
 void FractalDrawer::Zoom(float x, float y, float amount)
 {
 	//convert x y point to "World space" by replicating transform performed on pixels
@@ -345,6 +350,7 @@ bool FractalDrawer::Draw(bool update)
 	//std::cout << avgThreadProgress << std::endl;
 	if (renderedThisFrame == true) avgThreadProgress = 0;
 	//avgThreadProgress = 0;
+	drawingProgress = avgThreadProgress;
 
 	CF_Float scaleDiff = lastLastTransformz / lastTransformz;
 	CF_Float rendRectX1 = 0;

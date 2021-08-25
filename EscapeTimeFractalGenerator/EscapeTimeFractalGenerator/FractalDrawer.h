@@ -36,6 +36,7 @@ public:
 	void SetMinDeviation(float minDeviation);
 	void SetLengthLimit(float lengthLimit);
 	void SetFractal(FractalType fractal);
+	float GetProgress();
 	void Zoom(float x, float y, float amount);
 	bool Draw(bool update);
 protected:
@@ -54,6 +55,7 @@ protected:
 	};
 
 	FractalType currentFractal;
+	float drawingProgress = 0;
 
 	std::atomic_int iterations = 40;
 	std::atomic<float> period = 100;

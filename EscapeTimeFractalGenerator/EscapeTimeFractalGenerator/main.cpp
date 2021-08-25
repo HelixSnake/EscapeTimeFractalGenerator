@@ -82,7 +82,7 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 	ImGui::StyleColorsDark();
 }
 
-void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fractalInfo)
+void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fractalInfo, float progress)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -138,6 +138,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 	{
 		updateButton = true;
 	}
+	ImGui::ProgressBar(progress);
 	ImGui::End();
 
 	// Render dear imgui into screen
@@ -271,7 +272,7 @@ int main(int argc, char* argv[])
 
 		updateButton = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, updateButton, fracInfo);
+		RenderUIWindow(uiWindow, updateButton, fracInfo, fractalDrawer->GetProgress());
 		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;
