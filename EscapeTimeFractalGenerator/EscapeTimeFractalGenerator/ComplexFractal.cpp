@@ -52,8 +52,10 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 			float ratio = (lengthLimit) / value.AbsoluteValue();
 			ratio = glm::clamp(ratio, 0.0f, 1.0f); // Extra insurance to keep the function below from spitting out NAN if ratio < 0 
 			//or infinity if lengthLimit == 1
+			const double MAGIC_CONSTANT = 1.581983; // I have no idea what this number is; it's very close to 1/(1-1/e) or 1.58197670687
+			//but if I use that number you get results that are slightly off. Just roll with this for now.
 			//please for the love of God do not ask me why this works but it's necessary to make the gradient appear linear
-			ratio = pow(ratio, 1/log(lengthLimit))* 1.58;
+			ratio = pow(ratio, 1/log(lengthLimit))* MAGIC_CONSTANT;
 			return (float)i + ratio;
 			//return (float)i;
 		}
