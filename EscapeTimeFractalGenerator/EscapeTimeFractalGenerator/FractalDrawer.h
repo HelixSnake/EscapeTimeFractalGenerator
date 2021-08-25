@@ -18,6 +18,11 @@ using namespace std::chrono;
 
 const int NUM_FRACTAL_DRAW_THREADS = 16;
 
+enum class FractalType
+{
+	Mandelbrot,
+	Julia
+};
 class FractalDrawer
 {
 public:
@@ -30,19 +35,25 @@ public:
 	void SetPeriod(float period);
 	void SetMinDeviation(float minDeviation);
 	void SetLengthLimit(float lengthLimit);
+	void SetFractal(FractalType fractal);
 	void Zoom(float x, float y, float amount);
 	bool Draw(bool update);
 protected:
 
 	// Change these to modify the drawn fractal equations!
-	static ComplexFloat FRACTAL_STARTING_FUNCTION(ComplexFloat input, float time) 
-	//{ return ComplexFloat(0,0); };
+	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, float time) 
 	{ return input; };
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION(ComplexFloat input, ComplexFloat previousValue, float time) {
-		const float JULIA_NUMBER = 0.75;
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_JULIA(ComplexFloat input, ComplexFloat previousValue, float time) {
+		const double JULIA_NUMBER = 0.75;
 		return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
-		//return previousValue * previousValue + input;
 	};
+	static ComplexFloat FRACTAL_STARTING_FUNCTION_MANDEL(ComplexFloat input, float time)
+		{ return ComplexFloat(0,0); };
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_MANDEL(ComplexFloat input, ComplexFloat previousValue, float time) {
+		return previousValue * previousValue + input;
+	};
+
+	FractalType currentFractal;
 
 	std::atomic_int iterations = 40;
 	std::atomic<float> period = 100;
@@ -76,7 +87,7 @@ protected:
     std::mutex Mutexes[NUM_FRACTAL_DRAW_THREADS];
 	glm::vec3 clearColor = glm::vec3(0.5, 0.5, 0.5);
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
-	static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
+	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
 	bool DrawFractalChunk(int index, float time, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
 	void LockAllMutexes();
 	void UnlockAllMutexes();

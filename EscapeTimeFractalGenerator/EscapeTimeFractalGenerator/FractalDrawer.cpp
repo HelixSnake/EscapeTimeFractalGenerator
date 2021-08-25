@@ -91,8 +91,16 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(iterations, minDeviation);
 	fractal.lengthLimit = lengthLimit;
-	fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION);
-	fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION);
+	if (currentFractal == FractalType::Julia)
+	{
+		fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION_JULIA);
+		fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION_JULIA);
+	}
+	else
+	{
+		fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION_MANDEL);
+		fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION_MANDEL);
+	}
 	int currentThreadProgress = 0;
 	for (int i = index; i < pixelBufferHeight; i += NUM_FRACTAL_DRAW_THREADS)
 	{
@@ -221,6 +229,13 @@ void FractalDrawer::SetLengthLimit(float lengthLimit)
 {
 	LockAllMutexes();
 	this->lengthLimit = lengthLimit;
+	UnlockAllMutexes();
+}
+
+void FractalDrawer::SetFractal(FractalType fractal)
+{
+	LockAllMutexes();
+	this->currentFractal = fractal;
 	UnlockAllMutexes();
 }
 

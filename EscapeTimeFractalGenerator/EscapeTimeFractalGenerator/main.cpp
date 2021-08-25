@@ -43,6 +43,7 @@ struct FractalInfo
 	double minDeviation = 0;
 	double lengthLimit = 10;
 	bool animate = false;
+	FractalType type = FractalType::Julia;
 };
 
 void ClearPixelBuffer(float* buffer, int size)
@@ -119,6 +120,19 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0f, "%.3f");
 	ImGui::Text("Set this value to something small to improve rendering time");
 	ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
+	ImGui::Text("Fractal Type:");
+	bool fractalIsJulia = fractalInfo.type == FractalType::Julia;
+	bool fractalIsMandelbrot = fractalInfo.type == FractalType::Mandelbrot;
+	if (ImGui::Checkbox("Julia", &fractalIsJulia)) 
+	{
+		fractalInfo.type = FractalType::Julia;
+	}
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Mandelbrot", &fractalIsMandelbrot))
+	{
+		fractalInfo.type = FractalType::Mandelbrot;
+	}
+
 	ImGui::Checkbox("Animate!", &fractalInfo.animate);
 	if (ImGui::Button("Update"))
 	{
@@ -249,6 +263,7 @@ int main(int argc, char* argv[])
 			fractalDrawer->SetPeriod(fracInfo.period);
 			fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 			fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
+			fractalDrawer->SetFractal(fracInfo.type);
 		}
 		fractalDrawer->Draw(updateOnResize || updateButton || fracInfo.animate);
 
