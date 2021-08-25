@@ -101,15 +101,15 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 	ImGui::SetWindowPos(ImVec2(0, 0));
 	ImGui::InputInt("Iterations:", &fractalInfo.iterations);
 	int upscaleInt = fractalInfo.upscale;
-	ImGui::Text("Upsample can be any value between 0 and 1, or a power of 2");
+	ImGui::Text("Upsample can be any value between 0 and 1, 2, or 4");
 	ImGui::InputFloat("Upsample", &fractalInfo.upscale);
-	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0f, 8.0f);
+	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0f, 4.0f);
 	//keep upscale a power of 2 if it's more than 1
 	if (fractalInfo.upscale > 1.0f)
 	{
 		int upscaleAsInt = fractalInfo.upscale;
 		int newUpScaleAsInt = upscaleAsInt;
-		for (int i = 1; i < 4; i++)
+		for (int i = 1; i < 3; i++)
 		{
 			newUpScaleAsInt &= ~(upscaleAsInt >> i);
 		}
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
 	fracInfo.period = 1; 
 	fracInfo.minDeviation = SMALL_DOUBLE_VALUE;
 	fracInfo.lengthLimit = START_LENGTH_LIMIT;
-	fracInfo.animate = true;
+	fracInfo.animate = false;
 	fractalDrawer->SetIterations(fracInfo.iterations);
 	fractalDrawer->SetPeriod(fracInfo.period);
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);

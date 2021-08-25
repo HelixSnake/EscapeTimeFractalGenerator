@@ -246,12 +246,12 @@ bool FractalDrawer::Draw(bool update)
 	}
 	if (!anyThreadsValid && fractalThreadNeedsRun)
 	{
-		steady_clock::time_point currentTime = high_resolution_clock::now();
 		if (enableAnimation)
 		{
+			steady_clock::time_point currentTime = high_resolution_clock::now();
 			totalTime = totalTime + duration_cast<nanoseconds>(currentTime - lastTime).count() / 1000000000.0;
+			lastTime = currentTime;
 		}
-		lastTime = currentTime;
 		for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 		{
 			int chunksize = pixelBufferHeight / 16;
@@ -261,6 +261,10 @@ bool FractalDrawer::Draw(bool update)
 			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, totalTime, transformx, transformy, transformz);
 		}
 		fractalThreadNeedsRun = false;
+	}
+	if (!enableAnimation)
+	{
+		lastTime = high_resolution_clock::now();
 	}
 
 	glBindTexture(GL_TEXTURE_2D, fractalTexture);
