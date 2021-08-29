@@ -86,7 +86,7 @@ void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixe
 	pixelBuffer[startIndex + 2] = b;
 }
 
-bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
+bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(iterations, minDeviation);
@@ -115,7 +115,6 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 			CF_Float y = (CF_Float)i / pixelBufferHeight;
 			x = (x * pixelBufferWidth / pixelBufferHeight - tfx) * tfscale;
 			y = (y - tfy) * tfscale;
-			ComplexFloat extraValue = ComplexFloat((cos(time) * 0.5 - cos(time * 2) * 0.25) * 1.01, (sin(time) * 0.5 - sin(time * 2) * 0.25) * 1.01);
 			CF_Float value = fractal.CalculateEscapeTime(x, y, extraValue);
 			if (value == 0)
 			{
@@ -240,6 +239,13 @@ void FractalDrawer::SetFractal(FractalType fractal)
 	UnlockAllMutexes();
 }
 
+void FractalDrawer::SetCustomJuliaPosition(bool use, double x, double y)
+{
+	// no need to lock mutexes as these values are not used by the fractal drawing thread function
+	useCustomJuliaPosition = use;
+	customJuliaPosition = ComplexFloat(x, y);
+}
+
 float FractalDrawer::GetProgress()
 {
 	return drawingProgress;
@@ -253,6 +259,13 @@ void FractalDrawer::Zoom(float x, float y, float amount)
 	transformz *= amount;
 	transformx -= (newX / transformz) * (1 - amount);
 	transformy -= (newY / transformz) * (1 - amount);
+}
+
+ComplexFloat FractalDrawer::ScreenToWorldPos(float x, float y)
+{
+	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - transformx) * transformz;
+	CF_Float newY = (y - transformy) * transformz;
+	return ComplexFloat(newX, newY);
 }
 
 bool FractalDrawer::Draw(bool update)
@@ -279,7 +292,13 @@ bool FractalDrawer::Draw(bool update)
 			int ystart = i * chunksize;
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
 			threadProgress[i] = 0;
-			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, totalTime, transformx, transformy, transformz);
+			ComplexFloat extraValue = customJuliaPosition;
+			if (!useCustomJuliaPosition)
+			{
+				extraValue = ComplexFloat((cos(totalTime) * 0.5 - cos(totalTime * 2) * 0.25) * 1.01,
+					(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
+			}
+			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, extraValue, transformx, transformy, transformz);
 		}
 		fractalThreadNeedsRun = false;
 	}

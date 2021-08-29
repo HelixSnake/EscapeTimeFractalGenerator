@@ -43,6 +43,9 @@ struct FractalInfo
 	double minDeviation = 0;
 	double lengthLimit = 10;
 	bool animate = false;
+	bool useCustomJulPos = false;
+	double CustomJulPosX = 0;
+	double CustomJulPosY = 0;
 	FractalType type = FractalType::Julia;
 };
 
@@ -128,6 +131,9 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 	}
 
 	ImGui::Checkbox("Animate!", &fractalInfo.animate);
+	ImGui::Checkbox("Custom Julia Position", &fractalInfo.useCustomJulPos);
+	ImGui::InputDouble("Custom Position X", &fractalInfo.CustomJulPosX, 0.0, 0.0, " % .16f");
+	ImGui::InputDouble("Custom Position Y", &fractalInfo.CustomJulPosY, 0.0, 0.0, " % .16f");
 	if (ImGui::Button("Update"))
 	{
 		updateButton = true;
@@ -193,6 +199,7 @@ int main(int argc, char* argv[])
 	bool animateFractal = true;
 	bool SpaceBarPressed = false;
 	bool updateButton = false;
+	bool juliaPosUpdate = false;
 	//fractal properties
 	FractalInfo fracInfo;
 	fracInfo.iterations = START_ITERATIONS;
@@ -201,11 +208,15 @@ int main(int argc, char* argv[])
 	fracInfo.minDeviation = SMALL_DOUBLE_VALUE;
 	fracInfo.lengthLimit = START_LENGTH_LIMIT;
 	fracInfo.animate = false;
+	fracInfo.useCustomJulPos = false;
+	fracInfo.CustomJulPosX = 0;
+	fracInfo.CustomJulPosY = 0;
 	fractalDrawer->SetIterations(fracInfo.iterations);
 	fractalDrawer->SetPeriod(fracInfo.period);
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 	fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 	fractalDrawer->SetFractal(fracInfo.type);
+	fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
@@ -220,6 +231,7 @@ int main(int argc, char* argv[])
 		//zoom?
 		int leftMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 		int rightMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+		int middleMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
 		double mbxpos, mbypos;
 		glfwGetCursorPos(window, &mbxpos, &mbypos);
 		mbxpos /= currentWindowWidth;
@@ -232,6 +244,15 @@ int main(int argc, char* argv[])
 		{
 			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(ZOOM_PER_SECOND, deltaTime));
 		}
+		if (middleMBstate == GLFW_PRESS)
+		{
+			ComplexFloat newPos = fractalDrawer->ScreenToWorldPos(mbxpos, mbypos);
+			fracInfo.CustomJulPosX = newPos.real;
+			fracInfo.CustomJulPosY = newPos.imaginary;
+			fracInfo.useCustomJulPos = true;
+			fractalDrawer->SetCustomJuliaPosition(true, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
+		}
+		juliaPosUpdate = middleMBstate == GLFW_PRESS;
 
 		// Render 
 		// Clear the colorbuffer 
@@ -260,8 +281,9 @@ int main(int argc, char* argv[])
 			fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 			fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 			fractalDrawer->SetFractal(fracInfo.type);
+			fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		}
-		fractalDrawer->Draw(updateOnResize || updateButton || fracInfo.animate);
+		fractalDrawer->Draw(updateOnResize || updateButton || fracInfo.animate || juliaPosUpdate);
 
 		glfwSwapBuffers(window);
 

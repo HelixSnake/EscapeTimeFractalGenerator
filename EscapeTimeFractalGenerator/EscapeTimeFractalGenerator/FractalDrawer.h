@@ -36,8 +36,10 @@ public:
 	void SetMinDeviation(float minDeviation);
 	void SetLengthLimit(float lengthLimit);
 	void SetFractal(FractalType fractal);
+	void SetCustomJuliaPosition(bool use, double x, double y);
 	float GetProgress();
 	void Zoom(float x, float y, float amount);
+	ComplexFloat ScreenToWorldPos(float x, float y);
 	bool Draw(bool update);
 protected:
 
@@ -64,6 +66,8 @@ protected:
 	std::atomic<float> period = 100;
 	std::atomic<float> minDeviation = 0;
 	std::atomic<float> lengthLimit = 10;
+	bool useCustomJuliaPosition = false;
+	ComplexFloat customJuliaPosition = ComplexFloat(0, 0);
 
 	long double totalTime = 0;
 	steady_clock::time_point lastTime;
@@ -93,7 +97,7 @@ protected:
 	glm::vec3 clearColor = glm::vec3(0.5, 0.5, 0.5);
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
-	bool DrawFractalChunk(int index, float time, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
+	bool DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
 	void LockAllMutexes();
 	void UnlockAllMutexes();
 };
