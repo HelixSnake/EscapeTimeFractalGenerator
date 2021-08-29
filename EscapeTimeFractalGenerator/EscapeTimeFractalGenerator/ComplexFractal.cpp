@@ -15,22 +15,22 @@ ComplexFractal::ComplexFractal(int iterations, CF_Float minDeviation)
 	this->iterations = iterations;
 	this->minDeviationSqr = minDeviation * minDeviation;
 }
-void ComplexFractal::SetFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat previousValue, float time))
+void ComplexFractal::SetFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue))
 {
 	ComplexFunction = func;
 }
-void ComplexFractal::SetStartingFunction(ComplexFloat(*func)(ComplexFloat input, float time))
+void ComplexFractal::SetStartingFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat extraValue))
 {
 	StartingValueFunction = func;
 }
-float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
+float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat extraValue)
 {
 	//default algorithm for starting position
 	ComplexFloat value = ComplexFloat(0, 0);
 	float lengthlimitsqr = lengthLimit * lengthLimit;
 	if (StartingValueFunction != nullptr)
 	{ 
-		value = StartingValueFunction(ComplexFloat(x, y), time);
+		value = StartingValueFunction(ComplexFloat(x, y), extraValue);
 	}
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
 	ComplexFloat prevValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
@@ -39,7 +39,7 @@ float ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, float time)
 	{
 		if (ComplexFunction != nullptr)
 		{
-			value = ComplexFunction(ComplexFloat(x, y), value, time);
+			value = ComplexFunction(ComplexFloat(x, y), value, extraValue);
 		}
 		else
 		{

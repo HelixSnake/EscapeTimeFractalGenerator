@@ -115,7 +115,8 @@ bool FractalDrawer::DrawFractalChunk(int index, float time, CF_Float tfx, CF_Flo
 			CF_Float y = (CF_Float)i / pixelBufferHeight;
 			x = (x * pixelBufferWidth / pixelBufferHeight - tfx) * tfscale;
 			y = (y - tfy) * tfscale;
-			CF_Float value = fractal.CalculateEscapeTime(x, y, time);
+			ComplexFloat extraValue = ComplexFloat((cos(time) * 0.5 - cos(time * 2) * 0.25) * 1.01, (sin(time) * 0.5 - sin(time * 2) * 0.25) * 1.01);
+			CF_Float value = fractal.CalculateEscapeTime(x, y, extraValue);
 			if (value == 0)
 			{
 				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0, 0, 0);
