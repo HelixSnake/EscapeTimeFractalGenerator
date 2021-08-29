@@ -269,7 +269,7 @@ int main(int argc, char* argv[])
 		}
 		if (middleMBstate == GLFW_PRESS)
 		{
-			ComplexFloat newPos = fractalDrawer->ScreenToWorldPos(mbxpos, mbypos);
+			ComplexFloat newPos = fractalDrawer->ScreenToWorldPos(mbxpos, 1 - mbypos);
 			fracInfo.CustomJulPosX = newPos.real;
 			fracInfo.CustomJulPosY = newPos.imaginary;
 			fracInfo.useCustomJulPos = true;
