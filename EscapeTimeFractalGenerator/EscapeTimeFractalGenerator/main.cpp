@@ -40,6 +40,7 @@ struct FractalInfo
 	int iterations = 40;
 	float upscale = 1;
 	float period = 100;
+	float offset = 0;
 	double minDeviation = 0;
 	double lengthLimit = 10;
 	bool animate = false;
@@ -114,6 +115,10 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, b
 		fractalInfo.upscale = pow(2, floor(log2(fractalInfo.upscale)));
 	}
 	ImGui::InputFloat("Period", &fractalInfo.period);
+	if (ImGui::SliderFloat("Offset", &fractalInfo.offset, 0.0f, 1.0f))
+	{
+		miscUpdate = true;
+	}
 	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0f, "%.3f");
 	ImGui::Text("Set this value to something small to improve rendering time");
 	ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
@@ -228,6 +233,7 @@ int main(int argc, char* argv[])
 	fracInfo.iterations = START_ITERATIONS;
 	fracInfo.upscale = 1;
 	fracInfo.period = 1; 
+	fracInfo.offset = 0;
 	fracInfo.minDeviation = SMALL_DOUBLE_VALUE;
 	fracInfo.lengthLimit = START_LENGTH_LIMIT;
 	fracInfo.animate = false;
@@ -235,7 +241,7 @@ int main(int argc, char* argv[])
 	fracInfo.CustomJulPosX = 0;
 	fracInfo.CustomJulPosY = 0;
 	fractalDrawer->SetIterations(fracInfo.iterations);
-	fractalDrawer->SetPeriod(fracInfo.period);
+	fractalDrawer->SetPeriodOffset(fracInfo.period, fracInfo.offset);
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 	fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 	fractalDrawer->SetFractal(fracInfo.type);
@@ -301,7 +307,7 @@ int main(int argc, char* argv[])
 		if (updateButton)
 		{
 			fractalDrawer->SetIterations(fracInfo.iterations);
-			fractalDrawer->SetPeriod(fracInfo.period);
+			fractalDrawer->SetPeriodOffset(fracInfo.period, fracInfo.offset);
 			fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 			fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 			fractalDrawer->SetFractal(fracInfo.type);
@@ -310,6 +316,10 @@ int main(int argc, char* argv[])
 		if (resetZoom)
 		{
 			fractalDrawer->ResetZoom();
+		}
+		if (miscUpdate)
+		{
+			fractalDrawer->SetPeriodOffset(fracInfo.period, fracInfo.offset);
 		}
 		fractalDrawer->Draw(updateOnResize || updateButton || fracInfo.animate || juliaPosUpdate || resetZoom || miscUpdate);
 

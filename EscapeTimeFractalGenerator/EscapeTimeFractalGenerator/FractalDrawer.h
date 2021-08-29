@@ -32,7 +32,7 @@ public:
 	void SetRampTexture(GLuint textureID);
 	void Resize(int width, int height, float sizeMult);
 	void SetIterations(int iterations);
-	void SetPeriod(float period);
+	void SetPeriodOffset(float period, float offset);
 	void SetMinDeviation(float minDeviation);
 	void SetLengthLimit(float lengthLimit);
 	void SetFractal(FractalType fractal);
@@ -65,6 +65,7 @@ protected:
 
 	std::atomic_int iterations = 40;
 	std::atomic<float> period = 100;
+	std::atomic<float> offset = 0;
 	std::atomic<float> minDeviation = 0;
 	std::atomic<float> lengthLimit = 10;
 	bool useCustomJuliaPosition = false;
