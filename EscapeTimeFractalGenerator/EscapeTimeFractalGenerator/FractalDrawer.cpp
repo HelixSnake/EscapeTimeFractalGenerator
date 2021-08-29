@@ -18,15 +18,7 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	this->window = window;
 	pixelBuffer = new float[width * height * 3];
 	glGenTextures(1, &fractalTexture);
-	transformx = STARTING_TRANSFORM.x;
-	transformy = STARTING_TRANSFORM.y;
-	transformz = STARTING_TRANSFORM.z;
-	lastTransformx = transformx;
-	lastTransformy = transformy;
-	lastTransformz = transformz;
-	lastLastTransformx = transformx;
-	lastLastTransformy = transformy;
-	lastLastTransformz = transformz;
+	ResetZoom();
 	totalTime = 0;
 	lastTime = high_resolution_clock::now();
 }
@@ -259,6 +251,22 @@ void FractalDrawer::Zoom(float x, float y, float amount)
 	transformz *= amount;
 	transformx -= (newX / transformz) * (1 - amount);
 	transformy -= (newY / transformz) * (1 - amount);
+}
+void FractalDrawer::ResetZoom()
+{
+	haltDrawingThread = true;
+	LockAllMutexes();
+	transformx = STARTING_TRANSFORM.x;
+	transformy = STARTING_TRANSFORM.y;
+	transformz = STARTING_TRANSFORM.z;
+	lastTransformx = transformx;
+	lastTransformy = transformy;
+	lastTransformz = transformz;
+	lastLastTransformx = transformx;
+	lastLastTransformy = transformy;
+	lastLastTransformz = transformz;
+	UnlockAllMutexes();
+	haltDrawingThread = false;
 }
 
 ComplexFloat FractalDrawer::ScreenToWorldPos(float x, float y)

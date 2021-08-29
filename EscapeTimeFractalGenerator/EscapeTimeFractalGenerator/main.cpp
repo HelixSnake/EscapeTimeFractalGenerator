@@ -26,7 +26,7 @@
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
 const GLint UI_WINDOW_WIDTH = 500;
-const GLint UI_WINDOW_HEIGHT = 300;
+const GLint UI_WINDOW_HEIGHT = 400;
 const int START_ITERATIONS = 100;
 const double START_LENGTH_LIMIT = 100;
 const double SMALL_DOUBLE_VALUE = 0.000000000000001;
@@ -85,7 +85,7 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 	ImGui::StyleColorsDark();
 }
 
-void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fractalInfo, float progress)
+void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, bool& miscUpdate, FractalInfo& fractalInfo, float progress)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -130,13 +130,33 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, FractalInfo& fract
 		fractalInfo.type = FractalType::Mandelbrot;
 	}
 
-	ImGui::Checkbox("Animate!", &fractalInfo.animate);
-	ImGui::Checkbox("Custom Julia Position", &fractalInfo.useCustomJulPos);
-	ImGui::InputDouble("Custom Position X", &fractalInfo.CustomJulPosX, 0.0, 0.0, " % .16f");
-	ImGui::InputDouble("Custom Position Y", &fractalInfo.CustomJulPosY, 0.0, 0.0, " % .16f");
+	if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
+	{
+		if (fractalInfo.animate)
+		{
+			fractalInfo.useCustomJulPos = false;
+		}
+	};
+	if (ImGui::Checkbox("Custom Julia Position", &fractalInfo.useCustomJulPos))
+	{
+		if (fractalInfo.useCustomJulPos)
+		{
+			fractalInfo.animate = false;
+		}
+		miscUpdate = true;
+	}
+	if (fractalInfo.useCustomJulPos)
+	{
+		ImGui::InputDouble("Custom Position X", &fractalInfo.CustomJulPosX, 0.0, 0.0, " % .16f");
+		ImGui::InputDouble("Custom Position Y", &fractalInfo.CustomJulPosY, 0.0, 0.0, " % .16f");
+	}
 	if (ImGui::Button("Update"))
 	{
 		updateButton = true;
+	}
+	if (ImGui::Button("Reset Zoom"))
+	{
+		resetZoom = true;
 	}
 	ImGui::ProgressBar(progress);
 	ImGui::End();
@@ -199,7 +219,9 @@ int main(int argc, char* argv[])
 	bool animateFractal = true;
 	bool SpaceBarPressed = false;
 	bool updateButton = false;
+	bool resetZoom = false;
 	bool juliaPosUpdate = false;
+	bool miscUpdate = false;
 	//fractal properties
 	FractalInfo fracInfo;
 	fracInfo.iterations = START_ITERATIONS;
@@ -250,6 +272,7 @@ int main(int argc, char* argv[])
 			fracInfo.CustomJulPosX = newPos.real;
 			fracInfo.CustomJulPosY = newPos.imaginary;
 			fracInfo.useCustomJulPos = true;
+			fracInfo.animate = false;
 			fractalDrawer->SetCustomJuliaPosition(true, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		}
 		juliaPosUpdate = middleMBstate == GLFW_PRESS;
@@ -281,15 +304,21 @@ int main(int argc, char* argv[])
 			fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 			fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 			fractalDrawer->SetFractal(fracInfo.type);
-			fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		}
-		fractalDrawer->Draw(updateOnResize || updateButton || fracInfo.animate || juliaPosUpdate);
+		fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
+		if (resetZoom)
+		{
+			fractalDrawer->ResetZoom();
+		}
+		fractalDrawer->Draw(updateOnResize || updateButton || fracInfo.animate || juliaPosUpdate || resetZoom || miscUpdate);
 
 		glfwSwapBuffers(window);
 
 		updateButton = false;
+		resetZoom = false;
+		miscUpdate = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, updateButton, fracInfo, fractalDrawer->GetProgress());
+		RenderUIWindow(uiWindow, updateButton, resetZoom, miscUpdate, fracInfo, fractalDrawer->GetProgress());
 		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;

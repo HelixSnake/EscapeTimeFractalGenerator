@@ -39,6 +39,7 @@ public:
 	void SetCustomJuliaPosition(bool use, double x, double y);
 	float GetProgress();
 	void Zoom(float x, float y, float amount);
+	void ResetZoom();
 	ComplexFloat ScreenToWorldPos(float x, float y);
 	bool Draw(bool update);
 protected:
