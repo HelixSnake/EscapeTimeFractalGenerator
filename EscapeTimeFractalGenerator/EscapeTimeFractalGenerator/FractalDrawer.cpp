@@ -40,6 +40,11 @@ FractalDrawer::~FractalDrawer()
 void FractalDrawer::SetRampTexture(GLuint textureID)
 {
 	LockAllMutexes();
+	// If we are running this a second time, make sure to delete our rampColors array to prevent memory leaks
+	if (rampColors != nullptr)
+	{
+		delete[] rampColors;
+	}
 	rampTexture = textureID;
 	// Build Ramp Color Array
 	if (rampTexture != 0)

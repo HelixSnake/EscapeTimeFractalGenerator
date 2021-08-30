@@ -19,6 +19,8 @@
 #include <glm/vec3.hpp>
 #include <glm/common.hpp>
 
+//File Dialog
+
 #include "FractalDrawer.h"
 #include "MandelbrotFractal.h"
 #include "ComplexFractal.h"
@@ -26,7 +28,7 @@
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
 const GLint UI_WINDOW_WIDTH = 500;
-const GLint UI_WINDOW_HEIGHT = 400;
+const GLint UI_WINDOW_HEIGHT = 480;
 const int START_ITERATIONS = 100;
 const double START_LENGTH_LIMIT = 100;
 const double SMALL_DOUBLE_VALUE = 0.000000000000001;
@@ -45,6 +47,7 @@ struct FractalInfo
 	double lengthLimit = 10;
 	bool animate = false;
 	bool useCustomJulPos = false;
+	bool showAdvancedOptions = false;
 	double CustomJulPosX = 0;
 	double CustomJulPosY = 0;
 	FractalType type = FractalType::Julia;
@@ -58,13 +61,14 @@ void ClearPixelBuffer(float* buffer, int size)
 	}
 }
 
-GLuint LoadRampTexture()
+
+GLuint LoadRampTexture(const char* filename)
 {
 	GLuint textureID = 0;
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	int width, height, channels;
-	unsigned char* image = SOIL_load_image(COLOR_RAMP_FILENAME, &width, &height, &channels, SOIL_LOAD_RGB);
+	unsigned char* image = SOIL_load_image(filename, &width, &height, &channels, SOIL_LOAD_RGB);
 	if (image == nullptr)
 	{
 		std::cout << "Ramp texture not found" << std::endl;
@@ -73,6 +77,12 @@ GLuint LoadRampTexture()
 	//SOIL_free_image_data(image);
 	return textureID;
 }
+
+GLuint LoadRampTexture()
+{
+	return LoadRampTexture(COLOR_RAMP_FILENAME);
+}
+
 
 void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io)
 {
@@ -86,7 +96,7 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 	ImGui::StyleColorsDark();
 }
 
-void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, bool& miscUpdate, FractalInfo& fractalInfo, float progress)
+void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& uiUpdate, bool& regenBuffer, FractalInfo& fractalInfo)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -100,13 +110,14 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, b
 
 	// render your GUI
 	bool mainWindowOpen;
-	ImGui::Begin("Main Window", &mainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove 
+	ImGui::Begin("Main Window", &mainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove
 		| ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 	ImGui::SetWindowSize(ImVec2(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT));
 	ImGui::SetWindowPos(ImVec2(0, 0));
-	ImGui::InputInt("Iterations:", &fractalInfo.iterations);
-	int upscaleInt = fractalInfo.upscale;
-	ImGui::Text("Upsample can be any value between 0 and 1, 2, or 4");
+	ImGui::Text("Left click to zoom in, right click to zoom out, \nmiddle click to choose custom Julia set value");
+	ImGui::InputInt("Iterations:", &fractalInfo.iterations, 10);
+	ImGui::Text("Upsample can be any value between 0 and 1, or 2.0, or 4.0 \nRendering speed scales roughly with the upsample value squared");
+
 	ImGui::InputDouble("Upsample", &fractalInfo.upscale);
 	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0, 4.0);
 	//keep upscale a power of 2 if it's more than 1
@@ -119,16 +130,13 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, b
 	float tempOffset = fractalInfo.offset;
 	if (ImGui::SliderFloat("Offset", &tempOffset, 0.0, 1.0))
 	{
-		miscUpdate = true;
+		uiUpdate = true;
 	}
 	fractalInfo.offset = tempOffset;
-	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0, "%.3f");
-	ImGui::Text("Set this value to something small to improve rendering time");
-	ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
 	ImGui::Text("Fractal Type:");
 	bool fractalIsJulia = fractalInfo.type == FractalType::Julia;
 	bool fractalIsMandelbrot = fractalInfo.type == FractalType::Mandelbrot;
-	if (ImGui::Checkbox("Julia", &fractalIsJulia)) 
+	if (ImGui::Checkbox("Julia", &fractalIsJulia))
 	{
 		fractalInfo.type = FractalType::Julia;
 	}
@@ -137,7 +145,6 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, b
 	{
 		fractalInfo.type = FractalType::Mandelbrot;
 	}
-
 	if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
 	{
 		if (fractalInfo.animate)
@@ -145,13 +152,13 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, b
 			fractalInfo.useCustomJulPos = false;
 		}
 	};
-	if (ImGui::Checkbox("Custom Julia Position", &fractalInfo.useCustomJulPos))
+	if (ImGui::Checkbox("Custom Julia Position (middle mouse click)", &fractalInfo.useCustomJulPos))
 	{
 		if (fractalInfo.useCustomJulPos)
 		{
 			fractalInfo.animate = false;
 		}
-		miscUpdate = true;
+		uiUpdate = true;
 	}
 	if (fractalInfo.useCustomJulPos)
 	{
@@ -160,13 +167,36 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, b
 	}
 	if (ImGui::Button("Update"))
 	{
-		updateButton = true;
+		fractalDrawer->SetIterations(fractalInfo.iterations);
+		fractalDrawer->SetPeriodOffset(fractalInfo.period, fractalInfo.offset);
+		fractalDrawer->SetMinDeviation(fractalInfo.minDeviation);
+		fractalDrawer->SetLengthLimit(fractalInfo.lengthLimit);
+		fractalDrawer->SetFractal(fractalInfo.type);
+		uiUpdate = true;
+		// We need to regenerate the pixel buffer due to changed texture dimensions in case upscale has changed
+		regenBuffer = true;
 	}
 	if (ImGui::Button("Reset Zoom"))
 	{
-		resetZoom = true;
+		fractalDrawer->ResetZoom();
+		uiUpdate = true;
 	}
-	ImGui::ProgressBar(progress);
+	if (ImGui::Button("Reload Ramp Texture"))
+	{
+		GLuint rampTexture = LoadRampTexture();
+		fractalDrawer->SetRampTexture(rampTexture);
+		glDeleteTextures(1, &rampTexture);
+		uiUpdate = true;
+	}
+	ImGui::Checkbox("Show advanced options", &fractalInfo.showAdvancedOptions);
+	if (fractalInfo.showAdvancedOptions)
+	{
+		ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0, "%.3f");
+		ImGui::Text("Set this value to something small to improve rendering time");
+		ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
+	}
+
+	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::End();
 
 	// Render dear imgui into screen
@@ -223,14 +253,14 @@ int main(int argc, char* argv[])
 	//load and set ramp texture
 	GLuint rampTexture = LoadRampTexture();
 	fractalDrawer->SetRampTexture(rampTexture);
+	glDeleteTextures(1, &rampTexture);
 	//initial delta time start
 	auto deltaTimeStart = std::chrono::high_resolution_clock::now();
 	bool animateFractal = true;
 	bool SpaceBarPressed = false;
-	bool updateButton = false;
-	bool resetZoom = false;
 	bool juliaPosUpdate = false;
-	bool miscUpdate = false;
+	bool uiUpdate = false;
+	bool regenBuffer = false;
 	//fractal properties
 	FractalInfo fracInfo;
 	fracInfo.iterations = START_ITERATIONS;
@@ -296,43 +326,29 @@ int main(int argc, char* argv[])
 		int nextWindowWidth = 0;
 		int nextWindowHeight = 0;
 		glfwGetWindowSize(window, &nextWindowWidth, &nextWindowHeight);
-		//TODO: make threadsafe
 		bool updateOnResize = false;
-		if (currentWindowWidth != nextWindowWidth || currentWindowHeight != nextWindowHeight || updateButton)
+		// Regenerate the fractal drawer's pixel buffer due to changed texture dimensions
+		if (currentWindowWidth != nextWindowWidth || currentWindowHeight != nextWindowHeight || regenBuffer)
 		{
 			currentWindowWidth = nextWindowWidth;
 			currentWindowHeight = nextWindowHeight;
 			updateOnResize = true;
 			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight, fracInfo.upscale);
 		}
-		// Draw OpenGL 
-		//fractalDrawer->Draw(shouldUpdate || animateFractal);
-		if (updateButton)
-		{
-			fractalDrawer->SetIterations(fracInfo.iterations);
-			fractalDrawer->SetPeriodOffset(fracInfo.period, fracInfo.offset);
-			fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
-			fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
-			fractalDrawer->SetFractal(fracInfo.type);
-		}
 		fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
-		if (resetZoom)
-		{
-			fractalDrawer->ResetZoom();
-		}
-		if (miscUpdate)
+		if (uiUpdate)
 		{
 			fractalDrawer->SetPeriodOffset(fracInfo.period, fracInfo.offset);
 		}
-		fractalDrawer->Draw(updateOnResize || updateButton || fracInfo.animate || juliaPosUpdate || resetZoom || miscUpdate);
+		// Draw fractal
+		fractalDrawer->Draw(updateOnResize || fracInfo.animate || juliaPosUpdate || uiUpdate);
 
 		glfwSwapBuffers(window);
 
-		updateButton = false;
-		resetZoom = false;
-		miscUpdate = false;
+		uiUpdate = false;
+		regenBuffer = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, updateButton, resetZoom, miscUpdate, fracInfo, fractalDrawer->GetProgress());
+		RenderUIWindow(uiWindow, fractalDrawer, uiUpdate, regenBuffer, fracInfo);
 		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;
