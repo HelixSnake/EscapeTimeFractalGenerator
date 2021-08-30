@@ -13,6 +13,11 @@ const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
 
 FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window) 
 {
+	drawFractalThreads = new std::future<bool>[NUM_FRACTAL_DRAW_THREADS];
+	threadProgress = new std::atomic<int>[NUM_FRACTAL_DRAW_THREADS];
+	Mutexes = new std::mutex[NUM_FRACTAL_DRAW_THREADS];
+	drawingStatus = new std::future_status[NUM_FRACTAL_DRAW_THREADS];
+
 	this->pixelBufferHeight = height;
 	this->pixelBufferWidth = width;
 	this->window = window;
@@ -34,6 +39,10 @@ FractalDrawer::~FractalDrawer()
 	}
 	glDeleteTextures(1, &fractalTexture);
 	UnlockAllMutexes();
+	delete[] drawFractalThreads;
+	delete[] drawingStatus;
+	delete[] threadProgress;
+	delete[] Mutexes;
 }
 
 
@@ -330,7 +339,6 @@ bool FractalDrawer::Draw(bool update)
 	glBindTexture(GL_TEXTURE_2D, fractalTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	std::future_status drawingStatus[NUM_FRACTAL_DRAW_THREADS];
 	bool allThreadsValid = true;
 	bool allThreadsReady = true;
 	bool renderedThisFrame = false;

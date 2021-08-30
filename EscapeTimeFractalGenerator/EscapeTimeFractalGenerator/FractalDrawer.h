@@ -16,7 +16,7 @@
 
 using namespace std::chrono;
 
-const int NUM_FRACTAL_DRAW_THREADS = 16;
+const int NUM_FRACTAL_DRAW_THREADS = std::thread::hardware_concurrency();
 
 enum class FractalType
 {
@@ -94,9 +94,12 @@ protected:
 	std::atomic_bool haltDrawingThread = false;
 	GLFWwindow* window = nullptr;
 	std::future<bool> drawFractalThread;
-	std::future<bool> drawFractalThreads[NUM_FRACTAL_DRAW_THREADS];
-	std::atomic<int> threadProgress[NUM_FRACTAL_DRAW_THREADS];
-    std::mutex Mutexes[NUM_FRACTAL_DRAW_THREADS];
+
+	std::future<bool> *drawFractalThreads;
+	std::atomic<int> *threadProgress;
+    std::mutex *Mutexes;
+	std::future_status* drawingStatus;
+
 	glm::vec3 clearColor = glm::vec3(0.5, 0.5, 0.5);
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
