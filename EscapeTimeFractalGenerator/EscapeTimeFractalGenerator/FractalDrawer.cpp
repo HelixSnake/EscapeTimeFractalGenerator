@@ -47,7 +47,7 @@ void FractalDrawer::SetRampTexture(GLuint textureID)
 		glBindTexture(GL_TEXTURE_2D, rampTexture);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ramTexWidth);
 		rampColors = new float[ramTexWidth * 3];
-		glGetnTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, ramTexWidth * 3 * sizeof(float), rampColors);
+		glGetTextureSubImage(rampTexture, 0, 0, 0, 0, ramTexWidth, 1, 1, GL_RGB, GL_FLOAT, ramTexWidth * 3 * sizeof(float), rampColors);
 	}
 	UnlockAllMutexes();
 }
