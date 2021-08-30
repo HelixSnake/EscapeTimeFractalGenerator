@@ -63,13 +63,13 @@ void ClearPixelBuffer(float* buffer, int size)
 }
 
 
-GLuint LoadRampTexture(const char* filename)
+GLuint LoadRampTexture(std::string filename)
 {
 	GLuint textureID = 0;
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	int width, height, channels;
-	unsigned char* image = SOIL_load_image(filename, &width, &height, &channels, SOIL_LOAD_RGB);
+	unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_RGB);
 	if (image == nullptr)
 	{
 		std::cout << "Ramp texture not found" << std::endl;
@@ -97,7 +97,7 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 	ImGui::StyleColorsDark();
 }
 
-void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& uiUpdate, bool& regenBuffer, FractalInfo& fractalInfo)
+void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& uiUpdate, bool& regenBuffer, FractalInfo& fractalInfo, ImGui::FileBrowser &rampTexFileBrowser)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -182,7 +182,12 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 		fractalDrawer->ResetZoom();
 		uiUpdate = true;
 	}
-	if (ImGui::Button("Reload Ramp Texture"))
+	if (ImGui::Button("Choose Ramp Texture"))
+	{
+		rampTexFileBrowser.Open();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Default"))
 	{
 		GLuint rampTexture = LoadRampTexture();
 		fractalDrawer->SetRampTexture(rampTexture);
@@ -199,6 +204,17 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::End();
+	rampTexFileBrowser.SetWindowSize(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT);
+	ImGui::SetWindowPos(ImVec2(0, 0));
+	rampTexFileBrowser.Display();
+	if (rampTexFileBrowser.HasSelected())
+	{
+		GLuint rampTexture = LoadRampTexture(rampTexFileBrowser.GetSelected().string());
+		fractalDrawer->SetRampTexture(rampTexture);
+		glDeleteTextures(1, &rampTexture);
+		uiUpdate = true;
+		rampTexFileBrowser.ClearSelected();
+	}
 
 	// Render dear imgui into screen
 	ImGui::Render();
@@ -280,6 +296,12 @@ int main(int argc, char* argv[])
 	fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 	fractalDrawer->SetFractal(fracInfo.type);
 	fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
+
+	//file dialog
+	ImGui::FileBrowser rampTexFileDialog;
+	rampTexFileDialog.SetTitle("Custom Ramp Texture");
+	rampTexFileDialog.SetTypeFilters({ ".png" });
+
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
@@ -349,7 +371,7 @@ int main(int argc, char* argv[])
 		uiUpdate = false;
 		regenBuffer = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, fractalDrawer, uiUpdate, regenBuffer, fracInfo);
+		RenderUIWindow(uiWindow, fractalDrawer, uiUpdate, regenBuffer, fracInfo, rampTexFileDialog);
 		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;
