@@ -75,7 +75,7 @@ GLuint LoadRampTexture(std::string filename)
 		std::cout << "Ramp texture not found" << std::endl;
 	}
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	//SOIL_free_image_data(image);
+	SOIL_free_image_data(image);
 	return textureID;
 }
 
