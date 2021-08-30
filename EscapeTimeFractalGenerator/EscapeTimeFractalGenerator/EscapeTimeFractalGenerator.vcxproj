@@ -120,7 +120,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\CPlusPlusPractice\imgui;E:\CPlusPlusPractice\imgui\backends;E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\include;E:\CPlusPlusPractice\glew-2.1.0\include;E:\CPlusPlusPractice\soil\inc\SOIL;E:\CPlusPlusPractice\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\CPlusPlusPractice\imgui;E:\CPlusPlusPractice\imgui\backends;E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\include;E:\CPlusPlusPractice\glew-2.1.0\include;E:\CPlusPlusPractice\soil\inc\SOIL;E:\CPlusPlusPractice\glm;E:\CPlusPlusPractice\imgui-filebrowser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,7 +141,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\CPlusPlusPractice\imgui;E:\CPlusPlusPractice\imgui\backends;E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\include;E:\CPlusPlusPractice\glew-2.1.0\include;E:\CPlusPlusPractice\soil\inc\SOIL;E:\CPlusPlusPractice\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\CPlusPlusPractice\imgui;E:\CPlusPlusPractice\imgui\backends;E:\CPlusPlusPractice\glfw-3.3.4.bin.WIN64\include;E:\CPlusPlusPractice\glew-2.1.0\include;E:\CPlusPlusPractice\soil\inc\SOIL;E:\CPlusPlusPractice\glm;E:\CPlusPlusPractice\imgui-filebrowser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

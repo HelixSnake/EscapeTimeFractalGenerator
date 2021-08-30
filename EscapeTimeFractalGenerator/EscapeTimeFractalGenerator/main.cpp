@@ -20,6 +20,7 @@
 #include <glm/common.hpp>
 
 //File Dialog
+#include <imfilebrowser.h>
 
 #include "FractalDrawer.h"
 #include "MandelbrotFractal.h"
