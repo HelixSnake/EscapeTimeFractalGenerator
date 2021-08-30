@@ -107,7 +107,8 @@ bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Floa
 			CF_Float y = (CF_Float)i / pixelBufferHeight;
 			x = (x * pixelBufferWidth / pixelBufferHeight - tfx) * tfscale;
 			y = (y - tfy) * tfscale;
-			CF_Float value = fractal.CalculateEscapeTime(x, y, extraValue);
+			glm::vec2 UV;
+			CF_Float value = fractal.CalculateEscapeTime(x, y, extraValue, UV);
 			if (value == 0)
 			{
 				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0, 0, 0);
@@ -115,16 +116,18 @@ bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Floa
 			else
 			{
 				//logarithmic function keeps period similar at all zoom levels
-				float newValue = glm::fract(log(value) / period + offset);
+				double newValue = glm::fract(log(value) / period + offset);
 				//float newValue = glm::fract(value / period);
 				if (rampColors != nullptr)
 				{
-					int rampIndex = ((int)((float)ramTexWidth * (1 - newValue)));
+					int rampIndex = ((int)((double)ramTexWidth * (1 - newValue)));
 					if (rampIndex > ramTexWidth - 1) rampIndex = ramTexWidth - 1;
 					if (rampIndex < 0) rampIndex = 0;
 					rampIndex *= 3;
-					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
-					//DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, value, value, value);
+					//glm::vec3 color = glm::vec3(UV.x, UV.y, 0); // UVs in case I decide to implement reading from textures
+					glm::vec3 color = glm::vec3(rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
+					//DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
+					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, color.x, color.y, color.z);
 				}
 				else
 					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, newValue, newValue, newValue);
@@ -184,7 +187,7 @@ bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pi
 	return true;
 }*/
 
-void FractalDrawer::Resize(int width, int height, float sizeMult)
+void FractalDrawer::Resize(int width, int height, double sizeMult)
 {
 	haltDrawingThread = true;
 	LockAllMutexes();
@@ -203,7 +206,7 @@ void FractalDrawer::SetIterations(int iterations)
 	UnlockAllMutexes();
 }
 
-void FractalDrawer::SetPeriodOffset(float period, float offset)
+void FractalDrawer::SetPeriodOffset(double period, double offset)
 {
 	LockAllMutexes();
 	this->period = period;
@@ -211,14 +214,14 @@ void FractalDrawer::SetPeriodOffset(float period, float offset)
 	UnlockAllMutexes();
 }
 
-void FractalDrawer::SetMinDeviation(float minDeviation)
+void FractalDrawer::SetMinDeviation(double minDeviation)
 {
 	LockAllMutexes();
 	this->minDeviation = minDeviation;
 	UnlockAllMutexes();
 }
 
-void FractalDrawer::SetLengthLimit(float lengthLimit)
+void FractalDrawer::SetLengthLimit(double lengthLimit)
 {
 	LockAllMutexes();
 	this->lengthLimit = lengthLimit;
@@ -244,7 +247,7 @@ float FractalDrawer::GetProgress()
 	return drawingProgress;
 }
 
-void FractalDrawer::Zoom(float x, float y, float amount)
+void FractalDrawer::Zoom(double x, double y, double amount)
 {
 	//convert x y point to "World space" by replicating transform performed on pixels
 	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - transformx) * transformz;
@@ -270,7 +273,7 @@ void FractalDrawer::ResetZoom()
 	haltDrawingThread = false;
 }
 
-ComplexFloat FractalDrawer::ScreenToWorldPos(float x, float y)
+ComplexFloat FractalDrawer::ScreenToWorldPos(double x, double y)
 {
 	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - transformx) * transformz;
 	CF_Float newY = (y - transformy) * transformz;

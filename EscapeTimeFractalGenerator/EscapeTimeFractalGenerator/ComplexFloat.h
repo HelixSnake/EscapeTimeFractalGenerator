@@ -13,5 +13,8 @@ struct ComplexFloat
 	ComplexFloat operator*(const ComplexFloat other);
 	CF_Float AbsoluteValue();
 	CF_Float AbsoluteValueSqr();
+	ComplexFloat Normalized();
+	static CF_Float Angle(const ComplexFloat complexVector1, const ComplexFloat complexVector2);
+	static CF_Float Dot(const ComplexFloat complexVector1, const ComplexFloat complexVector2);
 };
 

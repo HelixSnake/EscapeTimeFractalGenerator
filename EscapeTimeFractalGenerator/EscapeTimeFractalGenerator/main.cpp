@@ -38,9 +38,9 @@ struct FractalInfo
 {
 	//need defaults: if these values are too high it will cause the program to hang
 	int iterations = 40;
-	float upscale = 1;
-	float period = 100;
-	float offset = 0;
+	double upscale = 1;
+	double period = 100;
+	double offset = 0;
 	double minDeviation = 0;
 	double lengthLimit = 10;
 	bool animate = false;
@@ -107,19 +107,22 @@ void RenderUIWindow(GLFWwindow* uiWindow, bool& updateButton, bool& resetZoom, b
 	ImGui::InputInt("Iterations:", &fractalInfo.iterations);
 	int upscaleInt = fractalInfo.upscale;
 	ImGui::Text("Upsample can be any value between 0 and 1, 2, or 4");
-	ImGui::InputFloat("Upsample", &fractalInfo.upscale);
-	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0f, 4.0f);
+	ImGui::InputDouble("Upsample", &fractalInfo.upscale);
+	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0, 4.0);
 	//keep upscale a power of 2 if it's more than 1
 	if (fractalInfo.upscale > 1.0f)
 	{
 		fractalInfo.upscale = pow(2, floor(log2(fractalInfo.upscale)));
 	}
-	ImGui::InputFloat("Period", &fractalInfo.period);
-	if (ImGui::SliderFloat("Offset", &fractalInfo.offset, 0.0f, 1.0f))
+	ImGui::InputDouble("Period", &fractalInfo.period);
+	//this is annoying but imgui makes you do this :(
+	float tempOffset = fractalInfo.offset;
+	if (ImGui::SliderFloat("Offset", &tempOffset, 0.0, 1.0))
 	{
 		miscUpdate = true;
 	}
-	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0f, "%.3f");
+	fractalInfo.offset = tempOffset;
+	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0, "%.3f");
 	ImGui::Text("Set this value to something small to improve rendering time");
 	ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
 	ImGui::Text("Fractal Type:");
@@ -282,7 +285,7 @@ int main(int argc, char* argv[])
 			fracInfo.animate = false;
 			fractalDrawer->SetCustomJuliaPosition(true, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		}
-		juliaPosUpdate = middleMBstate == GLFW_PRESS;
+		juliaPosUpdate = middleMBstate == GLFW_PRESS && fracInfo.type == FractalType::Julia;
 
 		// Render 
 		// Clear the colorbuffer 

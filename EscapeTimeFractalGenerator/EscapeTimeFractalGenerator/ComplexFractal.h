@@ -1,16 +1,18 @@
 #pragma once
 #include "EscapeTimeFractal.h"
+#include "glm/vec2.hpp"
+
 class ComplexFractal
 {
 public:
-    float blendPower = 1;
-    float lengthLimit = 100;
+    double blendPower = 1;
+    double lengthLimit = 100;
     ComplexFractal();
     ComplexFractal(int iterations);
     ComplexFractal(int iterations, CF_Float minDeviation);
     void SetFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue));
     void SetStartingFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat extraValue));
-    float CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat extraValue);
+    double CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat extraValue, glm::vec2 &uv);
 protected:
     CF_Float minDeviationSqr = 0;
     int iterations = 0;

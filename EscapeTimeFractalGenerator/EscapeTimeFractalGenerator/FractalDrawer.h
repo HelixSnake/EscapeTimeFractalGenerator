@@ -30,17 +30,17 @@ public:
 	FractalDrawer(int width, int height, GLFWwindow* window);
 	~FractalDrawer();
 	void SetRampTexture(GLuint textureID);
-	void Resize(int width, int height, float sizeMult);
+	void Resize(int width, int height, double sizeMult);
 	void SetIterations(int iterations);
-	void SetPeriodOffset(float period, float offset);
-	void SetMinDeviation(float minDeviation);
-	void SetLengthLimit(float lengthLimit);
+	void SetPeriodOffset(double period, double offset);
+	void SetMinDeviation(double minDeviation);
+	void SetLengthLimit(double lengthLimit);
 	void SetFractal(FractalType fractal);
 	void SetCustomJuliaPosition(bool use, double x, double y);
 	float GetProgress();
-	void Zoom(float x, float y, float amount);
+	void Zoom(double x, double y, double amount);
 	void ResetZoom();
-	ComplexFloat ScreenToWorldPos(float x, float y);
+	ComplexFloat ScreenToWorldPos(double x, double y);
 	bool Draw(bool update);
 protected:
 
@@ -64,10 +64,10 @@ protected:
 	float drawingProgress = 0;
 
 	std::atomic_int iterations = 40;
-	std::atomic<float> period = 100;
-	std::atomic<float> offset = 0;
-	std::atomic<float> minDeviation = 0;
-	std::atomic<float> lengthLimit = 10;
+	std::atomic<double> period = 100;
+	std::atomic<double> offset = 0;
+	std::atomic<double> minDeviation = 0;
+	std::atomic<double> lengthLimit = 10;
 	bool useCustomJuliaPosition = false;
 	ComplexFloat customJuliaPosition = ComplexFloat(0, 0);
 
