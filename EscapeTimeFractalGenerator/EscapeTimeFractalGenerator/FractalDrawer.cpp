@@ -21,7 +21,7 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	this->pixelBufferHeight = height;
 	this->pixelBufferWidth = width;
 	this->window = window;
-	pixelBuffer = new float[width * height * 3];
+	pixelBuffer = new std::atomic<float>[width * height * 3];
 	glGenTextures(1, &fractalTexture);
 	ResetZoom();
 	totalTime = 0;
@@ -60,7 +60,7 @@ void FractalDrawer::SetRampTexture(GLuint textureID)
 	{
 		glBindTexture(GL_TEXTURE_2D, rampTexture);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ramTexWidth);
-		rampColors = new float[ramTexWidth * 3];
+		rampColors = new std::atomic<float>[ramTexWidth * 3];
 		glGetTextureSubImage(rampTexture, 0, 0, 0, 0, ramTexWidth, 1, 1, GL_RGB, GL_FLOAT, ramTexWidth * 3 * sizeof(float), rampColors);
 	}
 	UnlockAllMutexes();
@@ -85,6 +85,15 @@ void FractalDrawer::UnlockAllMutexes()
 }
 
 void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b)
+{
+	if (x < 0 || x >= pixelBufferWidth || y < 0 || y >= pixelBufferHeight) return;
+	int startIndex = 3 * (y * pixelBufferWidth + x);
+	pixelBuffer[startIndex] = r;
+	pixelBuffer[startIndex + 1] = g;
+	pixelBuffer[startIndex + 2] = b;
+}
+
+void FractalDrawer::DrawPixel(std::atomic<float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b)
 {
 	if (x < 0 || x >= pixelBufferWidth || y < 0 || y >= pixelBufferHeight) return;
 	int startIndex = 3 * (y * pixelBufferWidth + x);
@@ -140,7 +149,7 @@ bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Floa
 					if (rampIndex < 0) rampIndex = 0;
 					rampIndex *= 3;
 					//glm::vec3 color = glm::vec3(UV.x, UV.y, 0); // UVs in case I decide to implement reading from textures
-					glm::vec3 color = glm::vec3(rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
+					glm::vec3 color = glm::vec3(rampColors[rampIndex].load(), rampColors[rampIndex + 1].load(), rampColors[rampIndex + 2].load());
 					//DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
 					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, color.x, color.y, color.z);
 				}
@@ -207,7 +216,7 @@ void FractalDrawer::Resize(int width, int height, double sizeMult)
 	haltDrawingThread = true;
 	LockAllMutexes();
 	delete[] pixelBuffer;
-	pixelBuffer = new float[width * sizeMult * height * sizeMult * 3];
+	pixelBuffer = new std::atomic<float>[width * sizeMult * height * sizeMult * 3];
 	pixelBufferWidth = width * sizeMult;
 	pixelBufferHeight = height *sizeMult;
 	upScale = sizeMult;
@@ -373,6 +382,7 @@ bool FractalDrawer::Draw(bool update)
 		}
 	}
 	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
+	//pixelBuffer has been moved from float* to std::atomic<float>* so this should be safe now 
 	if (lastLastTransformz == lastTransformz && liveUpdate) // don't do this if we're zooming
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);

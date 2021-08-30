@@ -85,7 +85,7 @@ protected:
 	CF_Float lastLastTransformz;
 	GLuint rampTexture = 0;
 	GLuint fractalTexture = 0;
-	float *pixelBuffer, *rampColors = nullptr;
+	std::atomic<float> *pixelBuffer, *rampColors = nullptr;
 	int ramTexWidth = 0;
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
@@ -102,6 +102,7 @@ protected:
 
 	glm::vec3 clearColor = glm::vec3(0.5, 0.5, 0.5);
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
+	static void DrawPixel(std::atomic<float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
 	bool DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
 	void LockAllMutexes(bool haltDrawing = true);
