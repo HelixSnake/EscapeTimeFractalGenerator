@@ -117,7 +117,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 	ImGui::SetWindowPos(ImVec2(0, 0));
 	ImGui::Text("Left click to zoom in, right click to zoom out, \nmiddle click to choose custom Julia set value");
 	ImGui::InputInt("Iterations:", &fractalInfo.iterations, 10);
-	fractalInfo.iterations = min(fractalInfo.iterations, 1000000); //Too many iterations will cause the program to hang, since threads are halted on a per pixel basis
+	fractalInfo.iterations = min(fractalInfo.iterations, 10000000); //Too many iterations will cause the program to hang, since threads are halted on a per pixel basis
 	ImGui::Text("Upsample can be any value between 0 and 1, or 2.0, or 4.0 \nRendering speed scales roughly with the upsample value squared");
 
 	ImGui::InputDouble("Upsample", &fractalInfo.upscale);
