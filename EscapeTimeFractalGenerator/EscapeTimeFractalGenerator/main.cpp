@@ -202,6 +202,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 		ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
 	}
 
+	ImGui::Checkbox("Live Rendering", &fractalDrawer->liveUpdate);
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::End();
 	rampTexFileBrowser.SetWindowSize(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT);

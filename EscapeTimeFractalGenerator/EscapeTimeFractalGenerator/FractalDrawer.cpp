@@ -57,8 +57,9 @@ void FractalDrawer::SetRampTexture(GLuint textureID)
 	UnlockAllMutexes();
 }
 
-void FractalDrawer::LockAllMutexes() 
+void FractalDrawer::LockAllMutexes(bool haltDrawing)
 {
+	if (haltDrawing) haltDrawingThread = true;
 	mtx.lock();
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
@@ -297,6 +298,8 @@ bool FractalDrawer::Draw(bool update)
 	}
 	if (!anyThreadsValid && fractalThreadNeedsRun)
 	{
+		//make sure drawing threads are set to not halt
+		haltDrawingThread = false;
 		if (enableAnimation)
 		{
 			steady_clock::time_point currentTime = high_resolution_clock::now();
@@ -349,7 +352,7 @@ bool FractalDrawer::Draw(bool update)
 			{
 				drawFractalThreads[i].get();
 			}
-			LockAllMutexes();
+			LockAllMutexes(false);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
 			lastLastTransformx = lastTransformx;
 			lastLastTransformy = lastTransformy;
@@ -360,6 +363,11 @@ bool FractalDrawer::Draw(bool update)
 			renderedThisFrame = true;
 			UnlockAllMutexes();
 		}
+	}
+	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
+	if (lastLastTransformz == lastTransformz && liveUpdate) // don't do this if we're zooming
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
 	}
 
 	GLuint fbo = 0;

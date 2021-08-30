@@ -27,6 +27,7 @@ class FractalDrawer
 {
 public:
 	bool enableAnimation = true;
+	bool liveUpdate = true;
 	FractalDrawer(int width, int height, GLFWwindow* window);
 	~FractalDrawer();
 	void SetRampTexture(GLuint textureID);
@@ -100,7 +101,7 @@ protected:
 	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
 	bool DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
-	void LockAllMutexes();
+	void LockAllMutexes(bool haltDrawing = true);
 	void UnlockAllMutexes();
 };
 
