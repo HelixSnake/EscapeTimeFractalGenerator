@@ -100,7 +100,7 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 	ImGui::StyleColorsDark();
 }
 
-void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& uiUpdate, bool& regenBuffer, FractalInfo& fractalInfo, ImGui::FileBrowser &rampTexFileBrowser)
+void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& uiUpdate, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, ImGui::FileBrowser &rampTexFileBrowser)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -191,8 +191,8 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 	if (ImGui::Button("Default"))
 	{
 		GLuint rampTexture = LoadRampTexture();
+		fractalInterpreter.SetRampTexture(rampTexture);
 		glDeleteTextures(1, &rampTexture);
-		uiUpdate = true;
 	}
 	ImGui::Checkbox("Show advanced options", &fractalInfo.showAdvancedOptions);
 	if (fractalInfo.showAdvancedOptions)
@@ -213,8 +213,8 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 	if (rampTexFileBrowser.HasSelected())
 	{
 		GLuint rampTexture = LoadRampTexture(rampTexFileBrowser.GetSelected().string());
+		fractalInterpreter.SetRampTexture(rampTexture);
 		glDeleteTextures(1, &rampTexture);
-		uiUpdate = true;
 		rampTexFileBrowser.ClearSelected();
 	}
 
@@ -276,7 +276,7 @@ int main(int argc, char* argv[])
 
 	//load and set ramp texture
 	GLuint rampTexture = LoadRampTexture();
-	//fractalDrawer->SetRampTexture(rampTexture);
+	fractalInterpreter.SetRampTexture(rampTexture);
 	glDeleteTextures(1, &rampTexture);
 	//initial delta time start
 	auto deltaTimeStart = std::chrono::high_resolution_clock::now();
@@ -391,7 +391,7 @@ int main(int argc, char* argv[])
 		uiUpdate = false;
 		regenBuffer = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, fractalDrawer, uiUpdate, regenBuffer, fracInfo, rampTexFileDialog);
+		RenderUIWindow(uiWindow, fractalDrawer, uiUpdate, regenBuffer, fracInfo, fractalInterpreter, rampTexFileDialog);
 		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;
