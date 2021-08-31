@@ -367,12 +367,12 @@ bool FractalDrawer::Draw(bool update)
 			{
 				haltDrawingThread = true;
 			}
-			else
-			{
-				// Stop us from zooming past a second!
-				disableZoom = true;
-			}
 		}
+	}
+	if (timeSinceLastRender > 3 && lastTransformz != transformz && lastLastTransformz != lastTransformz)
+	{
+		// Stop us from zooming out of control!
+		disableZoom = true;
 	}
 
 	glBindTexture(GL_TEXTURE_2D, fractalTexture);
@@ -410,6 +410,15 @@ bool FractalDrawer::Draw(bool update)
 			renderedThisFrame = true;
 			UnlockAllMutexes();
 		}
+	}
+	if (update) // If the user presses the update button, don't do our zooming algorithm
+	{
+		lastLastTransformx = lastTransformx;
+		lastLastTransformy = lastTransformy;
+		lastLastTransformz = lastTransformz;
+		lastTransformx = transformx;
+		lastTransformy = transformy;
+		lastTransformz = transformz;
 	}
 
 	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
