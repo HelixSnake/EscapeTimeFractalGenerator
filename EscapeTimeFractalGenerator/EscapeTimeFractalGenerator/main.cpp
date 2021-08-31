@@ -324,6 +324,8 @@ int main(int argc, char* argv[])
 		int leftMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 		int rightMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 		int middleMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
+		int jKeyState = glfwGetKey(window, GLFW_KEY_J);
+		int jKeyState2 = glfwGetKey(uiWindow, GLFW_KEY_J);
 		double mbxpos, mbypos;
 		glfwGetCursorPos(window, &mbxpos, &mbypos);
 		mbxpos /= currentWindowWidth;
@@ -336,7 +338,9 @@ int main(int argc, char* argv[])
 		{
 			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(ZOOM_PER_SECOND, deltaTime));
 		}
-		if (middleMBstate == GLFW_PRESS)
+
+		bool chooseJuliaValue = middleMBstate == GLFW_PRESS || jKeyState == GLFW_PRESS || jKeyState2 == GLFW_PRESS;
+		if (chooseJuliaValue)
 		{
 			ComplexFloat newPos = fractalDrawer->ScreenToWorldPos(mbxpos, 1 - mbypos);
 			fracInfo.CustomJulPosX = newPos.real;
@@ -345,7 +349,7 @@ int main(int argc, char* argv[])
 			fracInfo.animate = false;
 			fractalDrawer->SetCustomJuliaPosition(true, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		}
-		juliaPosUpdate = middleMBstate == GLFW_PRESS && fracInfo.type == FractalType::Julia;
+		juliaPosUpdate = chooseJuliaValue && fracInfo.type == FractalType::Julia;
 
 		// Render 
 		// Clear the colorbuffer 
