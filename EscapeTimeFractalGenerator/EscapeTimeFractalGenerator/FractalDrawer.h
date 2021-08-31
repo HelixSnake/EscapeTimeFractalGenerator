@@ -76,7 +76,9 @@ protected:
 	ComplexFloat customJuliaPosition = ComplexFloat(0, 0);
 
 	long double totalTime = 0;
-	steady_clock::time_point lastTime;
+	steady_clock::time_point lastTimeAnim;
+	steady_clock::time_point lastTimeDelta;
+	bool disableZoom = false;
 	CF_Float transformx;
 	CF_Float transformy;
 	CF_Float transformz;

@@ -25,7 +25,8 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 	glGenTextures(1, &fractalTexture);
 	ResetZoom();
 	totalTime = 0;
-	lastTime = high_resolution_clock::now();
+	lastTimeAnim = high_resolution_clock::now();
+	lastTimeDelta = high_resolution_clock::now();
 }
 
 FractalDrawer::~FractalDrawer()
@@ -281,6 +282,7 @@ float FractalDrawer::GetProgress()
 
 void FractalDrawer::Zoom(double x, double y, double amount)
 {
+	if (disableZoom) return;
 	//convert x y point to "World space" by replicating transform performed on pixels
 	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - transformx) * transformz;
 	CF_Float newY = (y - transformy) * transformz;
@@ -329,8 +331,8 @@ bool FractalDrawer::Draw(bool update)
 		if (enableAnimation)
 		{
 			steady_clock::time_point currentTime = high_resolution_clock::now();
-			totalTime = totalTime + duration_cast<nanoseconds>(currentTime - lastTime).count() / 1000000000.0;
-			lastTime = currentTime;
+			totalTime = totalTime + duration_cast<nanoseconds>(currentTime - lastTimeAnim).count() / 1000000000.0;
+			lastTimeAnim = currentTime;
 		}
 		for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 		{
@@ -346,11 +348,31 @@ bool FractalDrawer::Draw(bool update)
 			}
 			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, extraValue, transformx, transformy, transformz);
 		}
+		lastTimeDelta = high_resolution_clock::now();
 		fractalThreadNeedsRun = false;
 	}
 	if (!enableAnimation)
 	{
-		lastTime = high_resolution_clock::now();
+		lastTimeAnim = high_resolution_clock::now();
+	}
+
+	steady_clock::time_point currentTimeDelta = high_resolution_clock::now();
+	double timeSinceLastRender = duration_cast<nanoseconds>(currentTimeDelta - lastTimeDelta).count() / 1000000000.0;
+	disableZoom = false;
+	if (timeSinceLastRender > 1) // We don't want the delay on zooming in or out to be more than a second
+	{
+		if (lastTransformz != transformz) // we are zooming in or out
+		{
+			if (lastLastTransformz == lastTransformz) // we have only started zooming in or out
+			{
+				haltDrawingThread = true;
+			}
+			else
+			{
+				// Stop us from zooming past a second!
+				disableZoom = true;
+			}
+		}
 	}
 
 	glBindTexture(GL_TEXTURE_2D, fractalTexture);
@@ -389,9 +411,10 @@ bool FractalDrawer::Draw(bool update)
 			UnlockAllMutexes();
 		}
 	}
+
 	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
 	//pixelBuffer has been moved from float* to std::atomic<float>* so this should be safe now 
-	if (lastLastTransformz == lastTransformz && liveUpdate) // don't do this if we're zooming
+	if (lastLastTransformz == lastTransformz && lastTransformz == transformz && liveUpdate) // don't do this if we're zooming
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
 	}
