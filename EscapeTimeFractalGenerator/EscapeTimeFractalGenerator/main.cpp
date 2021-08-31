@@ -45,6 +45,8 @@ struct FractalInfo
 	double period = 100;
 	double offset = 0;
 	double minDeviation = 0;
+	int deviationCycles = 100;
+	bool debugDeviations = false;
 	double lengthLimit = 10;
 	bool animate = false;
 	bool useCustomJulPos = false;
@@ -172,6 +174,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 		fractalDrawer->SetIterations(fractalInfo.iterations);
 		fractalDrawer->SetPeriodOffset(fractalInfo.period, fractalInfo.offset);
 		fractalDrawer->SetMinDeviation(fractalInfo.minDeviation);
+		fractalDrawer->SetDeviationCycles(fractalInfo.deviationCycles, fractalInfo.debugDeviations);
 		fractalDrawer->SetLengthLimit(fractalInfo.lengthLimit);
 		fractalDrawer->SetFractal(fractalInfo.type);
 		uiUpdate = true;
@@ -201,6 +204,8 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 		ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0, "%.3f");
 		ImGui::Text("Set this value to something small to improve rendering time");
 		ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
+		ImGui::InputInt("DeviationCycles", &fractalInfo.deviationCycles);
+		ImGui::Checkbox("Show Deviation Iterations", &fractalInfo.debugDeviations);
 	}
 
 	ImGui::Checkbox("Live Rendering", &fractalDrawer->liveUpdate);

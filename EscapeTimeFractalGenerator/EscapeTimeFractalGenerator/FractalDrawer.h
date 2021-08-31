@@ -35,6 +35,7 @@ public:
 	void SetIterations(int iterations);
 	void SetPeriodOffset(double period, double offset);
 	void SetMinDeviation(double minDeviation);
+	void SetDeviationCycles(int deviationCycles, bool debugDeviations);
 	void SetLengthLimit(double lengthLimit);
 	void SetFractal(FractalType fractal);
 	void SetCustomJuliaPosition(bool use, double x, double y);
@@ -68,6 +69,8 @@ protected:
 	std::atomic<double> period = 100;
 	std::atomic<double> offset = 0;
 	std::atomic<double> minDeviation = 0;
+	std::atomic<int> deviationCycles = 100;
+	std::atomic<bool> debugDeviations = false;
 	std::atomic<double> lengthLimit = 10;
 	bool useCustomJuliaPosition = false;
 	ComplexFloat customJuliaPosition = ComplexFloat(0, 0);

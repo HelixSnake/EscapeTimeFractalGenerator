@@ -105,7 +105,7 @@ void FractalDrawer::DrawPixel(std::atomic<float>* pixelBuffer, int pixelBufferWi
 bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
-	ComplexFractal fractal = ComplexFractal(iterations, minDeviation);
+	ComplexFractal fractal = ComplexFractal(iterations, minDeviation, deviationCycles, debugDeviations);
 	fractal.lengthLimit = lengthLimit;
 	if (currentFractal == FractalType::Julia)
 	{
@@ -242,6 +242,14 @@ void FractalDrawer::SetMinDeviation(double minDeviation)
 {
 	LockAllMutexes();
 	this->minDeviation = minDeviation;
+	UnlockAllMutexes();
+}
+
+void FractalDrawer::SetDeviationCycles(int deviationCycles, bool debugDeviations)
+{
+	LockAllMutexes();
+	this->deviationCycles = deviationCycles;
+	this->debugDeviations = debugDeviations;
 	UnlockAllMutexes();
 }
 

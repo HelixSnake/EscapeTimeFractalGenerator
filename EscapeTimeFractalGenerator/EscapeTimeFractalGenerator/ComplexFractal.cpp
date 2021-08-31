@@ -12,10 +12,12 @@ ComplexFractal::ComplexFractal(int iterations)
 {
 	this->iterations = iterations;
 }
-ComplexFractal::ComplexFractal(int iterations, CF_Float minDeviation)
+ComplexFractal::ComplexFractal(int iterations, CF_Float minDeviation, int deviationCycle, bool debugDeviations)
 {
 	this->iterations = iterations;
 	this->minDeviationSqr = minDeviation * minDeviation;
+	this->deviationCycle = deviationCycle;
+	this->debugDeviations = debugDeviations;
 }
 void ComplexFractal::SetFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue))
 {
@@ -36,6 +38,7 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat 
 	}
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
 	ComplexFloat prevValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
+	ComplexFloat cycleValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
 	ComplexFloat prev2Value = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
 	double lengthLimitSqr = lengthLimit * lengthLimit;
 	for (int i = 0; i < iterations; i++)
@@ -67,13 +70,14 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat 
 			return (double)i + ratio;
 			//return (float)i;
 		}
-		ComplexFloat deviation = value - prevValue;
+		ComplexFloat deviation = value - cycleValue;
 		if (deviation.AbsoluteValueSqr() < minDeviationSqr)
 		{
-			return 0;
+			return debugDeviations? i : 0;
 		}
 		prev2Value = prevValue;
 		prevValue = value;
+		if (i % deviationCycle == 0) cycleValue = value;
 	}
 	return 0;
 }
