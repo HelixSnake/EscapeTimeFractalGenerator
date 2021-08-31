@@ -9,6 +9,9 @@ public:
 	CF_Float* GetValueBufferStart();
 	void Draw();
 	const float* GetColors(int &width, int &height);
+
+	float period = 1;
+	float offset = 0;
 protected:
 	void ResizeOnSizeChanged(int width, int height);
 	CF_Float* valueBuffer = nullptr;

@@ -101,10 +101,8 @@ bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Floa
 			}
 			else
 			{
-				//logarithmic function keeps period similar at all zoom levels
-				double newValue = glm::fract(log(value) / period + offset);
 				//float newValue = glm::fract(value / period);
-				SetPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, newValue);
+				SetPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, value);
 			}
 			currentThreadProgress++;
 		}
@@ -128,14 +126,6 @@ void FractalDrawer::SetIterations(int iterations)
 {
 	LockAllMutexes();
 	this->iterations = iterations;
-	UnlockAllMutexes();
-}
-
-void FractalDrawer::SetPeriodOffset(double period, double offset)
-{
-	LockAllMutexes();
-	this->period = period;
-	this->offset = offset;
 	UnlockAllMutexes();
 }
 

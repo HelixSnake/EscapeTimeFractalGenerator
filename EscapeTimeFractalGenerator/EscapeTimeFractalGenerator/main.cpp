@@ -133,10 +133,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 	ImGui::InputDouble("Period", &fractalInfo.period);
 	//this is annoying but imgui makes you do this :(
 	float tempOffset = fractalInfo.offset;
-	if (ImGui::SliderFloat("Offset", &tempOffset, 0.0, 1.0))
-	{
-		uiUpdate = true;
-	}
+	ImGui::SliderFloat("Offset", &tempOffset, 0.0, 1.0);
 	fractalInfo.offset = tempOffset;
 	ImGui::Text("Fractal Type:");
 	bool fractalIsJulia = fractalInfo.type == FractalType::Julia;
@@ -173,7 +170,6 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 	if (ImGui::Button("Update"))
 	{
 		fractalDrawer->SetIterations(fractalInfo.iterations);
-		fractalDrawer->SetPeriodOffset(fractalInfo.period, fractalInfo.offset);
 		fractalDrawer->SetMinDeviation(fractalInfo.minDeviation);
 		fractalDrawer->SetDeviationCycles(fractalInfo.deviationCycles, fractalInfo.debugDeviations);
 		fractalDrawer->SetLengthLimit(fractalInfo.lengthLimit);
@@ -302,7 +298,6 @@ int main(int argc, char* argv[])
 	fracInfo.CustomJulPosX = 0;
 	fracInfo.CustomJulPosY = 0;
 	fractalDrawer->SetIterations(fracInfo.iterations);
-	fractalDrawer->SetPeriodOffset(fracInfo.period, fracInfo.offset);
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 	fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 	fractalDrawer->SetFractal(fracInfo.type);
@@ -374,10 +369,8 @@ int main(int argc, char* argv[])
 			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight, fracInfo.upscale);
 		}
 		fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
-		if (uiUpdate)
-		{
-			fractalDrawer->SetPeriodOffset(fracInfo.period, fracInfo.offset);
-		}
+		fractalInterpreter.period = fracInfo.period;
+		fractalInterpreter.offset = fracInfo.offset;
 		// Draw fractal
 		if (fractalDrawer->Draw(updateOnResize || fracInfo.animate || juliaPosUpdate || uiUpdate)) // returns true if we should draw
 		{

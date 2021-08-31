@@ -37,7 +37,8 @@ void FractalInterpreter::Draw()
 		{
 			int valueBufferPos = j * bufferWidth + i;
 			int colorBufferPos = valueBufferPos * 3;
-			float colorValue = glm::fract(valueBuffer[valueBufferPos]);
+			//logarithmic function keeps period similar at all zoom levels
+			double colorValue = glm::fract(log(valueBuffer[valueBufferPos]) / period + offset);
 			colorBuffer[colorBufferPos] = colorValue;
 			colorBuffer[colorBufferPos + 1] = colorValue;
 			colorBuffer[colorBufferPos + 2] = colorValue;

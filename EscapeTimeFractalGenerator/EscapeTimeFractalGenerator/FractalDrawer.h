@@ -35,7 +35,6 @@ public:
 	//void SetRampTexture(GLuint textureID);
 	void Resize(int width, int height, double sizeMult);
 	void SetIterations(int iterations);
-	void SetPeriodOffset(double period, double offset);
 	void SetMinDeviation(double minDeviation);
 	void SetDeviationCycles(int deviationCycles, bool debugDeviations);
 	void SetLengthLimit(double lengthLimit);
@@ -72,8 +71,6 @@ protected:
 	float drawingProgress = 0;
 
 	std::atomic_int iterations = 40;
-	std::atomic<double> period = 100;
-	std::atomic<double> offset = 0;
 	std::atomic<double> minDeviation = 0;
 	std::atomic<int> deviationCycles = 100;
 	std::atomic<bool> debugDeviations = false;
