@@ -4,14 +4,16 @@
 #include <chrono>
 #include <future>
 //GLEW
-#define GLEW_STATIC
-#include <GL/glew.h>
+//#define GLEW_STATIC //Extracting openGL functionality to Quad Drawer class to remove code smell
+//#include <GL/glew.h>
 
 //GLFW
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 //GLM
+#include <glm/common.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include "ComplexFloat.h"
 
 using namespace std::chrono;
@@ -28,9 +30,9 @@ class FractalDrawer
 public:
 	bool enableAnimation = true;
 	bool liveUpdate = true;
-	FractalDrawer(int width, int height, GLFWwindow* window);
+	FractalDrawer(int width, int height);
 	~FractalDrawer();
-	void SetRampTexture(GLuint textureID);
+	//void SetRampTexture(GLuint textureID);
 	void Resize(int width, int height, double sizeMult);
 	void SetIterations(int iterations);
 	void SetPeriodOffset(double period, double offset);
@@ -44,8 +46,10 @@ public:
 	void ResetZoom();
 	ComplexFloat ScreenToWorldPos(double x, double y);
 	bool Draw(bool update);
+	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
+	void CopyBuffer(CF_Float* dest, size_t bufferSize);
+	glm::vec4 GetBounds();
 protected:
-
 	// Change these to modify the drawn fractal equations!
 	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, ComplexFloat extraValue)
 	{ return input; };
@@ -61,6 +65,8 @@ protected:
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue) {
 		return previousValue * previousValue + input;
 	};
+
+	std::atomic<CF_Float>* pixelBuffer = nullptr;
 
 	FractalType currentFractal;
 	float drawingProgress = 0;
@@ -79,6 +85,7 @@ protected:
 	steady_clock::time_point lastTimeAnim;
 	steady_clock::time_point lastTimeDelta;
 	bool disableZoom = false;
+	// TODO: Use a struct instead
 	CF_Float transformx;
 	CF_Float transformy;
 	CF_Float transformz;
@@ -88,16 +95,12 @@ protected:
 	CF_Float lastLastTransformx;
 	CF_Float lastLastTransformy;
 	CF_Float lastLastTransformz;
-	GLuint rampTexture = 0;
-	GLuint fractalTexture = 0;
-	std::atomic<float> *pixelBuffer, *rampColors = nullptr;
-	int ramTexWidth = 0;
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
 	float upScale = 1;
 	bool fractalThreadNeedsRun = true;
+
 	std::atomic_bool haltDrawingThread = false;
-	GLFWwindow* window = nullptr;
 	std::future<bool> drawFractalThread;
 
 	std::future<bool> *drawFractalThreads;
@@ -105,9 +108,7 @@ protected:
     std::mutex *Mutexes;
 	std::future_status* drawingStatus;
 
-	glm::vec3 clearColor = glm::vec3(0.5, 0.5, 0.5);
-	static void DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
-	static void DrawPixel(std::atomic<float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b);
+	static void SetPixel(std::atomic<CF_Float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, CF_Float value);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
 	bool DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
 	void LockAllMutexes(bool haltDrawing = true);

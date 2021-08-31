@@ -23,8 +23,10 @@
 #include <imfilebrowser.h>
 
 #include "FractalDrawer.h"
+#include "FractalInterpreter.h"
 #include "MandelbrotFractal.h"
 #include "ComplexFractal.h"
+#include "QuadDrawer.h"
 
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
@@ -63,7 +65,6 @@ void ClearPixelBuffer(float* buffer, int size)
 		buffer[i] = 0.0;
 	}
 }
-
 
 GLuint LoadRampTexture(std::string filename)
 {
@@ -194,7 +195,6 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 	if (ImGui::Button("Default"))
 	{
 		GLuint rampTexture = LoadRampTexture();
-		fractalDrawer->SetRampTexture(rampTexture);
 		glDeleteTextures(1, &rampTexture);
 		uiUpdate = true;
 	}
@@ -217,7 +217,6 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 	if (rampTexFileBrowser.HasSelected())
 	{
 		GLuint rampTexture = LoadRampTexture(rampTexFileBrowser.GetSelected().string());
-		fractalDrawer->SetRampTexture(rampTexture);
 		glDeleteTextures(1, &rampTexture);
 		uiUpdate = true;
 		rampTexFileBrowser.ClearSelected();
@@ -273,10 +272,15 @@ int main(int argc, char* argv[])
 	int currentWindowHeight = 0;
 	glfwGetWindowSize(window, &currentWindowWidth, &currentWindowHeight);
 	// initialize fractal drawer class
-	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight, window);
+	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight);
+	// initialize fractal interpreter class
+	FractalInterpreter fractalInterpreter;
+	// initialize quad drawer class
+	QuadDrawer quadDrawer;
+
 	//load and set ramp texture
 	GLuint rampTexture = LoadRampTexture();
-	fractalDrawer->SetRampTexture(rampTexture);
+	//fractalDrawer->SetRampTexture(rampTexture);
 	glDeleteTextures(1, &rampTexture);
 	//initial delta time start
 	auto deltaTimeStart = std::chrono::high_resolution_clock::now();
@@ -375,7 +379,19 @@ int main(int argc, char* argv[])
 			fractalDrawer->SetPeriodOffset(fracInfo.period, fracInfo.offset);
 		}
 		// Draw fractal
-		fractalDrawer->Draw(updateOnResize || fracInfo.animate || juliaPosUpdate || uiUpdate);
+		if (fractalDrawer->Draw(updateOnResize || fracInfo.animate || juliaPosUpdate || uiUpdate)) // returns true if we should draw
+		{
+			int fractalWidth = 0;
+			int fractalHeight = 0;
+			fractalDrawer->GetBufferDimensions(fractalWidth, fractalHeight);
+			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
+			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
+			fractalInterpreter.Draw();
+			int interpreterWidth = 0;
+			int interpreterHeight = 0;
+			const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
+			quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 0, 0, currentWindowWidth, currentWindowHeight);
+		}
 
 		glfwSwapBuffers(window);
 

@@ -11,7 +11,7 @@ const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
 //const float VALUE_PERIOD = 100;
 //const float LENGTH_LIMIT = 100;
 
-FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window) 
+FractalDrawer::FractalDrawer(int width, int height) 
 {
 	drawFractalThreads = new std::future<bool>[NUM_FRACTAL_DRAW_THREADS];
 	threadProgress = new std::atomic<int>[NUM_FRACTAL_DRAW_THREADS];
@@ -20,9 +20,7 @@ FractalDrawer::FractalDrawer(int width, int height, GLFWwindow* window)
 
 	this->pixelBufferHeight = height;
 	this->pixelBufferWidth = width;
-	this->window = window;
-	pixelBuffer = new std::atomic<float>[width * height * 3];
-	glGenTextures(1, &fractalTexture);
+	pixelBuffer = new std::atomic<CF_Float>[width * height];
 	ResetZoom();
 	totalTime = 0;
 	lastTimeAnim = high_resolution_clock::now();
@@ -34,11 +32,6 @@ FractalDrawer::~FractalDrawer()
 	haltDrawingThread = true;
 	LockAllMutexes();
 	delete[] pixelBuffer;
-	if (rampColors != nullptr)
-	{
-		delete[] rampColors;
-	}
-	glDeleteTextures(1, &fractalTexture);
 	UnlockAllMutexes();
 	delete[] drawFractalThreads;
 	delete[] drawingStatus;
@@ -46,26 +39,6 @@ FractalDrawer::~FractalDrawer()
 	delete[] Mutexes;
 }
 
-
-void FractalDrawer::SetRampTexture(GLuint textureID)
-{
-	LockAllMutexes();
-	// If we are running this a second time, make sure to delete our rampColors array to prevent memory leaks
-	if (rampColors != nullptr)
-	{
-		delete[] rampColors;
-	}
-	rampTexture = textureID;
-	// Build Ramp Color Array
-	if (rampTexture != 0)
-	{
-		glBindTexture(GL_TEXTURE_2D, rampTexture);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ramTexWidth);
-		rampColors = new std::atomic<float>[ramTexWidth * 3];
-		glGetTextureSubImage(rampTexture, 0, 0, 0, 0, ramTexWidth, 1, 1, GL_RGB, GL_FLOAT, ramTexWidth * 3 * sizeof(float), rampColors);
-	}
-	UnlockAllMutexes();
-}
 
 void FractalDrawer::LockAllMutexes(bool haltDrawing)
 {
@@ -85,22 +58,10 @@ void FractalDrawer::UnlockAllMutexes()
 	}
 }
 
-void FractalDrawer::DrawPixel(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b)
+void FractalDrawer::SetPixel(std::atomic<CF_Float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, CF_Float value)
 {
 	if (x < 0 || x >= pixelBufferWidth || y < 0 || y >= pixelBufferHeight) return;
-	int startIndex = 3 * (y * pixelBufferWidth + x);
-	pixelBuffer[startIndex] = r;
-	pixelBuffer[startIndex + 1] = g;
-	pixelBuffer[startIndex + 2] = b;
-}
-
-void FractalDrawer::DrawPixel(std::atomic<float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, float r, float g, float b)
-{
-	if (x < 0 || x >= pixelBufferWidth || y < 0 || y >= pixelBufferHeight) return;
-	int startIndex = 3 * (y * pixelBufferWidth + x);
-	pixelBuffer[startIndex] = r;
-	pixelBuffer[startIndex + 1] = g;
-	pixelBuffer[startIndex + 2] = b;
+	pixelBuffer[y * pixelBufferWidth + x] = value;
 }
 
 bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
@@ -136,26 +97,14 @@ bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Floa
 			CF_Float value = fractal.CalculateEscapeTime(x, y, extraValue, UV);
 			if (value == 0)
 			{
-				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0, 0, 0);
+				SetPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0);
 			}
 			else
 			{
 				//logarithmic function keeps period similar at all zoom levels
 				double newValue = glm::fract(log(value) / period + offset);
 				//float newValue = glm::fract(value / period);
-				if (rampColors != nullptr)
-				{
-					int rampIndex = ((int)((double)ramTexWidth * (1 - newValue)));
-					if (rampIndex > ramTexWidth - 1) rampIndex = ramTexWidth - 1;
-					if (rampIndex < 0) rampIndex = 0;
-					rampIndex *= 3;
-					//glm::vec3 color = glm::vec3(UV.x, UV.y, 0); // UVs in case I decide to implement reading from textures
-					glm::vec3 color = glm::vec3(rampColors[rampIndex].load(), rampColors[rampIndex + 1].load(), rampColors[rampIndex + 2].load());
-					//DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
-					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, color.x, color.y, color.z);
-				}
-				else
-					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, newValue, newValue, newValue);
+				SetPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, newValue);
 			}
 			currentThreadProgress++;
 		}
@@ -163,61 +112,12 @@ bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Floa
 	return true;
 }
 
-//unused legacy code, may clean up later
-/*
-bool FractalDrawer::DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt)
-{
-	std::lock_guard<std::mutex> lock1{ mtx };
-	std::cout << "drawing fractal" << std::endl;
-	ComplexFractal fractal = ComplexFractal(iterations);
-	fractal.SetStartingFunction([](ComplexFloat input, float time) {return input; });
-	fractal.SetFunction([](ComplexFloat input, ComplexFloat previousValue, float time) {return previousValue * previousValue + ComplexFloat(sin(time), cos(time * 0.7853975)); });
-
-	
-	for (int i = 0; i < pixelBufferHeight; i++)
-	{
-		for (int j = 0; j < pixelBufferWidth; j++)
-		{
-			if (halt)
-			{
-				halt = false;
-				return false;
-			}
-			CF_Float x = (CF_Float)j / pixelBufferWidth;
-			CF_Float y = (CF_Float)i / pixelBufferHeight;
-			CF_Float ratio = (CF_Float)pixelBufferWidth / pixelBufferHeight;
-			x = (x - (CF_Float)transform.x) * (CF_Float)transform.z * ratio;
-			y = (y - (CF_Float)transform.y) * (CF_Float)transform.z;
-			CF_Float value = fractal.CalculateEscapeTime(x, y, time);
-			if (value == 0)
-			{
-				DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0, 0, 0);
-			}
-			else
-			{
-				float newValue = pow(value, VALUE_POWER);
-				if (rampColors != nullptr)
-				{
-					int rampIndex = ((int)((float)rampColorsWidth * (1 - newValue)));
-					if (rampIndex > rampColorsWidth - 1) rampIndex = rampColorsWidth - 1;
-					rampIndex *= 3;
-					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, rampColors[rampIndex], rampColors[rampIndex + 1], rampColors[rampIndex + 2]);
-					//DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, value, value, value);
-				}
-				else
-					DrawPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, newValue, newValue, newValue);
-			}
-		}
-	}
-	return true;
-}*/
-
 void FractalDrawer::Resize(int width, int height, double sizeMult)
 {
 	haltDrawingThread = true;
 	LockAllMutexes();
 	delete[] pixelBuffer;
-	pixelBuffer = new std::atomic<float>[width * sizeMult * height * sizeMult * 3];
+	pixelBuffer = new std::atomic<CF_Float>[width * sizeMult * height * sizeMult];
 	pixelBufferWidth = width * sizeMult;
 	pixelBufferHeight = height *sizeMult;
 	upScale = sizeMult;
@@ -314,8 +214,67 @@ ComplexFloat FractalDrawer::ScreenToWorldPos(double x, double y)
 	return ComplexFloat(newX, newY);
 }
 
+glm::vec4 FractalDrawer::GetBounds()
+{
+	CF_Float scaleDiff = lastLastTransformz / lastTransformz;
+	CF_Float rendRectX1 = 0;
+	CF_Float rendRectX2 = 1;
+	CF_Float rendRectY1 = 0;
+	CF_Float rendRectY2 = 1;
+	CF_Float rendRectNewX1 = 0;
+	CF_Float rendRectNewX2 = 1;
+	CF_Float rendRectNewY1 = 0;
+	CF_Float rendRectNewY2 = 1;
+	//guide: oldTX = old transform X, oldTZ = old transform Z(scale), newTX = new transform X, newTZ = new transform Z(scale), pBW & pBH = pixel buffer width and height
+	//oldCX = corner before transformation, newCX = corner after transformation (this is the value we're trying to find)
+	//x is the position on screen of the cursor, ranging from 0 to 1 horizontally and vertically
+	//invert zoom function:
+	//newTX = oldTX - ((x * pBW / pBH - oldTX) * newTZ / oldTZ) * (1 - oldTZ / newTZ);
+	//solve for x
+	//x = ((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ + oldTX) / pBW * pBH;
+	//unfortunately, when 1 - oldTX / newTZ = 0, we have a divide by 0 error; we could check for that, but the proper solution is to optimize that division out of the equation
+	//scale to point formula: 
+	//newCX = (oldCX - x) * oldTZ / newTZ + x;
+	//simplify so x only shows up once: 
+	//newCX = (oldCX * oldTZ / newTZ) + x * (1 - oldTZ / newTZ);
+	//combine:
+	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ + oldTX) / pBW * pBH) * (1 - oldTZ / newTZ);
+	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ * (1 - oldTZ / newTZ) + oldTX * (1 - oldTZ / newTZ)) / pBW * pBH);
+	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) * oldTZ / newTZ + oldTX * (1 - oldTZ / newTZ)) / pBW * pBH);
+	//for Y it's the same equation, except you don't need pBW or pBH and all instances of X are replaced with Y.
+	if (scaleDiff != 1)
+	{
+		rendRectNewX1 = rendRectX1 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
+		rendRectNewY1 = rendRectY1 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
+		rendRectNewX2 = rendRectX2 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
+		rendRectNewY2 = rendRectY2 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
+	}
+	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, drawingProgress);
+	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, drawingProgress);
+	rendRectY1 = glm::mix(rendRectY1, rendRectNewY1, drawingProgress);
+	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, drawingProgress);
+	return glm::vec4(rendRectX1, rendRectX2, rendRectY1, rendRectY2);
+}
+
+void FractalDrawer::GetBufferDimensions(int& bufferWidth, int& bufferHeight)
+{
+	bufferWidth = pixelBufferWidth;
+	bufferHeight = pixelBufferHeight;
+}
+
+void FractalDrawer::CopyBuffer(CF_Float* dest, size_t bufferSize)
+{
+	int length = bufferSize / sizeof(CF_Float);
+	length = glm::min(length, pixelBufferHeight * pixelBufferWidth);
+	for (int i = 0; i < length; i++)
+	{
+		dest[i] = pixelBuffer[i].load();
+	}
+}
+
 bool FractalDrawer::Draw(bool update)
 {
+	bool shouldDraw = false; // Value to return from function when it's OK to draw
 	fractalThreadNeedsRun = fractalThreadNeedsRun || update || lastTransformz != transformz;
 	//Draw Fractal
 	bool anyThreadsValid = false;
@@ -375,9 +334,6 @@ bool FractalDrawer::Draw(bool update)
 		disableZoom = true;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, fractalTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	bool allThreadsValid = true;
 	bool allThreadsReady = true;
 	bool renderedThisFrame = false;
@@ -400,7 +356,7 @@ bool FractalDrawer::Draw(bool update)
 				drawFractalThreads[i].get();
 			}
 			LockAllMutexes(false);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
+			shouldDraw = true; // DRAW
 			lastLastTransformx = lastTransformx;
 			lastLastTransformy = lastTransformy;
 			lastLastTransformz = lastTransformz;
@@ -425,24 +381,8 @@ bool FractalDrawer::Draw(bool update)
 	//pixelBuffer has been moved from float* to std::atomic<float>* so this should be safe now 
 	if (lastLastTransformz == lastTransformz && lastTransformz == transformz && liveUpdate) // don't do this if we're zooming
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pixelBufferWidth, pixelBufferHeight, 0, GL_RGB, GL_FLOAT, pixelBuffer);
+		shouldDraw = true; // DRAW
 	}
-
-	GLuint fbo = 0;
-	glGenFramebuffers(1, &fbo);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
-	int mipLevel = (int)glm::max(log2(upScale), 0.0f);
-	if (mipLevel != 0)
-	{
-		glGenerateTextureMipmap(fractalTexture);
-	}
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D, fractalTexture, mipLevel);
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	int width = 0;
-	int height = 0;
-	glfwGetWindowSize(window, &width, &height);
 
 	float avgThreadProgress = 0;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
@@ -450,53 +390,8 @@ bool FractalDrawer::Draw(bool update)
 		avgThreadProgress += threadProgress[i];
 	}
 	avgThreadProgress /= pixelBufferHeight * pixelBufferWidth;
-	//std::cout << avgThreadProgress << std::endl;
 	if (renderedThisFrame == true) avgThreadProgress = 0;
-	//avgThreadProgress = 0;
 	drawingProgress = avgThreadProgress;
 
-	CF_Float scaleDiff = lastLastTransformz / lastTransformz;
-	CF_Float rendRectX1 = 0;
-	CF_Float rendRectX2 = 1;
-	CF_Float rendRectY1 = 0;
-	CF_Float rendRectY2 = 1;
-	CF_Float rendRectNewX1 = 0;
-	CF_Float rendRectNewX2 = 1;
-	CF_Float rendRectNewY1 = 0;
-	CF_Float rendRectNewY2 = 1;
-	//guide: oldTX = old transform X, oldTZ = old transform Z(scale), newTX = new transform X, newTZ = new transform Z(scale), pBW & pBH = pixel buffer width and height
-	//oldCX = corner before transformation, newCX = corner after transformation (this is the value we're trying to find)
-	//x is the position on screen of the cursor, ranging from 0 to 1 horizontally and vertically
-	//invert zoom function:
-	//newTX = oldTX - ((x * pBW / pBH - oldTX) * newTZ / oldTZ) * (1 - oldTZ / newTZ);
-	//solve for x
-	//x = ((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ + oldTX) / pBW * pBH;
-	//unfortunately, when 1 - oldTX / newTZ = 0, we have a divide by 0 error; we could check for that, but the proper solution is to optimize that division out of the equation
-	//scale to point formula: 
-	//newCX = (oldCX - x) * oldTZ / newTZ + x;
-	//simplify so x only shows up once: 
-	//newCX = (oldCX * oldTZ / newTZ) + x * (1 - oldTZ / newTZ);
-	//combine:
-	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ + oldTX) / pBW * pBH) * (1 - oldTZ / newTZ);
-	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) / (1 - oldTZ / newTZ) * oldTZ / newTZ * (1 - oldTZ / newTZ) + oldTX * (1 - oldTZ / newTZ)) / pBW * pBH);
-	//newCX = (oldCX * oldTZ / newTZ) + (((oldTX - newTX) * oldTZ / newTZ + oldTX * (1 - oldTZ / newTZ)) / pBW * pBH);
-	//for Y it's the same equation, except you don't need pBW or pBH and all instances of X are replaced with Y.
-	if (scaleDiff != 1)
-	{
-		rendRectNewX1 = rendRectX1 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
-		rendRectNewY1 = rendRectY1 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
-		rendRectNewX2 = rendRectX2 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
-		rendRectNewY2 = rendRectY2 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
-	}
-	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, avgThreadProgress);
-	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, avgThreadProgress);
-	rendRectY1 = glm::mix(rendRectY1, rendRectNewY1, avgThreadProgress);
-	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, avgThreadProgress);
-	glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	float frameBufferScale = pow(2, mipLevel);
-	glBlitFramebuffer(0, 0, pixelBufferWidth / frameBufferScale, pixelBufferHeight / frameBufferScale, rendRectX1 * width, rendRectY1 * height, rendRectX2 * width, rendRectY2 * height,
-		GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	glDeleteFramebuffers(1, &fbo);
-	return true;
+	return shouldDraw;
 }
