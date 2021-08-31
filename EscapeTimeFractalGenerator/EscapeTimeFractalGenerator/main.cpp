@@ -117,7 +117,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 		| ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 	ImGui::SetWindowSize(ImVec2(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT));
 	ImGui::SetWindowPos(ImVec2(0, 0));
-	ImGui::Text("Left click to zoom in, right click to zoom out, \nmiddle click to choose custom Julia set value");
+	ImGui::Text("Left click to zoom in, right click to zoom out, \nmiddle click or J to choose custom Julia set value");
 	ImGui::InputInt("Iterations:", &fractalInfo.iterations, 10);
 	fractalInfo.iterations = min(fractalInfo.iterations, 10000000); //Too many iterations will cause the program to hang, since threads are halted on a per pixel basis
 	ImGui::Text("Upsample can be any value between 0 and 1, or 2.0, or 4.0 \nRendering speed scales roughly with the upsample value squared");
@@ -156,7 +156,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 			fractalInfo.useCustomJulPos = false;
 		}
 	};
-	if (ImGui::Checkbox("Custom Julia Position (middle mouse click)", &fractalInfo.useCustomJulPos))
+	if (ImGui::Checkbox("Custom Julia Position (middle mouse click or J)", &fractalInfo.useCustomJulPos))
 	{
 		if (fractalInfo.useCustomJulPos)
 		{
