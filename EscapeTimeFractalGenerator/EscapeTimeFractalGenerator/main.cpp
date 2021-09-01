@@ -100,7 +100,8 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 	ImGui::StyleColorsDark();
 }
 
-void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& uiUpdate, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, ImGui::FileBrowser &rampTexFileBrowser)
+//TODO: Long argument list is sign of code smell - find way to move this to its own class
+void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, ImGui::FileBrowser &rampTexFileBrowser)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -130,10 +131,16 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 	{
 		fractalInfo.upscale = pow(2, floor(log2(fractalInfo.upscale)));
 	}
-	ImGui::InputDouble("Period", &fractalInfo.period);
+	if (ImGui::InputDouble("Period", &fractalInfo.period))
+	{
+		updateInterpreter = true;
+	}
 	//this is annoying but imgui makes you do this :(
 	float tempOffset = fractalInfo.offset;
-	ImGui::SliderFloat("Offset", &tempOffset, 0.0, 1.0);
+	if (ImGui::SliderFloat("Offset", &tempOffset, 0.0, 1.0))
+	{
+		updateInterpreter = true;
+	}
 	fractalInfo.offset = tempOffset;
 	ImGui::Text("Fractal Type:");
 	bool fractalIsJulia = fractalInfo.type == FractalType::Julia;
@@ -160,7 +167,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 		{
 			fractalInfo.animate = false;
 		}
-		uiUpdate = true;
+		updateDrawer = true;
 	}
 	if (fractalInfo.useCustomJulPos)
 	{
@@ -174,14 +181,14 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 		fractalDrawer->SetDeviationCycles(fractalInfo.deviationCycles, fractalInfo.debugDeviations);
 		fractalDrawer->SetLengthLimit(fractalInfo.lengthLimit);
 		fractalDrawer->SetFractal(fractalInfo.type);
-		uiUpdate = true;
+		updateDrawer = true;
 		// We need to regenerate the pixel buffer due to changed texture dimensions in case upscale has changed
 		regenBuffer = true;
 	}
 	if (ImGui::Button("Reset Zoom"))
 	{
 		fractalDrawer->ResetZoom();
-		uiUpdate = true;
+		updateDrawer = true;
 	}
 	if (ImGui::Button("Choose Ramp Texture"))
 	{
@@ -284,7 +291,8 @@ int main(int argc, char* argv[])
 	bool animateFractal = true;
 	bool SpaceBarPressed = false;
 	bool juliaPosUpdate = false;
-	bool uiUpdate = false;
+	bool updateDrawer = false;
+	bool updateInterpreter = false;
 	bool regenBuffer = false;
 	//fractal properties
 	FractalInfo fracInfo;
@@ -374,9 +382,10 @@ int main(int argc, char* argv[])
 		fractalInterpreter.offset = fracInfo.offset;
 		// Draw fractal
 		bool interpreterDrew = false;
-		bool shouldRender = false;
-		shouldRender = fractalDrawer->Draw(updateOnResize || fracInfo.animate || juliaPosUpdate || uiUpdate); // returns true if we should attempt to render
-		if (shouldRender) 
+		bool shouldRenderInterpreter = false;
+		bool shouldStartDrawing = (updateOnResize || fracInfo.animate || juliaPosUpdate || updateDrawer) && !fractalInterpreter.IsBusy();
+		shouldRenderInterpreter = fractalDrawer->Draw(shouldStartDrawing) || updateInterpreter; // returns true if we should attempt to render interpreter
+		if (shouldRenderInterpreter)
 		{
 			int fractalWidth = 0;
 			int fractalHeight = 0;
@@ -384,8 +393,7 @@ int main(int argc, char* argv[])
 			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
 			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
 		}
-		bool shouldRenderToQuad = false;
-		fractalInterpreter.Draw(shouldRender, shouldRenderToQuad);
+		bool shouldRenderToQuad = fractalInterpreter.Draw(shouldRenderInterpreter);
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
@@ -396,10 +404,11 @@ int main(int argc, char* argv[])
 			shouldRenderToQuad);
 		glfwSwapBuffers(window);
 
-		uiUpdate = false;
+		updateDrawer = false;
+		updateInterpreter = false;
 		regenBuffer = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, fractalDrawer, uiUpdate, regenBuffer, fracInfo, fractalInterpreter, rampTexFileDialog);
+		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, rampTexFileDialog);
 		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;

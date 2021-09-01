@@ -14,14 +14,14 @@ public:
 	void SetRampTexture(GLuint textureID);
 	void CreateOrUpdateBuffers(int width, int height);
 	CF_Float* GetValueBufferStart();
-	void Draw(bool startDrawing, bool &finishedThisFrame);
+	bool Draw(bool startDrawing);
 	const float* GetColors(int &width, int &height);
 	float GetProgress();
-	bool IsFinished();
+	bool IsBusy();
 	float period = 1;
 	float offset = 0;
 protected:
-	bool finishedDrawing = false;
+	bool busyDrawing = false;
 	bool drawNext = false;
 	bool Draw_Threaded();
 	void ResizeOnSizeChanged(int width, int height);

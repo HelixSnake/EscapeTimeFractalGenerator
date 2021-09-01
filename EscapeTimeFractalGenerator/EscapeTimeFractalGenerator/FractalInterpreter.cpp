@@ -6,7 +6,7 @@
 
 FractalInterpreter::FractalInterpreter()
 {
-	finishedDrawing = true;
+	busyDrawing = false;
 }
 FractalInterpreter::~FractalInterpreter()
 {
@@ -62,17 +62,17 @@ float FractalInterpreter::GetProgress()
 	return progress / (bufferHeight * bufferWidth);
 }
 
-bool FractalInterpreter::IsFinished()
+bool FractalInterpreter::IsBusy()
 {
-	return finishedDrawing;
+	return busyDrawing;
 }
 
-void FractalInterpreter::Draw(bool startDrawing, bool &finishedThisFrame)
+bool FractalInterpreter::Draw(bool startDrawing)
 {
-	finishedThisFrame = false;
+	bool finishedThisFrame = false;
 	if (!interpreterThread.valid() && (startDrawing || drawNext))
 	{
-		finishedDrawing = false;
+		busyDrawing = true;
 		drawNext = false;
 		threadProgress = 0;
 		interpreterThread = std::async(std::launch::async, &FractalInterpreter::Draw_Threaded, this);
@@ -86,13 +86,15 @@ void FractalInterpreter::Draw(bool startDrawing, bool &finishedThisFrame)
 		std::future_status drawingStatus = interpreterThread.wait_for(std::chrono::seconds(0));
 		if (drawingStatus == std::future_status::ready)
 		{
-			finishedDrawing = interpreterThread.get();
+			interpreterThread.get();
+			busyDrawing = false;
 			interpreterMutex.lock();
 			memcpy(finishedColorBuffer, colorBuffer, bufferHeight * bufferWidth * sizeof(float) * 3);
 			interpreterMutex.unlock();
 			finishedThisFrame = true;
 		}
 	}
+	return (finishedThisFrame);
 }
 bool FractalInterpreter::Draw_Threaded()
 {
