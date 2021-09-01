@@ -2,17 +2,19 @@
 #include <glm/vec3.hpp>
 #include "FractalInterpreter.h"
 #include <thread>
+#include <string>
 
 FractalInterpreter::FractalInterpreter()
 {
+	finishedDrawing = true;
 }
 FractalInterpreter::~FractalInterpreter()
 {
 	const std::lock_guard<std::mutex> lock(interpreterMutex);
-	if (rampColors != nullptr)
-	{
-		delete[] rampColors;
-	}
+	if (rampColors != nullptr) delete[] rampColors;
+	if (valueBuffer != nullptr) delete[] valueBuffer;
+	if (colorBuffer != nullptr) delete[] colorBuffer;
+	if (finishedColorBuffer != nullptr) delete[] finishedColorBuffer;
 }
 
 void FractalInterpreter::SetRampTexture(GLuint textureID)
@@ -34,7 +36,7 @@ void FractalInterpreter::SetRampTexture(GLuint textureID)
 }
 
 void FractalInterpreter::CreateOrUpdateBuffers(int width, int height) {
-	if (valueBuffer == nullptr || colorBuffer == nullptr || bufferWidth != width || bufferHeight != height)
+	if (valueBuffer == nullptr || colorBuffer == nullptr || finishedColorBuffer == nullptr || bufferWidth != width || bufferHeight != height)
 	{
 		ResizeOnSizeChanged(width, height);
 	}
@@ -51,19 +53,43 @@ const float* FractalInterpreter::GetColors(int& width, int& height)
 	//const std::lock_guard<std::mutex> lock(interpreterMutex);
 	height = bufferHeight;
 	width = bufferWidth;
-	return colorBuffer;
+	return finishedColorBuffer;
 }
 
-void FractalInterpreter::Draw()
+float FractalInterpreter::GetProgress()
 {
-	if (!interpreterThread.valid())
+	float progress = threadProgress.load();
+	return progress / (bufferHeight * bufferWidth);
+}
+
+bool FractalInterpreter::IsFinished()
+{
+	return finishedDrawing;
+}
+
+void FractalInterpreter::Draw(bool startDrawing)
+{
+	if (!interpreterThread.valid() && startDrawing || drawNext)
 	{
+		finishedDrawing = false;
+		drawNext = false;
+		threadProgress = 0;
 		interpreterThread = std::async(std::launch::async, &FractalInterpreter::Draw_Threaded, this);
 	}
-	std::future_status drawingStatus = interpreterThread.wait_for(std::chrono::seconds(0));
-	if (drawingStatus == std::future_status::ready)
+	else if (startDrawing)
 	{
-		interpreterThread.get();
+		drawNext = true;
+	}
+
+	if (interpreterThread.valid()) {
+		std::future_status drawingStatus = interpreterThread.wait_for(std::chrono::seconds(0));
+		if (drawingStatus == std::future_status::ready)
+		{
+			finishedDrawing = interpreterThread.get();
+			interpreterMutex.lock();
+			memcpy(finishedColorBuffer, colorBuffer, bufferHeight * bufferWidth * sizeof(float) * 3);
+			interpreterMutex.unlock();
+		}
 	}
 }
 bool FractalInterpreter::Draw_Threaded()
@@ -95,6 +121,7 @@ bool FractalInterpreter::Draw_Threaded()
 			colorBuffer[colorBufferPos] = color.r;
 			colorBuffer[colorBufferPos + 1] = color.g;
 			colorBuffer[colorBufferPos + 2] = color.b;
+			threadProgress++;
 		}
 	}
 	return true;
@@ -105,8 +132,10 @@ void FractalInterpreter::ResizeOnSizeChanged(int width, int height)
 	const std::lock_guard<std::mutex> lock(interpreterMutex);
 	if (valueBuffer != nullptr) delete[] valueBuffer;
 	if (colorBuffer != nullptr) delete[] colorBuffer;
+	if (finishedColorBuffer != nullptr) delete[] finishedColorBuffer;
 	valueBuffer = new CF_Float[width * height];
 	colorBuffer = new float[width * height * 3];
+	finishedColorBuffer = new float[width * height * 3];
 	bufferWidth = width;
 	bufferHeight = height;
 }

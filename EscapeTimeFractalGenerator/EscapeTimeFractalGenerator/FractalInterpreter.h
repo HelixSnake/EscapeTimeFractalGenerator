@@ -14,21 +14,26 @@ public:
 	void SetRampTexture(GLuint textureID);
 	void CreateOrUpdateBuffers(int width, int height);
 	CF_Float* GetValueBufferStart();
-	void Draw();
+	void Draw(bool startDrawing);
 	const float* GetColors(int &width, int &height);
-
+	float GetProgress();
+	bool IsFinished();
 	float period = 1;
 	float offset = 0;
 protected:
+	bool finishedDrawing = false;
+	bool drawNext = false;
 	bool Draw_Threaded();
 	void ResizeOnSizeChanged(int width, int height);
 	CF_Float* valueBuffer = nullptr;
 	float* colorBuffer = nullptr;
+	float* finishedColorBuffer = nullptr;
 	float* rampColors = nullptr;
 	int rampColorsLength = 0;
 	int bufferWidth = 0;
 	int bufferHeight = 0;
 	std::future<bool> interpreterThread;
+	std::atomic<int> threadProgress;
 	std::mutex interpreterMutex;
 };
 

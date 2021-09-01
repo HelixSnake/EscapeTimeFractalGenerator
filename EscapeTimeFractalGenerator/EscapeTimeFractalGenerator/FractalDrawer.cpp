@@ -204,7 +204,7 @@ ComplexFloat FractalDrawer::ScreenToWorldPos(double x, double y)
 	return ComplexFloat(newX, newY);
 }
 
-glm::vec4 FractalDrawer::GetBounds()
+glm::vec4 FractalDrawer::GetBounds(float progress)
 {
 	CF_Float scaleDiff = lastLastTransformz / lastTransformz;
 	CF_Float rendRectX1 = 0;
@@ -239,11 +239,11 @@ glm::vec4 FractalDrawer::GetBounds()
 		rendRectNewX2 = rendRectX2 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
 		rendRectNewY2 = rendRectY2 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
 	}
-	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, drawingProgress);
-	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, drawingProgress);
-	rendRectY1 = glm::mix(rendRectY1, rendRectNewY1, drawingProgress);
-	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, drawingProgress);
-	return glm::vec4(rendRectX1, rendRectX2, rendRectY1, rendRectY2);
+	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, progress);
+	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, progress);
+	rendRectY1 = glm::mix(rendRectY1, rendRectNewY1, progress);
+	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, progress);
+	return glm::vec4(rendRectX1, rendRectY1, rendRectX2, rendRectY2);
 }
 
 void FractalDrawer::GetBufferDimensions(int& bufferWidth, int& bufferHeight)
@@ -329,7 +329,7 @@ bool FractalDrawer::Draw(bool update)
 	bool renderedThisFrame = false;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
-		//any threads are valid
+		//all threads are valid
 		allThreadsValid = allThreadsValid && drawFractalThreads[i].valid();
 	}
 	if (allThreadsValid)
@@ -357,6 +357,12 @@ bool FractalDrawer::Draw(bool update)
 			UnlockAllMutexes();
 		}
 	}
+	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
+	//pixelBuffer has been moved from float* to std::atomic<float>* so this should be safe now 
+	if (lastLastTransformz == lastTransformz && lastTransformz == transformz && liveUpdate && anyThreadsValid) // don't do this if we're zooming
+	{
+		shouldDraw = true; // DRAW
+	}
 	if (update) // If the user presses the update button, don't do our zooming algorithm
 	{
 		lastLastTransformx = lastTransformx;
@@ -367,20 +373,13 @@ bool FractalDrawer::Draw(bool update)
 		lastTransformz = transformz;
 	}
 
-	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
-	//pixelBuffer has been moved from float* to std::atomic<float>* so this should be safe now 
-	if (lastLastTransformz == lastTransformz && lastTransformz == transformz && liveUpdate) // don't do this if we're zooming
-	{
-		shouldDraw = true; // DRAW
-	}
-
 	float avgThreadProgress = 0;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
 		avgThreadProgress += threadProgress[i];
 	}
 	avgThreadProgress /= pixelBufferHeight * pixelBufferWidth;
-	if (renderedThisFrame == true) avgThreadProgress = 0;
+	//if (renderedThisFrame == true) avgThreadProgress = 0;
 	drawingProgress = avgThreadProgress;
 
 	return shouldDraw;

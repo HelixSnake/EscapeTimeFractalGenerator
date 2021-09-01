@@ -44,10 +44,10 @@ public:
 	void Zoom(double x, double y, double amount);
 	void ResetZoom();
 	ComplexFloat ScreenToWorldPos(double x, double y);
-	bool Draw(bool update);
+	bool Draw(bool update); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	void CopyBuffer(CF_Float* dest, size_t bufferSize);
-	glm::vec4 GetBounds();
+	glm::vec4 GetBounds(float progress);
 protected:
 	// Change these to modify the drawn fractal equations!
 	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, ComplexFloat extraValue)
