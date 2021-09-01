@@ -15,6 +15,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include "ComplexFloat.h"
+#include "ZoomTransform.h"
 
 using namespace std::chrono;
 
@@ -24,12 +25,6 @@ enum class FractalType
 {
 	Mandelbrot,
 	Julia
-};
-struct ZoomTransform
-{
-	CF_Float x = 0;
-	CF_Float y = 0;
-	CF_Float scale = 1;
 };
 class FractalDrawer
 {
@@ -50,11 +45,13 @@ public:
 	float GetProgress();
 	void Zoom(double x, double y, double amount);
 	void ResetZoom();
+	bool ShouldStartZoomInterpolation();
+	ZoomTransform GetCurrentTransform();
+	ZoomTransform GetLastDrawnTransform();
 	ComplexFloat ScreenToWorldPos(double x, double y);
 	bool Draw(bool update); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	void CopyBuffer(CF_Float* dest, size_t bufferSize);
-	glm::vec4 GetBounds(float progress);
 protected:
 	// Change these to modify the drawn fractal equations!
 	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, ComplexFloat extraValue)
@@ -88,15 +85,15 @@ protected:
 	long double totalTime = 0;
 	steady_clock::time_point lastTimeAnim;
 	steady_clock::time_point lastTimeDelta;
-	bool disableZoom = false;
-	// TODO: Use a struct instead
-	ZoomTransform currentTransform;
-	ZoomTransform lastTransform;
-	ZoomTransform lastTransform2;
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
 	float upScale = 1;
 	bool fractalThreadNeedsRun = true;
+	ZoomTransform currentTransform;
+	ZoomTransform lastDrawnTransform;
+	bool transformChanged = false;
+	bool disableZoom = false;
+	bool startInterpolateZooming = false;
 
 	std::atomic_bool haltDrawingThread = false;
 	std::future<bool> drawFractalThread;

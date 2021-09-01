@@ -27,6 +27,7 @@
 #include "MandelbrotFractal.h"
 #include "ComplexFractal.h"
 #include "QuadDrawer.h"
+#include "FractalSmoothZoomer.h"
 
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
@@ -53,6 +54,7 @@ struct FractalInfo
 	bool animate = false;
 	bool useCustomJulPos = false;
 	bool showAdvancedOptions = false;
+	bool liveUpdate = false;
 	double CustomJulPosX = 0;
 	double CustomJulPosY = 0;
 	FractalType type = FractalType::Julia;
@@ -212,7 +214,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		ImGui::Checkbox("Show Deviation Iterations", &fractalInfo.debugDeviations);
 	}
 
-	ImGui::Checkbox("Live Rendering", &fractalDrawer->liveUpdate);
+	ImGui::Checkbox("Live Rendering", &fractalInfo.liveUpdate);
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::ProgressBar(fractalInterpreter.GetProgress());
 	ImGui::End();
@@ -279,8 +281,10 @@ int main(int argc, char* argv[])
 	glfwGetWindowSize(window, &currentWindowWidth, &currentWindowHeight);
 	// initialize fractal drawer class
 	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight);
-	// initialize fractal interpreter class
+	// create fractal interpreter
 	FractalInterpreter fractalInterpreter;
+	// create smooth zoomer
+	FractalSmoothZoomer smoothZoomer;
 	// initialize quad drawer class
 	QuadDrawer quadDrawer;
 
@@ -297,7 +301,10 @@ int main(int argc, char* argv[])
 	bool updateInterpreter = false;
 	bool regenBuffer = false;
 	float zoomProgress = 0;
-	float zoomProgressStart = 0;
+	float zoomStartProgress = 0;
+	bool checkingHalfProgress = false;
+	bool fdProgressReachedHalf = false;
+	bool fiProgressReachedHalf = false;
 	glm::vec4 windowTransform = glm::vec4(0, 0, 1, 1);
 	//fractal properties
 	FractalInfo fracInfo;
@@ -385,7 +392,10 @@ int main(int argc, char* argv[])
 		fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		fractalInterpreter.period = fracInfo.period;
 		fractalInterpreter.offset = fracInfo.offset;
+
+
 		// Draw fractal
+		fractalDrawer->liveUpdate = fracInfo.liveUpdate && !smoothZoomer.IsZooming();
 		bool interpreterDrew = false;
 		bool shouldRenderInterpreter = false;
 		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
@@ -399,19 +409,24 @@ int main(int argc, char* argv[])
 			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
 			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
 		}
+		if (fractalDrawer->ShouldStartZoomInterpolation())
+		{
+			smoothZoomer.SetupZoom(fractalDrawer->GetLastDrawnTransform(), fractalDrawer->GetCurrentTransform());
+		}
 		bool shouldRenderToQuad = fractalInterpreter.Draw(shouldRenderInterpreter);
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-		if (shouldRenderToQuad) //when the interpreter finishes
+
+		if (smoothZoomer.IsZooming() && shouldRenderToQuad)
 		{
-			zoomProgressStart = fractalDrawer->GetProgress();
+			smoothZoomer.EndZoom();
 		}
-		if (!fractalInterpreter.IsBusy() && !shouldRenderInterpreter) // pause zooming when the fractal interpreter is busy
+		if (smoothZoomer.IsZoomReady() && shouldRenderToQuad)
 		{
-			zoomProgress = glm::smoothstep(zoomProgressStart, 1.0f, fractalDrawer->GetProgress());
-			windowTransform = fractalDrawer->GetBounds(zoomProgress);
+			smoothZoomer.StartZoom();
 		}
+		windowTransform = smoothZoomer.GetBounds(fractalDrawer->GetProgress(), (float)screenHeight / screenWidth);
 		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 
 			windowTransform.x * currentWindowWidth, windowTransform.y * currentWindowHeight, 
 			windowTransform.z * currentWindowWidth, windowTransform.w * currentWindowHeight,
