@@ -352,7 +352,7 @@ bool FractalDrawer::Draw(bool update)
 	}
 	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
 	//pixelBuffer has been moved from float* to std::atomic<float>* so this should be safe now 
-	if (lastTransform.scale == lastTransform.scale && lastTransform.scale == currentTransform.scale && liveUpdate && anyThreadsValid) // don't do this if we're zooming
+	if (lastTransform.scale == lastTransform.scale && lastTransform.scale == currentTransform.scale && liveUpdate && anyThreadsValid) // don't do this if we're zooming or if we're done
 	{
 		shouldDraw = true; // DRAW
 	}

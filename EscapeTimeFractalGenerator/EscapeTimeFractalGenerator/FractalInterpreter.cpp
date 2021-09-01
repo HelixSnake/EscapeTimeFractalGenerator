@@ -67,9 +67,10 @@ bool FractalInterpreter::IsFinished()
 	return finishedDrawing;
 }
 
-void FractalInterpreter::Draw(bool startDrawing)
+void FractalInterpreter::Draw(bool startDrawing, bool &finishedThisFrame)
 {
-	if (!interpreterThread.valid() && startDrawing || drawNext)
+	finishedThisFrame = false;
+	if (!interpreterThread.valid() && (startDrawing || drawNext))
 	{
 		finishedDrawing = false;
 		drawNext = false;
@@ -89,6 +90,7 @@ void FractalInterpreter::Draw(bool startDrawing)
 			interpreterMutex.lock();
 			memcpy(finishedColorBuffer, colorBuffer, bufferHeight * bufferWidth * sizeof(float) * 3);
 			interpreterMutex.unlock();
+			finishedThisFrame = true;
 		}
 	}
 }

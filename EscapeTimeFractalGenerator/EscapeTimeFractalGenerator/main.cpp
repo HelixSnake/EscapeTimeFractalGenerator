@@ -206,6 +206,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& ui
 
 	ImGui::Checkbox("Live Rendering", &fractalDrawer->liveUpdate);
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
+	ImGui::ProgressBar(fractalInterpreter.GetProgress());
 	ImGui::End();
 	rampTexFileBrowser.SetWindowSize(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT);
 	ImGui::SetWindowPos(ImVec2(0, 0));
@@ -383,12 +384,16 @@ int main(int argc, char* argv[])
 			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
 			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
 		}
-		fractalInterpreter.Draw(shouldRender);
+		bool shouldRenderToQuad = false;
+		fractalInterpreter.Draw(shouldRender, shouldRenderToQuad);
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-		glm::vec4 windowTransform = fractalDrawer->GetBounds(fractalDrawer->GetProgress());
-		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, windowTransform.x * currentWindowWidth, windowTransform.y * currentWindowHeight, windowTransform.z * currentWindowWidth, windowTransform.w * currentWindowHeight);
+		glm::vec4 windowTransform = fractalDrawer->GetBounds(fractalDrawer->GetProgress() * fractalInterpreter.GetProgress());
+		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 
+			windowTransform.x * currentWindowWidth, windowTransform.y * currentWindowHeight, 
+			windowTransform.z * currentWindowWidth, windowTransform.w * currentWindowHeight,
+			shouldRenderToQuad);
 		glfwSwapBuffers(window);
 
 		uiUpdate = false;

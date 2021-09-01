@@ -14,7 +14,7 @@ public:
 	void SetRampTexture(GLuint textureID);
 	void CreateOrUpdateBuffers(int width, int height);
 	CF_Float* GetValueBufferStart();
-	void Draw(bool startDrawing);
+	void Draw(bool startDrawing, bool &finishedThisFrame);
 	const float* GetColors(int &width, int &height);
 	float GetProgress();
 	bool IsFinished();
