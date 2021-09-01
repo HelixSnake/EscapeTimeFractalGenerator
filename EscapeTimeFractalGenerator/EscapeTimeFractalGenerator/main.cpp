@@ -200,6 +200,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		GLuint rampTexture = LoadRampTexture();
 		fractalInterpreter.SetRampTexture(rampTexture);
 		glDeleteTextures(1, &rampTexture);
+		updateInterpreter = true;
 	}
 	ImGui::Checkbox("Show advanced options", &fractalInfo.showAdvancedOptions);
 	if (fractalInfo.showAdvancedOptions)
@@ -224,6 +225,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		fractalInterpreter.SetRampTexture(rampTexture);
 		glDeleteTextures(1, &rampTexture);
 		rampTexFileBrowser.ClearSelected();
+		updateInterpreter = true;
 	}
 
 	// Render dear imgui into screen
@@ -294,6 +296,9 @@ int main(int argc, char* argv[])
 	bool updateDrawer = false;
 	bool updateInterpreter = false;
 	bool regenBuffer = false;
+	float zoomProgress = 0;
+	float zoomProgressStart = 0;
+	glm::vec4 windowTransform = glm::vec4(0, 0, 1, 1);
 	//fractal properties
 	FractalInfo fracInfo;
 	fracInfo.iterations = START_ITERATIONS;
@@ -398,7 +403,15 @@ int main(int argc, char* argv[])
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-		glm::vec4 windowTransform = fractalDrawer->GetBounds(fractalDrawer->GetProgress());
+		if (shouldRenderToQuad) //when the interpreter finishes
+		{
+			zoomProgressStart = fractalDrawer->GetProgress();
+		}
+		if (!fractalInterpreter.IsBusy() && !shouldRenderInterpreter) // pause zooming when the fractal interpreter is busy
+		{
+			zoomProgress = glm::smoothstep(zoomProgressStart, 1.0f, fractalDrawer->GetProgress());
+			windowTransform = fractalDrawer->GetBounds(zoomProgress);
+		}
 		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 
 			windowTransform.x * currentWindowWidth, windowTransform.y * currentWindowHeight, 
 			windowTransform.z * currentWindowWidth, windowTransform.w * currentWindowHeight,
