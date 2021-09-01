@@ -180,7 +180,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		fractalDrawer->SetMinDeviation(fractalInfo.minDeviation);
 		fractalDrawer->SetDeviationCycles(fractalInfo.deviationCycles, fractalInfo.debugDeviations);
 		fractalDrawer->SetLengthLimit(fractalInfo.lengthLimit);
-		fractalDrawer->SetFractal(fractalInfo.type);
+		fractalDrawer->SetFractalType(fractalInfo.type);
 		updateDrawer = true;
 		// We need to regenerate the pixel buffer due to changed texture dimensions in case upscale has changed
 		regenBuffer = true;
@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
 	fractalDrawer->SetIterations(fracInfo.iterations);
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 	fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
-	fractalDrawer->SetFractal(fracInfo.type);
+	fractalDrawer->SetFractalType(fracInfo.type);
 	fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 
 	//file dialog
@@ -383,7 +383,8 @@ int main(int argc, char* argv[])
 		// Draw fractal
 		bool interpreterDrew = false;
 		bool shouldRenderInterpreter = false;
-		bool shouldStartDrawing = (updateOnResize || fracInfo.animate || juliaPosUpdate || updateDrawer) && !fractalInterpreter.IsBusy();
+		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
+		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer) && !fractalInterpreter.IsBusy();
 		shouldRenderInterpreter = fractalDrawer->Draw(shouldStartDrawing) || updateInterpreter; // returns true if we should attempt to render interpreter
 		if (shouldRenderInterpreter)
 		{
@@ -397,7 +398,7 @@ int main(int argc, char* argv[])
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-		glm::vec4 windowTransform = fractalDrawer->GetBounds(fractalDrawer->GetProgress() * fractalInterpreter.GetProgress());
+		glm::vec4 windowTransform = fractalDrawer->GetBounds(fractalDrawer->GetProgress());
 		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 
 			windowTransform.x * currentWindowWidth, windowTransform.y * currentWindowHeight, 
 			windowTransform.z * currentWindowWidth, windowTransform.w * currentWindowHeight,

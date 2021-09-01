@@ -44,7 +44,8 @@ public:
 	void SetMinDeviation(double minDeviation);
 	void SetDeviationCycles(int deviationCycles, bool debugDeviations);
 	void SetLengthLimit(double lengthLimit);
-	void SetFractal(FractalType fractal);
+	void SetFractalType(FractalType fractal);
+	FractalType GetFractalType();
 	void SetCustomJuliaPosition(bool use, double x, double y);
 	float GetProgress();
 	void Zoom(double x, double y, double amount);
