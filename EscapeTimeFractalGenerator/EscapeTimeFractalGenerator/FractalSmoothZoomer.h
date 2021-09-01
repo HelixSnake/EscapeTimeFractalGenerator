@@ -14,6 +14,8 @@ public:
 	bool IsZooming() { return isZooming; }
 	bool IsZoomReady() { return isZoomReady; }
 protected:
+	ZoomTransform cachedTransformStart;
+	ZoomTransform cachedTransformEnd;
 	ZoomTransform transformStart;
 	ZoomTransform transformEnd;
 	bool isZooming = false;

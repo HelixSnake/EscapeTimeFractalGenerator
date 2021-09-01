@@ -103,7 +103,7 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 }
 
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
-void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, ImGui::FileBrowser &rampTexFileBrowser)
+void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ImGui::FileBrowser &rampTexFileBrowser)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -217,6 +217,15 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	ImGui::Checkbox("Live Rendering", &fractalInfo.liveUpdate);
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::ProgressBar(fractalInterpreter.GetProgress());
+	//debug stuff
+	ZoomTransform drawerCurrent = fractalDrawer->GetCurrentTransform();
+	ZoomTransform drawerLast = fractalDrawer->GetLastDrawnTransform();
+	ImGui::Text("current transform: %f, %f, %f", drawerCurrent.x, drawerCurrent.y, drawerCurrent.scale);
+	ImGui::Text("last transform: %f, %f, %f", drawerLast.x, drawerLast.y, drawerLast.scale);
+	ImGui::Text("smooth zoomer set up: %d", smoothZoomer.IsZoomReady());
+	ImGui::Text("smooth zoomer running: %d", smoothZoomer.IsZooming());
+	ImGui::Text("drawer start interpolate zooming: %d", fractalDrawer->ShouldStartZoomInterpolation());
+	ImGui::Text("drawer transform changed: %d", fractalDrawer->GetTransformChanged());
 	ImGui::End();
 	rampTexFileBrowser.SetWindowSize(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT);
 	ImGui::SetWindowPos(ImVec2(0, 0));
@@ -409,18 +418,17 @@ int main(int argc, char* argv[])
 			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
 			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
 		}
-		if (fractalDrawer->ShouldStartZoomInterpolation())
-		{
-			smoothZoomer.SetupZoom(fractalDrawer->GetLastDrawnTransform(), fractalDrawer->GetCurrentTransform());
-		}
 		bool shouldRenderToQuad = fractalInterpreter.Draw(shouldRenderInterpreter);
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-
 		if (smoothZoomer.IsZooming() && shouldRenderToQuad)
 		{
 			smoothZoomer.EndZoom();
+		}
+		if (fractalDrawer->ShouldStartZoomInterpolation())
+		{
+			smoothZoomer.SetupZoom(fractalDrawer->GetLastDrawnTransform(), fractalDrawer->GetCurrentTransform());
 		}
 		if (smoothZoomer.IsZoomReady() && shouldRenderToQuad)
 		{
@@ -437,7 +445,7 @@ int main(int argc, char* argv[])
 		updateInterpreter = false;
 		regenBuffer = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, rampTexFileDialog);
+		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, rampTexFileDialog);
 		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;

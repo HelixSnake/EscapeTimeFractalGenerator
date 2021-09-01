@@ -6,6 +6,8 @@ FractalSmoothZoomer::FractalSmoothZoomer()
 	transformStart.y = 0;
 	transformStart.scale = 1;
 	transformEnd = transformStart;
+	cachedTransformEnd = transformStart;
+	cachedTransformStart = transformStart;
 }
 
 glm::vec4 FractalSmoothZoomer::GetBounds(float progress, float aspectRatio)
@@ -54,18 +56,20 @@ glm::vec4 FractalSmoothZoomer::GetBounds(float progress, float aspectRatio)
 
 void FractalSmoothZoomer::SetupZoom(ZoomTransform start, ZoomTransform end)
 {
-	transformStart = start;
-	transformEnd = end;
+	cachedTransformStart = start;
+	cachedTransformEnd = end;
 	isZoomReady = true;
 }
 
 void FractalSmoothZoomer::StartZoom()
 {
+	transformStart = cachedTransformStart;
+	transformEnd = cachedTransformEnd;
 	isZooming = true;
+	isZoomReady = false;
 }
 
 void FractalSmoothZoomer::EndZoom()
 {
-	isZoomReady = false;
 	isZooming = false;
 }

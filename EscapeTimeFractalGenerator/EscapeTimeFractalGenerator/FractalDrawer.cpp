@@ -284,12 +284,12 @@ bool FractalDrawer::Draw(bool update)
 	steady_clock::time_point currentTimeDelta = high_resolution_clock::now();
 	double timeSinceLastRender = duration_cast<nanoseconds>(currentTimeDelta - lastTimeDelta).count() / 1000000000.0;
 	disableZoom = false;
-	if (timeSinceLastRender > 1 && transformChanged) // We don't want the delay on zooming in or out to be more than a second
+/*	if (timeSinceLastRender > 1 && transformChanged) // We don't want the delay on zooming in or out to be more than a second
 	{
 		haltDrawingThread = true;
 		shouldDraw = false;
 		startInterpolateZooming = true;
-	}
+	}*/
 	if (transformChanged && timeSinceLastRender > 2)
 	{
 		// Stop us from zooming out of control!
@@ -321,7 +321,7 @@ bool FractalDrawer::Draw(bool update)
 			shouldDraw = !haltDrawingThread; // draw if drawing thread was not halted
 			renderedThisFrame = true;
 			UnlockAllMutexes();
-			if (transformChanged)
+			if (true)
 			{
 				startInterpolateZooming = true;
 			}
