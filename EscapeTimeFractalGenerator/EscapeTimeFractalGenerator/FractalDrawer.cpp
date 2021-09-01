@@ -174,39 +174,35 @@ void FractalDrawer::Zoom(double x, double y, double amount)
 {
 	if (disableZoom) return;
 	//convert x y point to "World space" by replicating transform performed on pixels
-	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - transformx) * transformz;
-	CF_Float newY = (y - transformy) * transformz;
-	transformz *= amount;
-	transformx -= (newX / transformz) * (1 - amount);
-	transformy -= (newY / transformz) * (1 - amount);
+	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - currentTransform.x) * currentTransform.scale;
+	CF_Float newY = (y - currentTransform.y) * currentTransform.scale;
+	currentTransform.scale *= amount;
+	currentTransform.x -= (newX / currentTransform.scale) * (1 - amount);
+	currentTransform.y -= (newY / currentTransform.scale) * (1 - amount);
 }
 void FractalDrawer::ResetZoom()
 {
 	haltDrawingThread = true;
 	LockAllMutexes();
-	transformx = STARTING_TRANSFORM.x;
-	transformy = STARTING_TRANSFORM.y;
-	transformz = STARTING_TRANSFORM.z;
-	lastTransformx = transformx;
-	lastTransformy = transformy;
-	lastTransformz = transformz;
-	lastLastTransformx = transformx;
-	lastLastTransformy = transformy;
-	lastLastTransformz = transformz;
+	currentTransform.x = STARTING_TRANSFORM.x;
+	currentTransform.y = STARTING_TRANSFORM.y;
+	currentTransform.scale = STARTING_TRANSFORM.z;
+	lastTransform = currentTransform;
+	lastTransform2 = lastTransform;
 	UnlockAllMutexes();
 	haltDrawingThread = false;
 }
 
 ComplexFloat FractalDrawer::ScreenToWorldPos(double x, double y)
 {
-	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - transformx) * transformz;
-	CF_Float newY = (y - transformy) * transformz;
+	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - currentTransform.x) * currentTransform.scale;
+	CF_Float newY = (y - currentTransform.y) * currentTransform.scale;
 	return ComplexFloat(newX, newY);
 }
 
 glm::vec4 FractalDrawer::GetBounds(float progress)
 {
-	CF_Float scaleDiff = lastLastTransformz / lastTransformz;
+	CF_Float scaleDiff = lastTransform2.scale / lastTransform.scale;
 	CF_Float rendRectX1 = 0;
 	CF_Float rendRectX2 = 1;
 	CF_Float rendRectY1 = 0;
@@ -234,10 +230,10 @@ glm::vec4 FractalDrawer::GetBounds(float progress)
 	//for Y it's the same equation, except you don't need pBW or pBH and all instances of X are replaced with Y.
 	if (scaleDiff != 1)
 	{
-		rendRectNewX1 = rendRectX1 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
-		rendRectNewY1 = rendRectY1 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
-		rendRectNewX2 = rendRectX2 * scaleDiff + (lastTransformx - lastLastTransformx + (lastLastTransformx * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
-		rendRectNewY2 = rendRectY2 * scaleDiff + lastTransformy - lastLastTransformy + (lastLastTransformy * (1 - scaleDiff));
+		rendRectNewX1 = rendRectX1 * scaleDiff + (lastTransform.x - lastTransform2.x + (lastTransform2.x * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
+		rendRectNewY1 = rendRectY1 * scaleDiff + lastTransform.y - lastTransform2.y + (lastTransform2.y * (1 - scaleDiff));
+		rendRectNewX2 = rendRectX2 * scaleDiff + (lastTransform.x - lastTransform2.x + (lastTransform2.x * (1 - scaleDiff))) / pixelBufferWidth * pixelBufferHeight;
+		rendRectNewY2 = rendRectY2 * scaleDiff + lastTransform.y - lastTransform2.y + (lastTransform2.y * (1 - scaleDiff));
 	}
 	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, progress);
 	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, progress);
@@ -265,7 +261,7 @@ void FractalDrawer::CopyBuffer(CF_Float* dest, size_t bufferSize)
 bool FractalDrawer::Draw(bool update)
 {
 	bool shouldDraw = false; // Value to return from function when it's OK to draw
-	fractalThreadNeedsRun = fractalThreadNeedsRun || update || lastTransformz != transformz;
+	fractalThreadNeedsRun = fractalThreadNeedsRun || update || lastTransform.scale != currentTransform.scale;
 	//Draw Fractal
 	bool anyThreadsValid = false;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
@@ -295,7 +291,8 @@ bool FractalDrawer::Draw(bool update)
 				extraValue = ComplexFloat((cos(totalTime) * 0.5 - cos(totalTime * 2) * 0.25) * 1.01,
 					(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
 			}
-			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, extraValue, transformx, transformy, transformz);
+			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, extraValue, 
+				currentTransform.x, currentTransform.y, currentTransform.scale);
 		}
 		lastTimeDelta = high_resolution_clock::now();
 		fractalThreadNeedsRun = false;
@@ -310,15 +307,15 @@ bool FractalDrawer::Draw(bool update)
 	disableZoom = false;
 	if (timeSinceLastRender > 1) // We don't want the delay on zooming in or out to be more than a second
 	{
-		if (lastTransformz != transformz) // we are zooming in or out
+		if (lastTransform.scale != currentTransform.scale) // we are zooming in or out
 		{
-			if (lastLastTransformz == lastTransformz) // we have only started zooming in or out
+			if (lastTransform2.scale == lastTransform.scale) // we have only started zooming in or out
 			{
 				haltDrawingThread = true;
 			}
 		}
 	}
-	if (timeSinceLastRender > 3 && lastTransformz != transformz && lastLastTransformz != lastTransformz)
+	if (timeSinceLastRender > 3 && lastTransform.scale != currentTransform.scale && lastTransform2.scale != lastTransform.scale)
 	{
 		// Stop us from zooming out of control!
 		disableZoom = true;
@@ -347,30 +344,22 @@ bool FractalDrawer::Draw(bool update)
 			}
 			LockAllMutexes(false);
 			shouldDraw = true; // DRAW
-			lastLastTransformx = lastTransformx;
-			lastLastTransformy = lastTransformy;
-			lastLastTransformz = lastTransformz;
-			lastTransformx = transformx;
-			lastTransformy = transformy;
-			lastTransformz = transformz;
+			lastTransform2 = lastTransform;
+			lastTransform = currentTransform;
 			renderedThisFrame = true;
 			UnlockAllMutexes();
 		}
 	}
 	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
 	//pixelBuffer has been moved from float* to std::atomic<float>* so this should be safe now 
-	if (lastLastTransformz == lastTransformz && lastTransformz == transformz && liveUpdate && anyThreadsValid) // don't do this if we're zooming
+	if (lastTransform.scale == lastTransform.scale && lastTransform.scale == currentTransform.scale && liveUpdate && anyThreadsValid) // don't do this if we're zooming
 	{
 		shouldDraw = true; // DRAW
 	}
 	if (update) // If the user presses the update button, don't do our zooming algorithm
 	{
-		lastLastTransformx = lastTransformx;
-		lastLastTransformy = lastTransformy;
-		lastLastTransformz = lastTransformz;
-		lastTransformx = transformx;
-		lastTransformy = transformy;
-		lastTransformz = transformz;
+		lastTransform2 = lastTransform;
+		lastTransform = currentTransform;
 	}
 
 	float avgThreadProgress = 0;

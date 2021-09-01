@@ -25,6 +25,12 @@ enum class FractalType
 	Mandelbrot,
 	Julia
 };
+struct ZoomTransform
+{
+	CF_Float x = 0;
+	CF_Float y = 0;
+	CF_Float scale = 1;
+};
 class FractalDrawer
 {
 public:
@@ -83,15 +89,9 @@ protected:
 	steady_clock::time_point lastTimeDelta;
 	bool disableZoom = false;
 	// TODO: Use a struct instead
-	CF_Float transformx;
-	CF_Float transformy;
-	CF_Float transformz;
-	CF_Float lastTransformx;
-	CF_Float lastTransformy;
-	CF_Float lastTransformz;
-	CF_Float lastLastTransformx;
-	CF_Float lastLastTransformy;
-	CF_Float lastLastTransformz;
+	ZoomTransform currentTransform;
+	ZoomTransform lastTransform;
+	ZoomTransform lastTransform2;
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
 	float upScale = 1;
