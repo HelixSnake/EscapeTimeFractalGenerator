@@ -6,6 +6,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include "ComplexFloat.h"
+
+using namespace std::chrono;
+
 class FractalInterpreter // Purpose: take an array of CF_Floats from FractalDrawer and change it to an array of colors using a ramp function
 {
 public:
@@ -17,6 +20,7 @@ public:
 	bool Draw(bool startDrawing, bool shouldRestart);
 	const float* GetColors(int &width, int &height);
 	float GetProgress();
+	float GetInterpreterTime() { return interpreterTime; } // Gets the last time taken by the thread, which should be fairly consistent, to help with smoothZooming
 	bool IsBusy();
 	float period = 1;
 	float offset = 0;
@@ -36,5 +40,7 @@ protected:
 	std::future<bool> interpreterThread;
 	std::atomic<int> threadProgress;
 	std::mutex interpreterMutex;
+	steady_clock::time_point interpreterTimeStart;
+	float interpreterTime = 0;
 };
 

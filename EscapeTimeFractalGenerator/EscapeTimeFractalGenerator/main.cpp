@@ -429,7 +429,7 @@ int main(int argc, char* argv[])
 		}
 		if (smoothZoomer.IsZooming())
 		{
-			smoothZoomer.RunProgressLogic(fractalDrawer->GetProgress(), fractalInterpreter.GetProgress());
+			smoothZoomer.RunProgressLogic(fractalDrawer->GetProgress(), fractalInterpreter.GetProgress(), fractalInterpreter.GetInterpreterTime());
 		}
 		windowTransform = smoothZoomer.GetBoundMults((float)currentWindowHeight / currentWindowWidth);
 		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 

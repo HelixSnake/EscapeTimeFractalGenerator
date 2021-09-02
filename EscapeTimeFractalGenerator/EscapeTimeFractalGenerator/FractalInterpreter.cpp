@@ -7,6 +7,7 @@
 FractalInterpreter::FractalInterpreter()
 {
 	busyDrawing = false;
+	interpreterTimeStart = high_resolution_clock::now();
 }
 FractalInterpreter::~FractalInterpreter()
 {
@@ -76,6 +77,7 @@ bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 		drawNext = false;
 		threadProgress = 0;
 		haltThread = false;
+		interpreterTimeStart = high_resolution_clock::now(); // time how long this thread takes (should always be the same for the same resolution) to help the smoothzoomer
 		interpreterThread = std::async(std::launch::async, &FractalInterpreter::Draw_Threaded, this);
 	}
 	else if (startDrawing)
@@ -98,6 +100,8 @@ bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 				memcpy(finishedColorBuffer, colorBuffer, bufferHeight * bufferWidth * sizeof(float) * 3);
 				interpreterMutex.unlock();
 				finishedThisFrame = true;
+				steady_clock::time_point currentTime = high_resolution_clock::now();
+				interpreterTime = duration_cast<nanoseconds>(currentTime - interpreterTimeStart).count() / 1000000000.0;
 			}
 			else // interpreter has halted
 			{

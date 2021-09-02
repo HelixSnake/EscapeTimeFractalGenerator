@@ -1,4 +1,5 @@
 #include "FractalSmoothZoomer.h"
+#include <math.h>
 
 FractalSmoothZoomer::FractalSmoothZoomer()
 {
@@ -77,22 +78,41 @@ void FractalSmoothZoomer::EndZoom()
 }
 
 
-void FractalSmoothZoomer::RunProgressLogic(float DrawerProgress, float InterpreterProgress)
+void FractalSmoothZoomer::RunProgressLogic(float drawerProgress, float interpreterProgress, float lastInterpreterTime)
 {
 	if (justStartedZooming)
 	{
-		startingDrawerProgress = DrawerProgress; // we're partway into the drawer progress at this point so save this value
+		startingDrawerProgress = drawerProgress; // we're partway into the drawer progress at this point so save this value
+		zoomStartTime = high_resolution_clock::now();
 		computedProgress = 0;
+		drawerFinishProgressTarget = 0;
 	}
 	justStartedZooming = false;
 	float oldComputedProgress = computedProgress;
-	if (startingDrawerProgress >= 1.0f) // prevent nans from the smoothstep
+	if (startingDrawerProgress >= 0.99) // we somehow started with the drawer being finished
 	{
-		computedProgress = 1;
+		if (drawerProgress < startingDrawerProgress)
+		{
+			computedProgress = drawerProgress; //just use the interpreter progress in this case, this is the best we can do in this situation
+		}
 	}
 	else
 	{
-		computedProgress = glm::smoothstep(startingDrawerProgress, 1.0f, DrawerProgress);
+		if (interpreterProgress > 0.99 && drawerProgress >= startingDrawerProgress) 
+		{
+			//scale our target value we want to be at based on how much time has elapsed so that it will lead smoothly into the interpreter rendering
+			steady_clock::time_point currentTime = high_resolution_clock::now();
+			float totalDrawTime = duration_cast<nanoseconds>(currentTime - zoomStartTime).count() / 1000000000.0;
+			float ratio = totalDrawTime / (totalDrawTime + lastInterpreterTime);
+			drawerFinishProgressTarget = startingDrawerProgress + ratio * (1.0f - startingDrawerProgress); // this is the value we want computedProgress to be at when the drawer finishes
+			//this is not exactly linear movement but it should be close enough
+			computedProgress = (drawerProgress - startingDrawerProgress) / (1.0f - startingDrawerProgress) * drawerFinishProgressTarget;
+		}
+		else
+		{
+			// time for the interpreter to take up the remaining time
+			computedProgress = drawerFinishProgressTarget + interpreterProgress * (1.0f - drawerFinishProgressTarget); // lerp the rest of the way
+		}
 	}
 	computedProgress = glm::max(computedProgress, oldComputedProgress); // our progress should never be lowered
 }
