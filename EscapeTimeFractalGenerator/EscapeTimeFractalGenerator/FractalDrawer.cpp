@@ -202,6 +202,11 @@ bool FractalDrawer::ShouldStartZoomInterpolation()
 	return startInterpolateZooming;
 }
 
+int FractalDrawer::GetMipLevel()
+{
+	return (int)glm::max(log2(upScale), 0.0f);
+}
+
 ZoomTransform FractalDrawer::GetCurrentTransform()
 {
 	return currentTransform;

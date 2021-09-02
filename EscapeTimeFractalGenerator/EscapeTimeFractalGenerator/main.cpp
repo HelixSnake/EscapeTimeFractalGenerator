@@ -441,8 +441,8 @@ int main(int argc, char* argv[])
 		windowTransform = smoothZoomer.GetBoundMults((float)screenHeight / screenWidth);
 		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 
 			windowTransform.x * currentWindowWidth, windowTransform.y * currentWindowHeight, 
-			windowTransform.z * currentWindowWidth, windowTransform.w * currentWindowHeight,
-			shouldRenderToQuad);
+			windowTransform.z * currentWindowWidth, windowTransform.w * currentWindowHeight, 
+			fractalDrawer->GetMipLevel(), shouldRenderToQuad);
 		glfwSwapBuffers(window);
 
 		updateDrawer = false;

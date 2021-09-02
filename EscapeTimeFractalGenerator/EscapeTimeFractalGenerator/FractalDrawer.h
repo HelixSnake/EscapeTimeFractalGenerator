@@ -46,6 +46,7 @@ public:
 	void Zoom(double x, double y, double amount);
 	void ResetZoom();
 	bool ShouldStartZoomInterpolation();
+	int GetMipLevel();
 	ZoomTransform GetCurrentTransform();
 	ZoomTransform GetLastDrawnTransform();
 	ComplexFloat ScreenToWorldPos(double x, double y);
