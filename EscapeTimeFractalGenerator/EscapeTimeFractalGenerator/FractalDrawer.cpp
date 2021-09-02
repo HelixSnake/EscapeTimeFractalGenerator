@@ -321,7 +321,7 @@ bool FractalDrawer::Draw(bool update)
 			shouldDraw = !haltDrawingThread; // draw if drawing thread was not halted
 			renderedThisFrame = true;
 			UnlockAllMutexes();
-			if (true)
+			if (transformChanged)
 			{
 				startInterpolateZooming = true;
 			}
