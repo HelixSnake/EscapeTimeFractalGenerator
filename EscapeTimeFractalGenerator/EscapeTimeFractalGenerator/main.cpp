@@ -404,7 +404,7 @@ int main(int argc, char* argv[])
 
 
 		// Draw fractal
-		fractalDrawer->liveUpdate = fracInfo.liveUpdate && !smoothZoomer.IsZooming();
+		fractalDrawer->liveUpdate = fracInfo.liveUpdate && !smoothZoomer.IsZooming() && !smoothZoomer.IsZoomReady();
 		bool interpreterDrew = false;
 		bool shouldRenderInterpreter = false;
 		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
