@@ -218,6 +218,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::ProgressBar(fractalInterpreter.GetProgress());
 	//debug stuff
+	ImGui::Text("Fractal interpreter is busy: %d", fractalInterpreter.IsBusy());
 	ImGui::End();
 	rampTexFileBrowser.SetWindowSize(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT);
 	ImGui::SetWindowPos(ImVec2(0, 0));
@@ -400,7 +401,7 @@ int main(int argc, char* argv[])
 		bool interpreterDrew = false;
 		bool shouldRenderInterpreter = false;
 		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
-		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer) && !fractalInterpreter.IsBusy();
+		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || fractalDrawer->GetTransformChanged()) && !fractalInterpreter.IsBusy();
 		shouldRenderInterpreter = fractalDrawer->Draw(shouldStartDrawing) || updateInterpreter; // returns true if we should attempt to render interpreter
 		if (shouldRenderInterpreter)
 		{

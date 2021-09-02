@@ -78,7 +78,7 @@ bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 		haltThread = false;
 		interpreterThread = std::async(std::launch::async, &FractalInterpreter::Draw_Threaded, this);
 	}
-	else if (startDrawing || shouldRestart)
+	else if (startDrawing)
 	{
 		drawNext = true;
 	}
@@ -101,7 +101,7 @@ bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 			}
 			else // interpreter has halted
 			{
-				busyDrawing = false;
+				busyDrawing = true; // because we always restart the interpreter on halt, we are still busy
 				drawNext = true;
 			}
 		}

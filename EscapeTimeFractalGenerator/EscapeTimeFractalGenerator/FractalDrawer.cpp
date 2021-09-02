@@ -233,7 +233,7 @@ bool FractalDrawer::Draw(bool update)
 {
 	bool shouldDraw = false; // Value to return from function when it's OK to draw
 	startInterpolateZooming = false; // Should we start the zooming interpolation?
-	fractalThreadNeedsRun = fractalThreadNeedsRun || update || transformChanged;
+	fractalThreadNeedsRun = fractalThreadNeedsRun || update;
 	//Draw Fractal
 	bool anyThreadsValid = false;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
