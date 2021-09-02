@@ -14,13 +14,14 @@ public:
 	void SetRampTexture(GLuint textureID);
 	void CreateOrUpdateBuffers(int width, int height);
 	CF_Float* GetValueBufferStart();
-	bool Draw(bool startDrawing);
+	bool Draw(bool startDrawing, bool shouldRestart);
 	const float* GetColors(int &width, int &height);
 	float GetProgress();
 	bool IsBusy();
 	float period = 1;
 	float offset = 0;
 protected:
+	std::atomic_bool haltThread = false;
 	bool busyDrawing = false;
 	bool drawNext = false;
 	bool Draw_Threaded();

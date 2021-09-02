@@ -42,10 +42,11 @@ public:
 	void SetFractalType(FractalType fractal);
 	FractalType GetFractalType();
 	void SetCustomJuliaPosition(bool use, double x, double y);
-	float GetProgress();
+	float GetProgress() { return drawingProgress; }
 	void Zoom(double x, double y, double amount);
 	void ResetZoom();
-	bool ShouldStartZoomInterpolation();
+	bool ShouldStartZoomInterpolation() { return startInterpolateZooming; }
+	bool ShouldRestartInterpreter() { return shouldRestartInterpreter; }
 	int GetMipLevel();
 	ZoomTransform GetCurrentTransform();
 	ZoomTransform GetLastDrawnTransform();
@@ -98,6 +99,7 @@ protected:
 	bool transformChanged = false;
 	bool disableZoom = false;
 	bool startInterpolateZooming = false;
+	bool shouldRestartInterpreter = false;
 
 	std::atomic_bool haltDrawingThread = false;
 	std::future<bool> drawFractalThread;

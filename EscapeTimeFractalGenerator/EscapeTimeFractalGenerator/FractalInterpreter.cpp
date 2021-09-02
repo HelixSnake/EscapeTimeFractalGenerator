@@ -67,7 +67,7 @@ bool FractalInterpreter::IsBusy()
 	return busyDrawing;
 }
 
-bool FractalInterpreter::Draw(bool startDrawing)
+bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 {
 	bool finishedThisFrame = false;
 	if (!interpreterThread.valid() && (startDrawing || drawNext))
@@ -75,23 +75,35 @@ bool FractalInterpreter::Draw(bool startDrawing)
 		busyDrawing = true;
 		drawNext = false;
 		threadProgress = 0;
+		haltThread = false;
 		interpreterThread = std::async(std::launch::async, &FractalInterpreter::Draw_Threaded, this);
 	}
-	else if (startDrawing)
+	else if (startDrawing || shouldRestart)
 	{
 		drawNext = true;
+	}
+	if (shouldRestart)
+	{
+		haltThread = true;
 	}
 
 	if (interpreterThread.valid()) {
 		std::future_status drawingStatus = interpreterThread.wait_for(std::chrono::seconds(0));
 		if (drawingStatus == std::future_status::ready)
 		{
-			interpreterThread.get();
-			busyDrawing = false;
-			interpreterMutex.lock();
-			memcpy(finishedColorBuffer, colorBuffer, bufferHeight * bufferWidth * sizeof(float) * 3);
-			interpreterMutex.unlock();
-			finishedThisFrame = true;
+			if (interpreterThread.get())
+			{
+				busyDrawing = false;
+				interpreterMutex.lock();
+				memcpy(finishedColorBuffer, colorBuffer, bufferHeight * bufferWidth * sizeof(float) * 3);
+				interpreterMutex.unlock();
+				finishedThisFrame = true;
+			}
+			else // interpreter has halted
+			{
+				busyDrawing = false;
+				drawNext = true;
+			}
 		}
 	}
 	return (finishedThisFrame);
@@ -103,6 +115,7 @@ bool FractalInterpreter::Draw_Threaded()
 	{
 		for (int j = 0; j < bufferHeight; j++) 
 		{
+			if (haltThread) return false;
 			int valueBufferPos = j * bufferWidth + i;
 			int colorBufferPos = valueBufferPos * 3;
 			double newValue = 0; 

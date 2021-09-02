@@ -218,14 +218,6 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::ProgressBar(fractalInterpreter.GetProgress());
 	//debug stuff
-	ZoomTransform drawerCurrent = fractalDrawer->GetCurrentTransform();
-	ZoomTransform drawerLast = fractalDrawer->GetLastDrawnTransform();
-	ImGui::Text("current transform: %f, %f, %f", drawerCurrent.x, drawerCurrent.y, drawerCurrent.scale);
-	ImGui::Text("last transform: %f, %f, %f", drawerLast.x, drawerLast.y, drawerLast.scale);
-	ImGui::Text("smooth zoomer set up: %d", smoothZoomer.IsZoomReady());
-	ImGui::Text("smooth zoomer running: %d", smoothZoomer.IsZooming());
-	ImGui::Text("drawer start interpolate zooming: %d", fractalDrawer->ShouldStartZoomInterpolation());
-	ImGui::Text("drawer transform changed: %d", fractalDrawer->GetTransformChanged());
 	ImGui::End();
 	rampTexFileBrowser.SetWindowSize(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT);
 	ImGui::SetWindowPos(ImVec2(0, 0));
@@ -418,7 +410,7 @@ int main(int argc, char* argv[])
 			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
 			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
 		}
-		bool shouldRenderToQuad = fractalInterpreter.Draw(shouldRenderInterpreter);
+		bool shouldRenderToQuad = fractalInterpreter.Draw(shouldRenderInterpreter, fractalDrawer->ShouldRestartInterpreter());
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);

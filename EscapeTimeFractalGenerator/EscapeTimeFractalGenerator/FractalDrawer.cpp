@@ -169,11 +169,6 @@ void FractalDrawer::SetCustomJuliaPosition(bool use, double x, double y)
 	customJuliaPosition = ComplexFloat(x, y);
 }
 
-float FractalDrawer::GetProgress()
-{
-	return drawingProgress;
-}
-
 void FractalDrawer::Zoom(double x, double y, double amount)
 {
 	if (disableZoom) return;
@@ -195,11 +190,6 @@ void FractalDrawer::ResetZoom()
 	lastDrawnTransform = currentTransform;
 	UnlockAllMutexes();
 	haltDrawingThread = false;
-}
-
-bool FractalDrawer::ShouldStartZoomInterpolation()
-{
-	return startInterpolateZooming;
 }
 
 int FractalDrawer::GetMipLevel()
@@ -304,6 +294,7 @@ bool FractalDrawer::Draw(bool update)
 	bool allThreadsValid = true;
 	bool allThreadsReady = true;
 	bool renderedThisFrame = false;
+	shouldRestartInterpreter = false;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
 		//all threads are valid
@@ -324,6 +315,7 @@ bool FractalDrawer::Draw(bool update)
 			}
 			LockAllMutexes(false);
 			shouldDraw = !haltDrawingThread; // draw if drawing thread was not halted
+			shouldRestartInterpreter = !haltDrawingThread; // if the interpreter is drawing, and we just finished, make it start over
 			renderedThisFrame = true;
 			UnlockAllMutexes();
 			if (transformChanged)
