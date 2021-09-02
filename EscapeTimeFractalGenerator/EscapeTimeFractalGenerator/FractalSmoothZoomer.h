@@ -7,12 +7,13 @@ class FractalSmoothZoomer
 {
 public:
 	FractalSmoothZoomer();
-	glm::vec4 GetBounds(float progress, float aspectRatio);
+	glm::vec4 GetBoundMults(float aspectRatio);
 	void SetupZoom(ZoomTransform start, ZoomTransform end);
 	void StartZoom();
 	void EndZoom();
 	bool IsZooming() { return isZooming; }
 	bool IsZoomReady() { return isZoomReady; }
+	void RunProgressLogic(float DrawerProgress, float InterpreterProgress);
 protected:
 	ZoomTransform cachedTransformStart;
 	ZoomTransform cachedTransformEnd;
@@ -20,5 +21,8 @@ protected:
 	ZoomTransform transformEnd;
 	bool isZooming = false;
 	bool isZoomReady = false;
+	bool justStartedZooming = false;
+	float computedProgress = 0;
+	float startingDrawerProgress = 0;
 };
 

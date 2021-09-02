@@ -10,7 +10,7 @@ FractalSmoothZoomer::FractalSmoothZoomer()
 	cachedTransformStart = transformStart;
 }
 
-glm::vec4 FractalSmoothZoomer::GetBounds(float progress, float aspectRatio)
+glm::vec4 FractalSmoothZoomer::GetBoundMults(float aspectRatio)
 {
 	if (!isZooming) return glm::vec4(0, 0, 1, 1);
 	CF_Float scaleDiff = transformStart.scale / transformEnd.scale;
@@ -46,10 +46,10 @@ glm::vec4 FractalSmoothZoomer::GetBounds(float progress, float aspectRatio)
 		rendRectNewX2 = rendRectX2 * scaleDiff + (transformEnd.x - transformStart.x + (transformStart.x * (1 - scaleDiff))) * aspectRatio;
 		rendRectNewY2 = rendRectY2 * scaleDiff + transformEnd.y - transformStart.y + (transformStart.y * (1 - scaleDiff));
 	}
-	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, progress);
-	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, progress);
-	rendRectY1 = glm::mix(rendRectY1, rendRectNewY1, progress);
-	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, progress);
+	rendRectX1 = glm::mix(rendRectX1, rendRectNewX1, computedProgress);
+	rendRectX2 = glm::mix(rendRectX2, rendRectNewX2, computedProgress);
+	rendRectY1 = glm::mix(rendRectY1, rendRectNewY1, computedProgress);
+	rendRectY2 = glm::mix(rendRectY2, rendRectNewY2, computedProgress);
 	return glm::vec4(rendRectX1, rendRectY1, rendRectX2, rendRectY2);
 }
 
@@ -67,9 +67,32 @@ void FractalSmoothZoomer::StartZoom()
 	transformEnd = cachedTransformEnd;
 	isZooming = true;
 	isZoomReady = false;
+	justStartedZooming = true;
 }
 
 void FractalSmoothZoomer::EndZoom()
 {
+	justStartedZooming = false; // just in case we run EndZoom before RunProgressLogic runs
 	isZooming = false;
+}
+
+
+void FractalSmoothZoomer::RunProgressLogic(float DrawerProgress, float InterpreterProgress)
+{
+	if (justStartedZooming)
+	{
+		startingDrawerProgress = DrawerProgress; // we're partway into the drawer progress at this point so save this value
+		computedProgress = 0;
+	}
+	justStartedZooming = false;
+	float oldComputedProgress = computedProgress;
+	if (startingDrawerProgress >= 1.0f) // prevent nans from the smoothstep
+	{
+		computedProgress = 1;
+	}
+	else
+	{
+		computedProgress = glm::smoothstep(startingDrawerProgress, 1.0f, DrawerProgress);
+	}
+	computedProgress = glm::max(computedProgress, oldComputedProgress); // our progress should never be lowered
 }
