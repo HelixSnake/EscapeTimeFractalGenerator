@@ -58,10 +58,21 @@ glm::vec4 FractalSmoothZoomer::GetBoundMults(float aspectRatio)
 
 void FractalSmoothZoomer::SetupZoom(ZoomTransform newZoomTransform)
 {
-	if (cachedTransformEnd.scale == newZoomTransform.scale) return; //don't actually do anything if we're not zooming
-	cachedTransformStart = cachedTransformEnd;
+	if (cachedTransformEnd.scale == newZoomTransform.scale)
+	{
+		return; //don't actually do anything if we're not zooming
+	}
+	if (!isZoomReady) //don't move start if we've already set up
+	{
+		cachedTransformStart = cachedTransformEnd;
+	}
 	cachedTransformEnd = newZoomTransform;
 	isZoomReady = true;
+}
+
+void FractalSmoothZoomer::UpdateTarget(ZoomTransform newZoomTransform)
+{
+	transformEnd = newZoomTransform;
 }
 
 void FractalSmoothZoomer::StartZoom()
@@ -137,5 +148,4 @@ void FractalSmoothZoomer::RunProgressLogic(float drawerProgress, float interpret
 		}
 	}
 	computedProgress = glm::max(computedProgress, oldComputedProgress); // our progress should never be lowered
-	std::cout << computedProgress << std::endl;
 }

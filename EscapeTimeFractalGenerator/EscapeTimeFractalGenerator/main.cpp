@@ -412,7 +412,7 @@ int main(int argc, char* argv[])
 			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
 			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
 		}
-		bool shouldRenderToQuad = fractalInterpreter.Draw(shouldRenderInterpreter, fractalDrawer->ShouldRestartInterpreter());
+		bool shouldRenderToQuad = fractalInterpreter.Draw(shouldRenderInterpreter, false); // don't ever restart the interpreter for now
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
@@ -429,8 +429,9 @@ int main(int argc, char* argv[])
 		if (shouldSetupZoom)
 		{
 			smoothZoomer.SetupZoom(fractalDrawer->GetCurrentTransform());
+
 		}
-		bool startZoom = (shouldRenderToQuad);
+		bool startZoom = shouldRenderToQuad;
 		startZoom = startZoom && smoothZoomer.IsZoomReady(); //don't start if we're not set up
 		startZoom = startZoom && !smoothZoomer.IsZooming(); // don't start if we've already started
 		startZoom = startZoom && (fractalDrawer->IsBusy() || fractalInterpreter.IsBusy() || fractalDrawer->GetTransformChanged()); //don't start zoom if nothing is happening
