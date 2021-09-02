@@ -1,5 +1,6 @@
 #include "FractalSmoothZoomer.h"
 #include <math.h>
+#include <iostream>
 
 FractalSmoothZoomer::FractalSmoothZoomer()
 {
@@ -55,10 +56,11 @@ glm::vec4 FractalSmoothZoomer::GetBoundMults(float aspectRatio)
 }
 
 
-void FractalSmoothZoomer::SetupZoom(ZoomTransform start, ZoomTransform end)
+void FractalSmoothZoomer::SetupZoom(ZoomTransform newZoomTransform)
 {
-	cachedTransformStart = start;
-	cachedTransformEnd = end;
+	if (cachedTransformEnd.scale == newZoomTransform.scale) return; //don't actually do anything if we're not zooming
+	cachedTransformStart = cachedTransformEnd;
+	cachedTransformEnd = newZoomTransform;
 	isZoomReady = true;
 }
 
@@ -77,12 +79,20 @@ void FractalSmoothZoomer::EndZoom()
 	isZooming = false;
 }
 
+void FractalSmoothZoomer::SyncTransforms(ZoomTransform newZoomTransform)
+{
+	transformStart = newZoomTransform;
+	transformEnd = newZoomTransform;
+	cachedTransformEnd = newZoomTransform;
+	cachedTransformStart = newZoomTransform;
+}
 
 void FractalSmoothZoomer::RunProgressLogic(float drawerProgress, float interpreterProgress, float lastInterpreterTime)
 {
 	if (justStartedZooming)
 	{
 		startingDrawerProgress = drawerProgress; // we're partway into the drawer progress at this point so save this value
+		startingInterpreterProgress = interpreterProgress; // just in case this doesn't start at 0
 		zoomStartTime = high_resolution_clock::now();
 		computedProgress = 0;
 		drawerFinishProgressTarget = 0;
@@ -91,9 +101,21 @@ void FractalSmoothZoomer::RunProgressLogic(float drawerProgress, float interpret
 	float oldComputedProgress = computedProgress;
 	if (startingDrawerProgress >= 0.99) // we somehow started with the drawer being finished
 	{
-		if (drawerProgress < startingDrawerProgress)
+		if (drawerProgress < startingDrawerProgress) // drawerProgress has gone back to 0
 		{
-			computedProgress = drawerProgress; //just use the interpreter progress in this case, this is the best we can do in this situation
+			computedProgress = drawerProgress;
+			startingDrawerProgress = 0;  // Note: problem with zooming when drawing progress is faster than interpreter progress, problem exists in transform setting code, not our math here
+		}
+		else
+		{
+			if (interpreterProgress < startingInterpreterProgress) // interpreterProgress has gone back to 0
+			{
+				startingInterpreterProgress = 0;
+			}
+			if (startingInterpreterProgress == 0) // only set the computedProgress to interpreterProgress if we're starting at 0
+			{
+				computedProgress = interpreterProgress;
+			}
 		}
 	}
 	else
@@ -115,4 +137,5 @@ void FractalSmoothZoomer::RunProgressLogic(float drawerProgress, float interpret
 		}
 	}
 	computedProgress = glm::max(computedProgress, oldComputedProgress); // our progress should never be lowered
+	std::cout << computedProgress << std::endl;
 }

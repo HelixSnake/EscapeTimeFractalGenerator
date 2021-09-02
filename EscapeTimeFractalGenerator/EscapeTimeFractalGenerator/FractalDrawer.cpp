@@ -187,7 +187,6 @@ void FractalDrawer::ResetZoom()
 	currentTransform.x = STARTING_TRANSFORM.x;
 	currentTransform.y = STARTING_TRANSFORM.y;
 	currentTransform.scale = STARTING_TRANSFORM.z;
-	lastDrawnTransform = currentTransform;
 	UnlockAllMutexes();
 	haltDrawingThread = false;
 }
@@ -200,10 +199,6 @@ int FractalDrawer::GetMipLevel()
 ZoomTransform FractalDrawer::GetCurrentTransform()
 {
 	return currentTransform;
-}
-ZoomTransform FractalDrawer::GetLastDrawnTransform()
-{
-	return lastDrawnTransform;
 }
 
 ComplexFloat FractalDrawer::ScreenToWorldPos(double x, double y)
@@ -221,12 +216,14 @@ void FractalDrawer::GetBufferDimensions(int& bufferWidth, int& bufferHeight)
 
 void FractalDrawer::CopyBuffer(CF_Float* dest, size_t bufferSize)
 {
+	LockAllMutexes();
 	int length = bufferSize / sizeof(CF_Float);
 	length = glm::min(length, pixelBufferHeight * pixelBufferWidth);
 	for (int i = 0; i < length; i++)
 	{
 		dest[i] = pixelBuffer[i].load();
 	}
+	UnlockAllMutexes();
 }
 
 bool FractalDrawer::Draw(bool update)
@@ -266,10 +263,10 @@ bool FractalDrawer::Draw(bool update)
 			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, extraValue, 
 				currentTransform.x, currentTransform.y, currentTransform.scale);
 		}
-		lastDrawnTransform = currentTransform;
 		lastTimeDelta = high_resolution_clock::now();
 		fractalThreadNeedsRun = false;
 		transformChanged = false;
+		isBusy = true;
 	}
 	if (!enableAnimation)
 	{
@@ -315,9 +312,10 @@ bool FractalDrawer::Draw(bool update)
 			}
 			LockAllMutexes(false);
 			shouldDraw = !haltDrawingThread; // draw if drawing thread was not halted
-			shouldRestartInterpreter = !haltDrawingThread; // if the interpreter is drawing, and we just finished, make it start over
+			shouldRestartInterpreter = !haltDrawingThread && !transformChanged; // if the interpreter is drawing, and we just finished, make it start over, unless we're zooming
 			renderedThisFrame = true;
 			UnlockAllMutexes();
+			isBusy = false; // we're done!
 			if (transformChanged)
 			{
 				startInterpolateZooming = true;

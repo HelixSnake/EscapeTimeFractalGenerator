@@ -3,6 +3,7 @@
 #include "FractalInterpreter.h"
 #include <thread>
 #include <string>
+#include <iostream>
 
 FractalInterpreter::FractalInterpreter()
 {
@@ -77,6 +78,7 @@ bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 		drawNext = false;
 		threadProgress = 0;
 		haltThread = false;
+		shouldRestart = false;
 		interpreterTimeStart = high_resolution_clock::now(); // time how long this thread takes (should always be the same for the same resolution) to help the smoothzoomer
 		interpreterThread = std::async(std::launch::async, &FractalInterpreter::Draw_Threaded, this);
 	}
@@ -84,7 +86,7 @@ bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 	{
 		drawNext = true;
 	}
-	if (shouldRestart)
+	if (shouldRestart && busyDrawing) // don't restart the thread unless we're actually drawing
 	{
 		haltThread = true;
 	}

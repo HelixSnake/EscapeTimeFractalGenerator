@@ -190,6 +190,8 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	if (ImGui::Button("Reset Zoom"))
 	{
 		fractalDrawer->ResetZoom();
+		smoothZoomer.EndZoom();
+		smoothZoomer.SyncTransforms(fractalDrawer->GetCurrentTransform());
 		updateDrawer = true;
 	}
 	if (ImGui::Button("Choose Ramp Texture"))
@@ -217,8 +219,9 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	ImGui::Checkbox("Live Rendering", &fractalInfo.liveUpdate);
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::ProgressBar(fractalInterpreter.GetProgress());
+
 	//debug stuff
-	ImGui::Text("Fractal interpreter is busy: %d", fractalInterpreter.IsBusy());
+
 	ImGui::End();
 	rampTexFileBrowser.SetWindowSize(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT);
 	ImGui::SetWindowPos(ImVec2(0, 0));
@@ -287,6 +290,7 @@ int main(int argc, char* argv[])
 	FractalInterpreter fractalInterpreter;
 	// create smooth zoomer
 	FractalSmoothZoomer smoothZoomer;
+	smoothZoomer.SyncTransforms(fractalDrawer->GetCurrentTransform());
 	// initialize quad drawer class
 	QuadDrawer quadDrawer;
 
@@ -304,9 +308,6 @@ int main(int argc, char* argv[])
 	bool regenBuffer = false;
 	float zoomProgress = 0;
 	float zoomStartProgress = 0;
-	bool checkingHalfProgress = false;
-	bool fdProgressReachedHalf = false;
-	bool fiProgressReachedHalf = false;
 	glm::vec4 windowTransform = glm::vec4(0, 0, 1, 1);
 	//fractal properties
 	FractalInfo fracInfo;
@@ -402,7 +403,7 @@ int main(int argc, char* argv[])
 		bool shouldRenderInterpreter = false;
 		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
 		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || fractalDrawer->GetTransformChanged()) && !fractalInterpreter.IsBusy();
-		shouldRenderInterpreter = fractalDrawer->Draw(shouldStartDrawing) || updateInterpreter; // returns true if we should attempt to render interpreter
+		shouldRenderInterpreter = (fractalDrawer->Draw(shouldStartDrawing) || updateInterpreter) && !fractalInterpreter.IsBusy(); // returns true if we should attempt to render interpreter
 		if (shouldRenderInterpreter)
 		{
 			int fractalWidth = 0;
@@ -415,15 +416,25 @@ int main(int argc, char* argv[])
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-		if (smoothZoomer.IsZooming() && shouldRenderToQuad)
+		bool shouldSetupZoom = false;
+		if (smoothZoomer.IsZooming() && (shouldRenderToQuad))
 		{
 			smoothZoomer.EndZoom();
+			if (!fractalDrawer->IsBusy())
+			{
+				shouldSetupZoom = true;
+			}
 		}
-		if (fractalDrawer->ShouldStartZoomInterpolation())
+		shouldSetupZoom = shouldSetupZoom || fractalDrawer->ShouldStartZoomInterpolation();
+		if (shouldSetupZoom)
 		{
-			smoothZoomer.SetupZoom(fractalDrawer->GetLastDrawnTransform(), fractalDrawer->GetCurrentTransform());
+			smoothZoomer.SetupZoom(fractalDrawer->GetCurrentTransform());
 		}
-		if (smoothZoomer.IsZoomReady() && shouldRenderToQuad)
+		bool startZoom = (shouldRenderToQuad);
+		startZoom = startZoom && smoothZoomer.IsZoomReady(); //don't start if we're not set up
+		startZoom = startZoom && !smoothZoomer.IsZooming(); // don't start if we've already started
+		startZoom = startZoom && (fractalDrawer->IsBusy() || fractalInterpreter.IsBusy() || fractalDrawer->GetTransformChanged()); //don't start zoom if nothing is happening
+		if (startZoom)
 		{
 			smoothZoomer.StartZoom();
 		}

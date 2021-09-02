@@ -47,9 +47,9 @@ public:
 	void ResetZoom();
 	bool ShouldStartZoomInterpolation() { return startInterpolateZooming; }
 	bool ShouldRestartInterpreter() { return shouldRestartInterpreter; }
+	bool IsBusy() { return isBusy; }
 	int GetMipLevel();
 	ZoomTransform GetCurrentTransform();
-	ZoomTransform GetLastDrawnTransform();
 	ComplexFloat ScreenToWorldPos(double x, double y);
 	bool Draw(bool update); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
@@ -95,11 +95,11 @@ protected:
 	float upScale = 1;
 	bool fractalThreadNeedsRun = true;
 	ZoomTransform currentTransform;
-	ZoomTransform lastDrawnTransform;
 	bool transformChanged = false;
 	bool disableZoom = false;
 	bool startInterpolateZooming = false;
 	bool shouldRestartInterpreter = false;
+	bool isBusy = false;
 
 	std::atomic_bool haltDrawingThread = false;
 	std::future<bool> drawFractalThread;
