@@ -408,11 +408,13 @@ int main(int argc, char* argv[])
 		bool interpreterDrew = false;
 		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
 		bool zoomMismatch = currentZoom.scale != fractalDrawer->GetRenderedZoom().scale;
-		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || zoomMismatch || didZoom || firstDraw) && !fractalInterpreter.IsBusy();
+		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || zoomMismatch || didZoom || firstDraw);
+		bool shouldSetupZoomer = shouldStartDrawing;
+		shouldStartDrawing = shouldStartDrawing && !fractalInterpreter.IsBusy();
 		firstDraw = false;
-		if (shouldStartDrawing)
+		if (shouldSetupZoomer)
 		{
-			smoothZoomer.SetupZoom(currentZoom); // if we start the fractalDrawer, setup our target as the next drawn point
+			smoothZoomer.SetupZoom(currentZoom);
 		}
 		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom);
 		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
