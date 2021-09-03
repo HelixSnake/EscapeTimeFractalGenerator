@@ -410,7 +410,10 @@ int main(int argc, char* argv[])
 		bool zoomMismatch = currentZoom.scale != fractalDrawer->GetRenderedZoom().scale;
 		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || zoomMismatch || didZoom || firstDraw) && !fractalInterpreter.IsBusy();
 		firstDraw = false;
-		if (shouldStartDrawing) smoothZoomer.SetupZoom(currentZoom); // if we start the fractalDrawer, setup our target as the next drawn point
+		if (shouldStartDrawing)
+		{
+			smoothZoomer.SetupZoom(currentZoom); // if we start the fractalDrawer, setup our target as the next drawn point
+		}
 		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom);
 		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
@@ -428,7 +431,7 @@ int main(int argc, char* argv[])
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-		// todo: rewrite zoom code so it makes sense
+
 		if (interpreterReady) {
 			if (smoothZoomer.IsZooming())
 			{
@@ -437,6 +440,13 @@ int main(int argc, char* argv[])
 			if (smoothZoomer.IsZoomReady() && !smoothZoomer.IsZooming()) // assume live update is disabled
 			{
 				smoothZoomer.StartZoom();
+			}
+		}
+		else
+		{
+			if (!fractalInterpreter.IsBusy() && !fractalDrawer->IsBusy() && smoothZoomer.IsZooming()) // Stop bug where zoom will start when everything is done
+			{
+				smoothZoomer.EndZoom();
 			}
 		}
 		smoothZoomer.RunProgressLogic(fractalDrawer->GetProgress(), fractalInterpreter.GetProgress(), fractalInterpreter.GetInterpreterTime());

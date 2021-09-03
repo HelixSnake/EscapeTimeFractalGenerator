@@ -54,7 +54,7 @@ protected:
 	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, ComplexFloat extraValue)
 	{ return input; };
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue) {
-		const double JULIA_NUMBER = 0.75;
+		//const double JULIA_NUMBER = 0.75;
 		//return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
 		// Julia set takes values right outside the main cartioid of the mandelbrot set
 		//return previousValue * previousValue + ComplexFloat((cos(time) * 0.5 - cos(time * 2) * 0.25) * 1.01, (sin(time) * 0.5 - sin(time * 2) * 0.25)* 1.01);
