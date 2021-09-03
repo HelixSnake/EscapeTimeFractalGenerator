@@ -70,11 +70,6 @@ void FractalSmoothZoomer::SetupZoom(ZoomTransform newZoomTransform)
 	isZoomReady = true;
 }
 
-void FractalSmoothZoomer::UpdateTarget(ZoomTransform newZoomTransform)
-{
-	transformEnd = newZoomTransform;
-}
-
 void FractalSmoothZoomer::StartZoom()
 {
 	transformStart = cachedTransformStart;

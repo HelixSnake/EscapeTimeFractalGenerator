@@ -69,7 +69,7 @@ bool FractalInterpreter::IsBusy()
 	return busyDrawing;
 }
 
-bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
+bool FractalInterpreter::Draw(bool startDrawing)
 {
 	bool finishedThisFrame = false;
 	if (!interpreterThread.valid() && (startDrawing || drawNext))
@@ -77,18 +77,12 @@ bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 		busyDrawing = true;
 		drawNext = false;
 		threadProgress = 0;
-		haltThread = false;
-		shouldRestart = false;
 		interpreterTimeStart = high_resolution_clock::now(); // time how long this thread takes (should always be the same for the same resolution) to help the smoothzoomer
 		interpreterThread = std::async(std::launch::async, &FractalInterpreter::Draw_Threaded, this);
 	}
 	else if (startDrawing)
 	{
 		drawNext = true;
-	}
-	if (shouldRestart && busyDrawing) // don't restart the thread unless we're actually drawing
-	{
-		haltThread = true;
 	}
 
 	if (interpreterThread.valid()) {
@@ -105,15 +99,11 @@ bool FractalInterpreter::Draw(bool startDrawing, bool shouldRestart)
 				steady_clock::time_point currentTime = high_resolution_clock::now();
 				interpreterTime = duration_cast<nanoseconds>(currentTime - interpreterTimeStart).count() / 1000000000.0;
 			}
-			else // interpreter has halted
-			{
-				busyDrawing = true; // because we always restart the interpreter on halt, we are still busy
-				drawNext = true;
-			}
 		}
 	}
 	return (finishedThisFrame);
 }
+
 bool FractalInterpreter::Draw_Threaded()
 {
 	const std::lock_guard<std::mutex> lock(interpreterMutex);
@@ -121,7 +111,6 @@ bool FractalInterpreter::Draw_Threaded()
 	{
 		for (int j = 0; j < bufferHeight; j++) 
 		{
-			if (haltThread) return false;
 			int valueBufferPos = j * bufferWidth + i;
 			int colorBufferPos = valueBufferPos * 3;
 			double newValue = 0; 

@@ -17,7 +17,7 @@ public:
 	void SetRampTexture(GLuint textureID);
 	void CreateOrUpdateBuffers(int width, int height);
 	CF_Float* GetValueBufferStart();
-	bool Draw(bool startDrawing, bool shouldRestart);
+	bool Draw(bool startDrawing);
 	const float* GetColors(int &width, int &height);
 	float GetProgress();
 	float GetInterpreterTime() { return interpreterTime; } // Gets the last time taken by the thread, which should be fairly consistent, to help with smoothZooming
@@ -25,7 +25,6 @@ public:
 	float period = 1;
 	float offset = 0;
 protected:
-	std::atomic_bool haltThread = false;
 	bool busyDrawing = false;
 	bool drawNext = false;
 	bool Draw_Threaded();

@@ -408,12 +408,13 @@ int main(int argc, char* argv[])
 		bool interpreterDrew = false;
 		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
 		bool zoomMismatch = currentZoom.scale != fractalDrawer->GetRenderedZoom().scale;
-		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || zoomMismatch || firstDraw) && !fractalInterpreter.IsBusy();
+		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || zoomMismatch || didZoom || firstDraw) && !fractalInterpreter.IsBusy();
 		firstDraw = false;
+		if (shouldStartDrawing) smoothZoomer.SetupZoom(currentZoom); // if we start the fractalDrawer, setup our target as the next drawn point
 		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom);
 		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
-		shouldRenderInterpreter = shouldRenderInterpreter && !fractalInterpreter.IsBusy(); // don't render the interpreter if it's already busy
+		//shouldRenderInterpreter = shouldRenderInterpreter && !fractalInterpreter.IsBusy(); // don't render the interpreter if it's already busy
 		if (shouldRenderInterpreter)
 		{
 			int fractalWidth = 0;
@@ -422,12 +423,22 @@ int main(int argc, char* argv[])
 			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
 			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
 		}
-		bool interpreterReady = fractalInterpreter.Draw(shouldRenderInterpreter, false); // don't ever restart the interpreter for now
+		bool interpreterReady = fractalInterpreter.Draw(shouldRenderInterpreter);
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-
 		// todo: rewrite zoom code so it makes sense
+		if (interpreterReady) {
+			if (smoothZoomer.IsZooming())
+			{
+				smoothZoomer.EndZoom();
+			}
+			if (smoothZoomer.IsZoomReady() && !smoothZoomer.IsZooming()) // assume live update is disabled
+			{
+				smoothZoomer.StartZoom();
+			}
+		}
+		smoothZoomer.RunProgressLogic(fractalDrawer->GetProgress(), fractalInterpreter.GetProgress(), fractalInterpreter.GetInterpreterTime());
 
 		windowTransform = smoothZoomer.GetBoundMults((float)currentWindowHeight / currentWindowWidth);
 		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 

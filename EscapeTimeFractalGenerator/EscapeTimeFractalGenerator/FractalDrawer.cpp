@@ -181,14 +181,12 @@ void FractalDrawer::GetBufferDimensions(int& bufferWidth, int& bufferHeight)
 
 void FractalDrawer::CopyBuffer(CF_Float* dest, size_t bufferSize)
 {
-	LockAllMutexes();
 	int length = bufferSize / sizeof(CF_Float);
 	length = glm::min(length, pixelBufferHeight * pixelBufferWidth);
 	for (int i = 0; i < length; i++)
 	{
 		dest[i] = pixelBuffer[i].load();
 	}
-	UnlockAllMutexes();
 }
 
 bool FractalDrawer::Draw(bool update, ZoomTransform transform)

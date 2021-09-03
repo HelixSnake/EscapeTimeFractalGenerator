@@ -14,7 +14,6 @@ public:
 	FractalSmoothZoomer();
 	glm::vec4 GetBoundMults(float aspectRatio);
 	void SetupZoom(ZoomTransform newZoomTransform);
-	void UpdateTarget(ZoomTransform newZoomTransform);
 	void StartZoom();
 	void EndZoom();
 	void SyncTransforms(ZoomTransform newZoomTransform);
