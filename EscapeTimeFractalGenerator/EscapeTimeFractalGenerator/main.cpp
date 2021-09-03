@@ -414,6 +414,7 @@ int main(int argc, char* argv[])
 		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom);
 		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
+		shouldRenderInterpreter = shouldRenderInterpreter || updateInterpreter; // render if we've change a UI thing that affects the interpreter
 		//shouldRenderInterpreter = shouldRenderInterpreter && !fractalInterpreter.IsBusy(); // don't render the interpreter if it's already busy
 		if (shouldRenderInterpreter)
 		{
