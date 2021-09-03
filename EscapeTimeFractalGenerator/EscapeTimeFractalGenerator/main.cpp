@@ -103,7 +103,7 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 }
 
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
-void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ImGui::FileBrowser &rampTexFileBrowser)
+void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -189,9 +189,9 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	}
 	if (ImGui::Button("Reset Zoom"))
 	{
-		fractalDrawer->ResetZoom();
+		zoomTransform = ZoomTransform(0, 0, 1);
 		smoothZoomer.EndZoom();
-		smoothZoomer.SyncTransforms(fractalDrawer->GetCurrentTransform());
+		smoothZoomer.SyncTransforms(zoomTransform);
 		updateDrawer = true;
 	}
 	if (ImGui::Button("Choose Ramp Texture"))
@@ -288,9 +288,11 @@ int main(int argc, char* argv[])
 	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight);
 	// create fractal interpreter
 	FractalInterpreter fractalInterpreter;
+	// current zoom level
+	ZoomTransform currentZoom = ZoomTransform(0, 0, 1);
 	// create smooth zoomer
 	FractalSmoothZoomer smoothZoomer;
-	smoothZoomer.SyncTransforms(fractalDrawer->GetCurrentTransform());
+	smoothZoomer.SyncTransforms(currentZoom);
 	// initialize quad drawer class
 	QuadDrawer quadDrawer;
 
@@ -332,6 +334,7 @@ int main(int argc, char* argv[])
 	rampTexFileDialog.SetTitle("Custom Ramp Texture");
 	rampTexFileDialog.SetTypeFilters({ ".png" });
 
+	bool firstDraw = true;
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
@@ -353,19 +356,22 @@ int main(int argc, char* argv[])
 		glfwGetCursorPos(window, &mbxpos, &mbypos);
 		mbxpos /= currentWindowWidth;
 		mbypos /= currentWindowHeight;
+		bool didZoom = false;
 		if (leftMBstate == GLFW_PRESS)
 		{
-			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(1.0 / ZOOM_PER_SECOND, deltaTime));
+			currentZoom.ZoomInOrOut(mbxpos, 1 - mbypos, pow(1.0 / ZOOM_PER_SECOND, deltaTime), (float)currentWindowWidth / currentWindowHeight);
+			didZoom = true;
 		}
 		else if (rightMBstate == GLFW_PRESS)
 		{
-			fractalDrawer->Zoom(mbxpos, 1 - mbypos, pow(ZOOM_PER_SECOND, deltaTime));
+			currentZoom.ZoomInOrOut(mbxpos, 1 - mbypos, pow(ZOOM_PER_SECOND, deltaTime), (float)currentWindowWidth / currentWindowHeight);
+			didZoom = true;
 		}
 
 		bool chooseJuliaValue = middleMBstate == GLFW_PRESS || jKeyState == GLFW_PRESS || jKeyState2 == GLFW_PRESS;
 		if (chooseJuliaValue)
 		{
-			ComplexFloat newPos = fractalDrawer->ScreenToWorldPos(mbxpos, 1 - mbypos);
+			ComplexFloat newPos = currentZoom.ScreenToWorldPos(mbxpos, 1 - mbypos, (float)currentWindowWidth / currentWindowHeight);
 			fracInfo.CustomJulPosX = newPos.real;
 			fracInfo.CustomJulPosY = newPos.imaginary;
 			fracInfo.useCustomJulPos = true;
@@ -398,12 +404,16 @@ int main(int argc, char* argv[])
 
 
 		// Draw fractal
-		fractalDrawer->liveUpdate = fracInfo.liveUpdate && !smoothZoomer.IsZooming() && !smoothZoomer.IsZoomReady();
+		bool liveUpdate = fracInfo.liveUpdate && !smoothZoomer.IsZooming() && !smoothZoomer.IsZoomReady();
 		bool interpreterDrew = false;
-		bool shouldRenderInterpreter = false;
 		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
-		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || fractalDrawer->GetTransformChanged()) && !fractalInterpreter.IsBusy();
-		shouldRenderInterpreter = (fractalDrawer->Draw(shouldStartDrawing) || updateInterpreter) && !fractalInterpreter.IsBusy(); // returns true if we should attempt to render interpreter
+		bool zoomMismatch = currentZoom.scale != fractalDrawer->GetRenderedZoom().scale;
+		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || zoomMismatch || firstDraw) && !fractalInterpreter.IsBusy();
+		firstDraw = false;
+		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom);
+		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
+		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
+		shouldRenderInterpreter = shouldRenderInterpreter && !fractalInterpreter.IsBusy(); // don't render the interpreter if it's already busy
 		if (shouldRenderInterpreter)
 		{
 			int fractalWidth = 0;
@@ -412,49 +422,25 @@ int main(int argc, char* argv[])
 			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
 			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
 		}
-		bool shouldRenderToQuad = fractalInterpreter.Draw(shouldRenderInterpreter, false); // don't ever restart the interpreter for now
+		bool interpreterReady = fractalInterpreter.Draw(shouldRenderInterpreter, false); // don't ever restart the interpreter for now
 		int interpreterWidth = 0;
 		int interpreterHeight = 0;
 		const float* interpreterColors = fractalInterpreter.GetColors(interpreterWidth, interpreterHeight);
-		bool shouldSetupZoom = false;
-		if (smoothZoomer.IsZooming() && (shouldRenderToQuad))
-		{
-			smoothZoomer.EndZoom();
-			if (!fractalDrawer->IsBusy())
-			{
-				shouldSetupZoom = true;
-			}
-		}
-		shouldSetupZoom = shouldSetupZoom || fractalDrawer->ShouldStartZoomInterpolation();
-		if (shouldSetupZoom)
-		{
-			smoothZoomer.SetupZoom(fractalDrawer->GetCurrentTransform());
 
-		}
-		bool startZoom = shouldRenderToQuad;
-		startZoom = startZoom && smoothZoomer.IsZoomReady(); //don't start if we're not set up
-		startZoom = startZoom && !smoothZoomer.IsZooming(); // don't start if we've already started
-		startZoom = startZoom && (fractalDrawer->IsBusy() || fractalInterpreter.IsBusy() || fractalDrawer->GetTransformChanged()); //don't start zoom if nothing is happening
-		if (startZoom)
-		{
-			smoothZoomer.StartZoom();
-		}
-		if (smoothZoomer.IsZooming())
-		{
-			smoothZoomer.RunProgressLogic(fractalDrawer->GetProgress(), fractalInterpreter.GetProgress(), fractalInterpreter.GetInterpreterTime());
-		}
+		// todo: rewrite zoom code so it makes sense
+
 		windowTransform = smoothZoomer.GetBoundMults((float)currentWindowHeight / currentWindowWidth);
 		quadDrawer.DrawBuffer(window, interpreterColors, GL_RGB, interpreterWidth, interpreterHeight, 
 			windowTransform.x * currentWindowWidth, windowTransform.y * currentWindowHeight, 
 			windowTransform.z * currentWindowWidth, windowTransform.w * currentWindowHeight, 
-			fractalDrawer->GetMipLevel(), shouldRenderToQuad);
+			fractalDrawer->GetMipLevel(), interpreterReady);
 		glfwSwapBuffers(window);
 
 		updateDrawer = false;
 		updateInterpreter = false;
 		regenBuffer = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, rampTexFileDialog);
+		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, currentZoom, rampTexFileDialog);
 		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;

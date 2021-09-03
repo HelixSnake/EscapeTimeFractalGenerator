@@ -30,7 +30,6 @@ class FractalDrawer
 {
 public:
 	bool enableAnimation = true;
-	bool liveUpdate = true;
 	FractalDrawer(int width, int height);
 	~FractalDrawer();
 	//void SetRampTexture(GLuint textureID);
@@ -43,20 +42,13 @@ public:
 	FractalType GetFractalType();
 	void SetCustomJuliaPosition(bool use, double x, double y);
 	float GetProgress() { return drawingProgress; }
-	void Zoom(double x, double y, double amount);
-	void ResetZoom();
-	bool ShouldStartZoomInterpolation() { return startInterpolateZooming; }
 	bool ShouldRestartInterpreter() { return shouldRestartInterpreter; }
 	bool IsBusy() { return isBusy; }
+	ZoomTransform GetRenderedZoom() { return renderedZoom; }
 	int GetMipLevel();
-	ZoomTransform GetCurrentTransform();
-	ComplexFloat ScreenToWorldPos(double x, double y);
-	bool Draw(bool update); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
+	bool Draw(bool update, ZoomTransform transform); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	void CopyBuffer(CF_Float* dest, size_t bufferSize);
-
-	//for debug purposes
-	bool GetTransformChanged() { return transformChanged; }
 protected:
 	// Change these to modify the drawn fractal equations!
 	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, ComplexFloat extraValue)
@@ -93,13 +85,9 @@ protected:
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
 	float upScale = 1;
-	bool fractalThreadNeedsRun = true;
-	ZoomTransform currentTransform;
-	bool transformChanged = false;
-	bool disableZoom = false;
-	bool startInterpolateZooming = false;
 	bool shouldRestartInterpreter = false;
 	bool isBusy = false;
+	ZoomTransform renderedZoom;
 
 	std::atomic_bool haltDrawingThread = false;
 	std::future<bool> drawFractalThread;

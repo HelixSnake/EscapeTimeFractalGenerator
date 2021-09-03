@@ -21,7 +21,6 @@ FractalDrawer::FractalDrawer(int width, int height)
 	this->pixelBufferHeight = height;
 	this->pixelBufferWidth = width;
 	pixelBuffer = new std::atomic<CF_Float>[width * height];
-	ResetZoom();
 	totalTime = 0;
 	lastTimeAnim = high_resolution_clock::now();
 	lastTimeDelta = high_resolution_clock::now();
@@ -169,43 +168,9 @@ void FractalDrawer::SetCustomJuliaPosition(bool use, double x, double y)
 	customJuliaPosition = ComplexFloat(x, y);
 }
 
-void FractalDrawer::Zoom(double x, double y, double amount)
-{
-	if (disableZoom) return;
-	//convert x y point to "World space" by replicating transform performed on pixels
-	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - currentTransform.x) * currentTransform.scale;
-	CF_Float newY = (y - currentTransform.y) * currentTransform.scale;
-	currentTransform.scale *= amount;
-	currentTransform.x -= (newX / currentTransform.scale) * (1 - amount);
-	currentTransform.y -= (newY / currentTransform.scale) * (1 - amount);
-	transformChanged = true;
-}
-void FractalDrawer::ResetZoom()
-{
-	haltDrawingThread = true;
-	LockAllMutexes();
-	currentTransform.x = STARTING_TRANSFORM.x;
-	currentTransform.y = STARTING_TRANSFORM.y;
-	currentTransform.scale = STARTING_TRANSFORM.z;
-	UnlockAllMutexes();
-	haltDrawingThread = false;
-}
-
 int FractalDrawer::GetMipLevel()
 {
 	return (int)glm::max(log2(upScale), 0.0f);
-}
-
-ZoomTransform FractalDrawer::GetCurrentTransform()
-{
-	return currentTransform;
-}
-
-ComplexFloat FractalDrawer::ScreenToWorldPos(double x, double y)
-{
-	CF_Float newX = (x * pixelBufferWidth / pixelBufferHeight - currentTransform.x) * currentTransform.scale;
-	CF_Float newY = (y - currentTransform.y) * currentTransform.scale;
-	return ComplexFloat(newX, newY);
 }
 
 void FractalDrawer::GetBufferDimensions(int& bufferWidth, int& bufferHeight)
@@ -226,11 +191,9 @@ void FractalDrawer::CopyBuffer(CF_Float* dest, size_t bufferSize)
 	UnlockAllMutexes();
 }
 
-bool FractalDrawer::Draw(bool update)
+bool FractalDrawer::Draw(bool update, ZoomTransform transform)
 {
-	bool shouldDraw = false; // Value to return from function when it's OK to draw
-	startInterpolateZooming = false; // Should we start the zooming interpolation?
-	fractalThreadNeedsRun = fractalThreadNeedsRun || update;
+	bool areWeDone = false; // Value to return from function when we're done
 	//Draw Fractal
 	bool anyThreadsValid = false;
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
@@ -238,7 +201,7 @@ bool FractalDrawer::Draw(bool update)
 		//any threads are valid
 		anyThreadsValid = anyThreadsValid || drawFractalThreads[i].valid();
 	}
-	if (!anyThreadsValid && fractalThreadNeedsRun)
+	if (!anyThreadsValid && update)
 	{
 		//make sure drawing threads are set to not halt
 		haltDrawingThread = false;
@@ -261,11 +224,10 @@ bool FractalDrawer::Draw(bool update)
 					(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
 			}
 			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, extraValue, 
-				currentTransform.x, currentTransform.y, currentTransform.scale);
+				transform.x, transform.y, transform.scale);
 		}
+		renderedZoom = transform;
 		lastTimeDelta = high_resolution_clock::now();
-		fractalThreadNeedsRun = false;
-		transformChanged = false;
 		isBusy = true;
 	}
 	if (!enableAnimation)
@@ -275,18 +237,6 @@ bool FractalDrawer::Draw(bool update)
 
 	steady_clock::time_point currentTimeDelta = high_resolution_clock::now();
 	double timeSinceLastRender = duration_cast<nanoseconds>(currentTimeDelta - lastTimeDelta).count() / 1000000000.0;
-	disableZoom = false;
-/*	if (timeSinceLastRender > 1 && transformChanged) // We don't want the delay on zooming in or out to be more than a second
-	{
-		haltDrawingThread = true;
-		shouldDraw = false;
-		startInterpolateZooming = true;
-	}*/
-	if (transformChanged && timeSinceLastRender > 2)
-	{
-		// Stop us from zooming out of control!
-		disableZoom = true;
-	}
 
 	bool allThreadsValid = true;
 	bool allThreadsReady = true;
@@ -311,22 +261,12 @@ bool FractalDrawer::Draw(bool update)
 				drawFractalThreads[i].get();
 			}
 			LockAllMutexes(false);
-			shouldDraw = !haltDrawingThread; // draw if drawing thread was not halted
-			shouldRestartInterpreter = !haltDrawingThread && !transformChanged; // if the interpreter is drawing, and we just finished, make it start over, unless we're zooming
+			areWeDone = !haltDrawingThread; // draw if drawing thread was not halted
+			shouldRestartInterpreter = !haltDrawingThread; // if the interpreter is drawing, and we just finished, make it start over, unless we're zooming
 			renderedThisFrame = true;
 			UnlockAllMutexes();
 			isBusy = false; // we're done!
-			if (transformChanged)
-			{
-				startInterpolateZooming = true;
-			}
 		}
-	}
-	//POTENTIAL GLITCHY BEHAVIOR: REMOVE IF THE PROGRAM BREAKS IN ANY WAY
-	//pixelBuffer has been moved from float* to std::atomic<float>* so this should be safe now 
-	if (liveUpdate && anyThreadsValid && !transformChanged) // don't do this if we're zooming or if we're done
-	{
-		shouldDraw = true; // draw asyncroneously 
 	}
 
 	float avgThreadProgress = 0;
@@ -338,5 +278,5 @@ bool FractalDrawer::Draw(bool update)
 	//if (renderedThisFrame == true) avgThreadProgress = 0;
 	drawingProgress = avgThreadProgress;
 
-	return shouldDraw;
+	return areWeDone;
 }
