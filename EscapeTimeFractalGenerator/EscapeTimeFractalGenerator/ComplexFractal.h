@@ -5,8 +5,8 @@
 class ComplexFractal
 {
 public:
-    typedef ComplexFloat(*RecursiveFunction)(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue);
-    typedef ComplexFloat(*StartingValueFunction)(ComplexFloat input, ComplexFloat extraValue);
+    typedef ComplexFloat(*RecursiveFunction)(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues);
+    typedef ComplexFloat(*StartingValueFunction)(ComplexFloat input, ComplexFloat* extraValues);
     double blendPower = 1;
     double lengthLimit = 100;
     ComplexFractal();
@@ -14,7 +14,7 @@ public:
     ComplexFractal(int iterations, CF_Float minDeviation, int deviationCycle = 100, bool debugDeviations = false);
     void SetFunction(RecursiveFunction func);
     void SetStartingFunction(StartingValueFunction func);
-    double CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat extraValue, glm::vec2 &uv);
+    double CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues);
 protected:
     CF_Float minDeviationSqr = 0;
     int deviationCycle = 100;

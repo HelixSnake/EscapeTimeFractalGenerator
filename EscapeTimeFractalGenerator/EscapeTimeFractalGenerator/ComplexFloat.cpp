@@ -33,6 +33,10 @@ ComplexFloat ComplexFloat::operator*(ComplexFloat other)
 	output.imaginary = other.imaginary * this->real + this->imaginary * other.real;
 	return output;
 }
+ComplexFloat ComplexFloat::operator*(CF_Float other)
+{
+	return ComplexFloat(this->real * other, this->imaginary * other);
+}
 
 CF_Float ComplexFloat::AbsoluteValue()
 {

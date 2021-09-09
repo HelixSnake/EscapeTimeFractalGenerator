@@ -25,7 +25,6 @@ const int NUM_FRACTAL_DRAW_THREADS = std::thread::hardware_concurrency();
 class FractalDrawer
 {
 public:
-	bool enableAnimation = true;
 	FractalDrawer(int width, int height);
 	~FractalDrawer();
 	//void SetRampTexture(GLuint textureID);
@@ -36,13 +35,12 @@ public:
 	void SetLengthLimit(double lengthLimit);
 	void SetFractalType(FractalDictionary::FractalType fractal);
 	FractalDictionary::FractalType GetFractalType();
-	void SetCustomJuliaPosition(bool use, double x, double y);
 	float GetProgress() { return drawingProgress; }
 	bool ShouldRestartInterpreter() { return shouldRestartInterpreter; }
 	bool IsBusy() { return isBusy; }
 	ZoomTransform GetRenderedZoom() { return renderedZoom; }
 	int GetMipLevel();
-	bool Draw(bool update, ZoomTransform transform); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
+	bool Draw(bool update, ZoomTransform transform, ComplexFloat* extraValues); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	void CopyBuffer(CF_Float* dest, size_t bufferSize);
 protected:
@@ -57,12 +55,7 @@ protected:
 	std::atomic<int> deviationCycles = 100;
 	std::atomic<bool> debugDeviations = false;
 	std::atomic<double> lengthLimit = 10;
-	bool useCustomJuliaPosition = false;
-	ComplexFloat customJuliaPosition = ComplexFloat(0, 0);
 
-	long double totalTime = 0;
-	steady_clock::time_point lastTimeAnim;
-	steady_clock::time_point lastTimeDelta;
 	int pixelBufferHeight = 0;
 	int pixelBufferWidth = 0;
 	float upScale = 1;
@@ -80,7 +73,7 @@ protected:
 
 	static void SetPixel(std::atomic<CF_Float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, CF_Float value);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
-	bool DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
+	bool DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, ComplexFloat* extraValues);
 	void LockAllMutexes(bool haltDrawing = true);
 	void UnlockAllMutexes();
 };

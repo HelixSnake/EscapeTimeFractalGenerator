@@ -42,6 +42,8 @@ const char* IMGUI_GLSL_VERSION = "#version 130";
 
 const ZoomTransform DEFAULT_ZOOMTRANSFORM = ZoomTransform(0.5, 0.5, 3);
 
+using namespace std::chrono;
+
 struct FractalInfo
 {
 	//need defaults: if these values are too high it will cause the program to hang
@@ -59,6 +61,8 @@ struct FractalInfo
 	bool liveUpdate = false;
 	double CustomJulPosX = 0;
 	double CustomJulPosY = 0;
+	double DistortionVectorX = 0;
+	double DistortionVectorY = 0;
 	FractalDictionary::FractalType type = FractalDictionary::FractalType::Julia;
 };
 
@@ -163,6 +167,10 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningShip, fractalInfo);
 	ImGui::SameLine();
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningJulia, fractalInfo);
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedMandelbrot, fractalInfo);
+	ImGui::SameLine();
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedJulia, fractalInfo);
+
 	if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
 	{
 		if (fractalInfo.animate)
@@ -175,6 +183,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		if (fractalInfo.useCustomJulPos)
 		{
 			fractalInfo.animate = false;
+			fractalInfo.useCustomJulPos = true;
 		}
 		updateDrawer = true;
 	}
@@ -182,6 +191,12 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	{
 		ImGui::InputDouble("Custom Position X", &fractalInfo.CustomJulPosX, 0.0, 0.0, " % .16f");
 		ImGui::InputDouble("Custom Position Y", &fractalInfo.CustomJulPosY, 0.0, 0.0, " % .16f");
+	}
+	if (FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues >= 2)
+	{ 
+		ImGui::Text("Distortion Vector (set with D):");
+		ImGui::InputDouble("X", &fractalInfo.DistortionVectorX, 0.0, 0.0, " % .16f");
+		ImGui::InputDouble("Y", &fractalInfo.DistortionVectorY, 0.0, 0.0, " % .16f");
 	}
 	if (ImGui::Button("Update"))
 	{
@@ -309,6 +324,7 @@ int main(int argc, char* argv[])
 	glDeleteTextures(1, &rampTexture);
 	//initial delta time start
 	auto deltaTimeStart = std::chrono::high_resolution_clock::now();
+	double totalTime = 0;
 	bool animateFractal = true;
 	bool SpaceBarPressed = false;
 	bool juliaPosUpdate = false;
@@ -334,7 +350,6 @@ int main(int argc, char* argv[])
 	fractalDrawer->SetMinDeviation(fracInfo.minDeviation);
 	fractalDrawer->SetLengthLimit(fracInfo.lengthLimit);
 	fractalDrawer->SetFractalType(fracInfo.type);
-	fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 
 	//file dialog
 	ImGui::FileBrowser rampTexFileDialog;
@@ -342,13 +357,17 @@ int main(int argc, char* argv[])
 	rampTexFileDialog.SetTypeFilters({ ".png" });
 
 	bool firstDraw = true;
+	int numExtraValues = FractalDictionary::GetMaxValues();
+	numExtraValues = max(numExtraValues, 1);
+	ComplexFloat* extraValues = new ComplexFloat[numExtraValues];
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
 		// calculate delta time
 		auto deltaTimeEnd = std::chrono::high_resolution_clock::now();
-		float deltaTime = std::chrono::duration_cast<std::chrono::nanoseconds>(deltaTimeEnd - deltaTimeStart).count() / 1000000000.0;
+		double deltaTime = std::chrono::duration_cast<std::chrono::nanoseconds>(deltaTimeEnd - deltaTimeStart).count() / 1000000000.0;
 		deltaTimeStart = std::chrono::high_resolution_clock::now();
+		if (fracInfo.animate) totalTime += deltaTime;
 		// Check if any events have been activiated (key pressed, 
 		//mouse moved etc.) and call corresponding response functions 
 		glfwPollEvents();
@@ -357,8 +376,10 @@ int main(int argc, char* argv[])
 		int leftMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 		int rightMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 		int middleMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
-		int jKeyState = glfwGetKey(window, GLFW_KEY_J);
-		int jKeyState2 = glfwGetKey(uiWindow, GLFW_KEY_J);
+		int JKeyState = glfwGetKey(window, GLFW_KEY_J);
+		int JKeyState2 = glfwGetKey(uiWindow, GLFW_KEY_J);
+		int DKeyState = glfwGetKey(window, GLFW_KEY_D);
+		int DKeyState2 = glfwGetKey(uiWindow, GLFW_KEY_D);
 		double mbxpos, mbypos;
 		glfwGetCursorPos(window, &mbxpos, &mbypos);
 		mbxpos /= currentWindowWidth;
@@ -375,7 +396,7 @@ int main(int argc, char* argv[])
 			didZoom = true;
 		}
 
-		bool chooseJuliaValue = middleMBstate == GLFW_PRESS || jKeyState == GLFW_PRESS || jKeyState2 == GLFW_PRESS;
+		bool chooseJuliaValue = middleMBstate == GLFW_PRESS || JKeyState == GLFW_PRESS || JKeyState2 == GLFW_PRESS;
 		if (chooseJuliaValue)
 		{
 			ComplexFloat newPos = currentZoom.ScreenToWorldPos(mbxpos, 1 - mbypos, (float)currentWindowWidth / currentWindowHeight);
@@ -383,9 +404,17 @@ int main(int argc, char* argv[])
 			fracInfo.CustomJulPosY = newPos.imaginary;
 			fracInfo.useCustomJulPos = true;
 			fracInfo.animate = false;
-			fractalDrawer->SetCustomJuliaPosition(true, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		}
 		juliaPosUpdate = chooseJuliaValue;
+
+		bool chooseDirectionValue = DKeyState == GLFW_PRESS || DKeyState2 == GLFW_PRESS;
+		if (chooseDirectionValue && numExtraValues >= 2)
+		{
+			ComplexFloat newPos = currentZoom.ScreenToWorldPos(mbxpos, 1 - mbypos, (float)currentWindowWidth / currentWindowHeight);
+			fracInfo.DistortionVectorX = newPos.real;
+			fracInfo.DistortionVectorY = newPos.imaginary;
+		}
+		extraValues[1] = ComplexFloat(fracInfo.DistortionVectorX, fracInfo.DistortionVectorY);
 
 		// Render 
 		// Clear the colorbuffer 
@@ -405,7 +434,6 @@ int main(int argc, char* argv[])
 			updateOnResize = true;
 			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight, fracInfo.upscale);
 		}
-		fractalDrawer->SetCustomJuliaPosition(fracInfo.useCustomJulPos, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		fractalInterpreter.period = fracInfo.period;
 		fractalInterpreter.offset = fracInfo.offset;
 
@@ -413,9 +441,10 @@ int main(int argc, char* argv[])
 		// Draw fractal
 		bool liveUpdate = fracInfo.liveUpdate && !smoothZoomer.IsZooming() && !smoothZoomer.IsZoomReady();
 		bool interpreterDrew = false;
-		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).hasExtraValue;
+		bool updateOnExtraValueChange = (fracInfo.animate || juliaPosUpdate) && FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues > 0;
+		updateOnExtraValueChange = updateOnExtraValueChange || chooseDirectionValue && FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues > 1;
 		bool zoomMismatch = currentZoom.scale != fractalDrawer->GetRenderedZoom().scale;
-		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || zoomMismatch || didZoom || firstDraw);
+		bool shouldStartDrawing = (updateOnResize || updateOnExtraValueChange || updateDrawer || zoomMismatch || didZoom || firstDraw);
 		bool shouldSetupZoomer = shouldStartDrawing;
 		shouldStartDrawing = shouldStartDrawing && !fractalInterpreter.IsBusy();
 		firstDraw = false;
@@ -423,7 +452,13 @@ int main(int argc, char* argv[])
 		{
 			smoothZoomer.SetupZoom(currentZoom);
 		}
-		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom);
+		extraValues[0] = ComplexFloat(fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
+		if (!fracInfo.useCustomJulPos)
+		{
+			extraValues[0] = ComplexFloat((cos(totalTime) * 0.5 - cos(totalTime * 2) * 0.25) * 1.01,
+				(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
+		}
+		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom, extraValues);
 		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
 		shouldRenderInterpreter = shouldRenderInterpreter || updateInterpreter; // render if we've change a UI thing that affects the interpreter
@@ -472,9 +507,9 @@ int main(int argc, char* argv[])
 		regenBuffer = false;
 		//Render IMGUI stuff
 		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, currentZoom, rampTexFileDialog);
-		fractalDrawer->enableAnimation = fracInfo.animate;
 	}
 	delete fractalDrawer;
+	delete[] extraValues;
 	glfwTerminate();
 
 	return EXIT_SUCCESS;

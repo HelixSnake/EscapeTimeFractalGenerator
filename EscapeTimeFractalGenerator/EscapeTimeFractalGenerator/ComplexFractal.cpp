@@ -27,14 +27,14 @@ void ComplexFractal::SetStartingFunction(StartingValueFunction func)
 {
 	startingValueFunction = func;
 }
-double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat extraValue, glm::vec2 &UV)
+double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues)
 {
 	//default algorithm for starting position
 	ComplexFloat value = ComplexFloat(0, 0);
 	double lengthlimitsqr = lengthLimit * lengthLimit;
 	if (startingValueFunction != nullptr)
 	{ 
-		value = startingValueFunction(ComplexFloat(x, y), extraValue);
+		value = startingValueFunction(ComplexFloat(x, y), extraValues);
 	}
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
 	ComplexFloat prevValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
@@ -45,7 +45,7 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat 
 	{
 		if (recursiveFunction != nullptr)
 		{
-			value = recursiveFunction(ComplexFloat(x, y), value, extraValue);
+			value = recursiveFunction(ComplexFloat(x, y), value, extraValues);
 		}
 		else
 		{
@@ -63,10 +63,10 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat 
 			//please for the love of God do not ask me why this works but it's necessary to make the gradient appear linear
 			ratio = pow(ratio, 1/log(lengthLimit)) * MAGIC_CONSTANT + 1 - MAGIC_CONSTANT;
 
-			double angle = ComplexFloat::Angle(value - prevValue, prevValue - prev2Value);
-			angle = angle / PI / 2.0 + 0.5;
-			angle = glm::fract(angle * 2); // for a better aspect ratio
-			UV = glm::vec2(angle, 1-ratio);
+			//double angle = ComplexFloat::Angle(value - prevValue, prevValue - prev2Value);
+			//angle = angle / PI / 2.0 + 0.5;
+			//angle = glm::fract(angle * 2); // for a better aspect ratio
+			//UV = glm::vec2(angle, 1-ratio);
 			return (double)i + ratio;
 			//return (float)i;
 		}

@@ -11,6 +11,7 @@ struct ComplexFloat
 	ComplexFloat operator+(const ComplexFloat other);
 	ComplexFloat operator-(const ComplexFloat other);
 	ComplexFloat operator*(const ComplexFloat other);
+	ComplexFloat operator*(const CF_Float other);
 	CF_Float AbsoluteValue();
 	CF_Float AbsoluteValueSqr();
 	ComplexFloat Normalized();

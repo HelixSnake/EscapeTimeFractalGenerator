@@ -21,9 +21,7 @@ FractalDrawer::FractalDrawer(int width, int height)
 	this->pixelBufferHeight = height;
 	this->pixelBufferWidth = width;
 	pixelBuffer = new std::atomic<CF_Float>[width * height];
-	totalTime = 0;
-	lastTimeAnim = high_resolution_clock::now();
-	lastTimeDelta = high_resolution_clock::now();
+	currentFractal = FractalDictionary::FractalType::Mandelbrot;
 }
 
 FractalDrawer::~FractalDrawer()
@@ -63,7 +61,7 @@ void FractalDrawer::SetPixel(std::atomic<CF_Float>* pixelBuffer, int pixelBuffer
 	pixelBuffer[y * pixelBufferWidth + x] = value;
 }
 
-bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
+bool FractalDrawer::DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, ComplexFloat* extraValues)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(iterations, minDeviation, deviationCycles, debugDeviations);
@@ -89,8 +87,7 @@ bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Floa
 			CF_Float y = (CF_Float)i / pixelBufferHeight;
 			x = (x * pixelBufferWidth / pixelBufferHeight - tfx) * tfscale;
 			y = (y - tfy) * tfscale;
-			glm::vec2 UV;
-			CF_Float value = fractal.CalculateEscapeTime(x, y, extraValue, UV);
+			CF_Float value = fractal.CalculateEscapeTime(x, y, extraValues);
 			if (value == 0)
 			{
 				SetPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0);
@@ -158,13 +155,6 @@ FractalDictionary::FractalType FractalDrawer::GetFractalType()
 	return currentFractal;
 }
 
-void FractalDrawer::SetCustomJuliaPosition(bool use, double x, double y)
-{
-	// no need to lock mutexes as these values are not used by the fractal drawing thread function
-	useCustomJuliaPosition = use;
-	customJuliaPosition = ComplexFloat(x, y);
-}
-
 int FractalDrawer::GetMipLevel()
 {
 	return (int)glm::max(log2(upScale), 0.0f);
@@ -186,7 +176,7 @@ void FractalDrawer::CopyBuffer(CF_Float* dest, size_t bufferSize)
 	}
 }
 
-bool FractalDrawer::Draw(bool update, ZoomTransform transform)
+bool FractalDrawer::Draw(bool update, ZoomTransform transform, ComplexFloat* extraValues)
 {
 	bool areWeDone = false; // Value to return from function when we're done
 	//Draw Fractal
@@ -200,39 +190,18 @@ bool FractalDrawer::Draw(bool update, ZoomTransform transform)
 	{
 		//make sure drawing threads are set to not halt
 		haltDrawingThread = false;
-		if (enableAnimation)
-		{
-			steady_clock::time_point currentTime = high_resolution_clock::now();
-			totalTime = totalTime + duration_cast<nanoseconds>(currentTime - lastTimeAnim).count() / 1000000000.0;
-			lastTimeAnim = currentTime;
-		}
 		for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 		{
 			int chunksize = pixelBufferHeight / 16;
 			int ystart = i * chunksize;
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
 			threadProgress[i] = 0;
-			ComplexFloat extraValue = customJuliaPosition;
-			if (!useCustomJuliaPosition)
-			{
-				extraValue = ComplexFloat((cos(totalTime) * 0.5 - cos(totalTime * 2) * 0.25) * 1.01,
-					(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
-			}
-			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, extraValue, 
-				transform.x, transform.y, transform.scale);
+			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, 
+				transform.x, transform.y, transform.scale, extraValues);
 		}
 		renderedZoom = transform;
-		lastTimeDelta = high_resolution_clock::now();
 		isBusy = true;
 	}
-	if (!enableAnimation)
-	{
-		lastTimeAnim = high_resolution_clock::now();
-	}
-
-	steady_clock::time_point currentTimeDelta = high_resolution_clock::now();
-	double timeSinceLastRender = duration_cast<nanoseconds>(currentTimeDelta - lastTimeDelta).count() / 1000000000.0;
-
 	bool allThreadsValid = true;
 	bool allThreadsReady = true;
 	bool renderedThisFrame = false;
