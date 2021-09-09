@@ -59,11 +59,7 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 			ratio = glm::clamp(ratio, 0.0, 1.0); // Extra insurance to keep the function below from spitting out NAN if ratio < 0 
 			//or infinity if lengthLimit == 1
 			//TODO: This algorithm only works at a power of 2. Figure out the proper math for other powers
-			const double MAGIC_CONSTANT = 1.581983; // I have no idea what this number is; it's very close to 1/(1-1/e) or 1.58197670687
-			//but if I use that number you get results that are slightly off. Just roll with this for now.
-			//please for the love of God do not ask me why this works but it's necessary to make the gradient appear linear
-			//double magicConstantPower = pow(MAGIC_CONSTANT, power);
-			ratio = pow(ratio, 1/log(lengthLimit)) * MAGIC_CONSTANT + 1 - MAGIC_CONSTANT;
+			ratio = pow(ratio, 1/(log(lengthLimit)/log(2))) * 2;
 
 			//double angle = ComplexFloat::Angle(value - prevValue, prevValue - prev2Value);
 			//angle = angle / PI / 2.0 + 0.5;
