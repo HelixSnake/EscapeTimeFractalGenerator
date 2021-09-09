@@ -309,8 +309,12 @@ int main(int argc, char* argv[])
 	int currentWindowWidth = 0;
 	int currentWindowHeight = 0;
 	glfwGetWindowSize(window, &currentWindowWidth, &currentWindowHeight);
+	// Create extra values matrix
+	int numExtraValues = FractalDictionary::GetMaxValues();
+	numExtraValues = max(numExtraValues, 1);
+	ComplexFloat* extraValues = new ComplexFloat[numExtraValues];
 	// initialize fractal drawer class
-	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight);
+	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight, numExtraValues);
 	// create fractal interpreter
 	FractalInterpreter fractalInterpreter;
 	// current zoom level
@@ -360,9 +364,6 @@ int main(int argc, char* argv[])
 	rampTexFileDialog.SetTypeFilters({ ".png" });
 
 	bool firstDraw = true;
-	int numExtraValues = FractalDictionary::GetMaxValues();
-	numExtraValues = max(numExtraValues, 1);
-	ComplexFloat* extraValues = new ComplexFloat[numExtraValues];
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);

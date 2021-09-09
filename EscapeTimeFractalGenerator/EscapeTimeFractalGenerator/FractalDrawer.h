@@ -25,7 +25,7 @@ const int NUM_FRACTAL_DRAW_THREADS = std::thread::hardware_concurrency();
 class FractalDrawer
 {
 public:
-	FractalDrawer(int width, int height);
+	FractalDrawer(int width, int height, int numExtraValues);
 	~FractalDrawer();
 	//void SetRampTexture(GLuint textureID);
 	void Resize(int width, int height, double sizeMult);
@@ -46,6 +46,8 @@ public:
 protected:
 
 	std::atomic<CF_Float>* pixelBuffer = nullptr;
+	ComplexFloat* extraValues = nullptr;
+	int numExtraValues = 0;
 
 	FractalDictionary::FractalType currentFractal;
 	float drawingProgress = 0;

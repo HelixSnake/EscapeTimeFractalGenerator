@@ -11,7 +11,7 @@ const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
 //const float VALUE_PERIOD = 100;
 //const float LENGTH_LIMIT = 100;
 
-FractalDrawer::FractalDrawer(int width, int height)
+FractalDrawer::FractalDrawer(int width, int height, int numExtraValues)
 {
 	drawFractalThreads = new std::future<bool>[NUM_FRACTAL_DRAW_THREADS];
 	threadProgress = new std::atomic<int>[NUM_FRACTAL_DRAW_THREADS];
@@ -22,6 +22,8 @@ FractalDrawer::FractalDrawer(int width, int height)
 	this->pixelBufferWidth = width;
 	pixelBuffer = new std::atomic<CF_Float>[width * height];
 	currentFractal = FractalDictionary::FractalType::Mandelbrot;
+	extraValues = new ComplexFloat[numExtraValues];
+	this->numExtraValues = numExtraValues;
 }
 
 FractalDrawer::~FractalDrawer()
@@ -29,6 +31,7 @@ FractalDrawer::~FractalDrawer()
 	haltDrawingThread = true;
 	LockAllMutexes();
 	delete[] pixelBuffer;
+	delete[] extraValues;
 	UnlockAllMutexes();
 	delete[] drawFractalThreads;
 	delete[] drawingStatus;
@@ -188,6 +191,12 @@ bool FractalDrawer::Draw(bool update, ZoomTransform transform, ComplexFloat* ext
 	}
 	if (!anyThreadsValid && update)
 	{
+		LockAllMutexes();
+		for (int i = 0; i < numExtraValues; i++)
+		{
+			this->extraValues[i] = extraValues[i];
+		}
+		UnlockAllMutexes();
 		//make sure drawing threads are set to not halt
 		haltDrawingThread = false;
 		for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
@@ -197,7 +206,7 @@ bool FractalDrawer::Draw(bool update, ZoomTransform transform, ComplexFloat* ext
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
 			threadProgress[i] = 0;
 			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, 
-				transform.x, transform.y, transform.scale, extraValues, power);
+				transform.x, transform.y, transform.scale, this->extraValues, power);
 		}
 		renderedZoom = transform;
 		isBusy = true;
