@@ -27,14 +27,14 @@ void ComplexFractal::SetStartingFunction(StartingValueFunction func)
 {
 	startingValueFunction = func;
 }
-double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues)
+double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues, int power)
 {
 	//default algorithm for starting position
 	ComplexFloat value = ComplexFloat(0, 0);
 	double lengthlimitsqr = lengthLimit * lengthLimit;
 	if (startingValueFunction != nullptr)
 	{ 
-		value = startingValueFunction(ComplexFloat(x, y), extraValues);
+		value = startingValueFunction(ComplexFloat(x, y), extraValues, power);
 	}
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
 	ComplexFloat prevValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
@@ -45,7 +45,7 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 	{
 		if (recursiveFunction != nullptr)
 		{
-			value = recursiveFunction(ComplexFloat(x, y), value, extraValues);
+			value = recursiveFunction(ComplexFloat(x, y), value, extraValues, power);
 		}
 		else
 		{
@@ -58,9 +58,11 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 			double ratio = (lengthLimit) / value.AbsoluteValue();
 			ratio = glm::clamp(ratio, 0.0, 1.0); // Extra insurance to keep the function below from spitting out NAN if ratio < 0 
 			//or infinity if lengthLimit == 1
+			//TODO: This algorithm only works at a power of 2. Figure out the proper math for other powers
 			const double MAGIC_CONSTANT = 1.581983; // I have no idea what this number is; it's very close to 1/(1-1/e) or 1.58197670687
 			//but if I use that number you get results that are slightly off. Just roll with this for now.
 			//please for the love of God do not ask me why this works but it's necessary to make the gradient appear linear
+			//double magicConstantPower = pow(MAGIC_CONSTANT, power);
 			ratio = pow(ratio, 1/log(lengthLimit)) * MAGIC_CONSTANT + 1 - MAGIC_CONSTANT;
 
 			//double angle = ComplexFloat::Angle(value - prevValue, prevValue - prev2Value);

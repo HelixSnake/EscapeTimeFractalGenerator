@@ -40,7 +40,7 @@ public:
 	bool IsBusy() { return isBusy; }
 	ZoomTransform GetRenderedZoom() { return renderedZoom; }
 	int GetMipLevel();
-	bool Draw(bool update, ZoomTransform transform, ComplexFloat* extraValues); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
+	bool Draw(bool update, ZoomTransform transform, ComplexFloat* extraValues, int power); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	void CopyBuffer(CF_Float* dest, size_t bufferSize);
 protected:
@@ -73,7 +73,7 @@ protected:
 
 	static void SetPixel(std::atomic<CF_Float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, CF_Float value);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
-	bool DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, ComplexFloat* extraValues);
+	bool DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, ComplexFloat* extraValues, int power);
 	void LockAllMutexes(bool haltDrawing = true);
 	void UnlockAllMutexes();
 };

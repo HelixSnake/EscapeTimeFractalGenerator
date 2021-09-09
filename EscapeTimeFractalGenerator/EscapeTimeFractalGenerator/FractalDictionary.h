@@ -36,28 +36,29 @@ protected:
 	// NOTE: BOUNDS CHECKING IS NOT PERFORMED IN ORDER TO SAVE COMPUTATION TIME. IF YOU CRASH HERE IT IS BECAUSE THE PROGRAM DID NOT PROPERLY GENERATE THE EXTRA VALUES ARRAY.
 	// MAKE SURE THAT THE NUMBER OF VALUES IN THE FRACTAL DICTIONARY IN FRACTALDICTIONARY.CPP IS CORRECT FOR EACH FUNCTION USED AND THAT THIS PROPEGATES TO
 	// A PROPERLY SIZED ARRAY IN THE FRACTALDRAWER DRAW() CALL.
-	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, ComplexFloat* extraValues)
+	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, ComplexFloat* extraValues, int power)
 	{
 		return input;
 	};
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues) {
-		return previousValue * previousValue + extraValues[0];
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		
+		return previousValue.Power(power) + extraValues[0];
 	};
-	static ComplexFloat FRACTAL_STARTING_FUNCTION_MANDEL(ComplexFloat input, ComplexFloat* extraValues)
+	static ComplexFloat FRACTAL_STARTING_FUNCTION_MANDEL(ComplexFloat input, ComplexFloat* extraValues, int power)
 	{
 		return ComplexFloat(0, 0);
 	};
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues) {
-		return previousValue * previousValue + input;
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		return previousValue.Power(power) + input;
 	};
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_BURNING_SHIP(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues) {
-		return ComplexFloat::Abs(previousValue * previousValue + ComplexFloat(input.real, -input.imaginary));
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_BURNING_SHIP(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		return (previousValue.Power(power) + ComplexFloat(input.real, -input.imaginary)).Abs();
 	};
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_BURNING_SHIP_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues) {
-		return ComplexFloat::Abs(previousValue * previousValue + ComplexFloat(extraValues[0].real, -extraValues[0].imaginary));
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_BURNING_SHIP_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		return (previousValue.Power(power) + ComplexFloat(extraValues[0].real, -extraValues[0].imaginary)).Abs();
 	};
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_REFLECTED_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues) {
-		ComplexFloat newInput = previousValue * previousValue + input;
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_REFLECTED_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = previousValue.Power(power) + input;
 		CF_Float dot = ComplexFloat::Dot(newInput, extraValues[1]);
 		if (dot < 0)
 		{
@@ -65,8 +66,8 @@ protected:
 		}
 		return newInput;
 	};
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_REFLECTED_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues) {
-		ComplexFloat newInput = previousValue * previousValue + extraValues[0];
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_REFLECTED_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = previousValue.Power(power) + extraValues[0];
 		CF_Float dot = ComplexFloat::Dot(newInput, extraValues[1]);
 		if (dot < 0)
 		{

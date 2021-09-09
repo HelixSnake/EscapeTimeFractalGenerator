@@ -63,6 +63,7 @@ struct FractalInfo
 	double CustomJulPosY = 0;
 	double DistortionVectorX = 0;
 	double DistortionVectorY = 0;
+	int power = 2;
 	FractalDictionary::FractalType type = FractalDictionary::FractalType::Julia;
 };
 
@@ -171,6 +172,8 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	ImGui::SameLine();
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedJulia, fractalInfo);
 
+	ImGui::InputInt("Fractal Power", &fractalInfo.power);
+	fractalInfo.power = glm::clamp(fractalInfo.power, 2, 10);
 	if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
 	{
 		if (fractalInfo.animate)
@@ -458,7 +461,7 @@ int main(int argc, char* argv[])
 			extraValues[0] = ComplexFloat((cos(totalTime) * 0.5 - cos(totalTime * 2) * 0.25) * 1.01,
 				(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
 		}
-		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom, extraValues);
+		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom, extraValues, fracInfo.power);
 		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
 		shouldRenderInterpreter = shouldRenderInterpreter || updateInterpreter; // render if we've change a UI thing that affects the interpreter

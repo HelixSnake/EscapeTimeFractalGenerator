@@ -72,7 +72,16 @@ CF_Float ComplexFloat::Dot(const ComplexFloat complexVector1, const ComplexFloat
 	double y2 = complexVector2.imaginary;
 	return x1 * x2 + y1 * y2;
 }
-ComplexFloat ComplexFloat::Abs(const ComplexFloat cf)
+ComplexFloat ComplexFloat::Abs()
 {
-	return ComplexFloat(glm::abs(cf.real), glm::abs(cf.imaginary));
+	return ComplexFloat(glm::abs(this->real), glm::abs(this->imaginary));
+}
+ComplexFloat ComplexFloat::Power(const int power)
+{
+	ComplexFloat newValue = *this;
+	for (int i = 1; i < power; i++)
+	{
+		newValue = newValue * *this;
+	}
+	return newValue;
 }
