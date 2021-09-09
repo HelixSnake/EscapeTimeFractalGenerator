@@ -16,16 +16,12 @@
 #include <glm/vec4.hpp>
 #include "ComplexFloat.h"
 #include "ZoomTransform.h"
+#include "FractalDictionary.h"
 
 using namespace std::chrono;
 
 const int NUM_FRACTAL_DRAW_THREADS = std::thread::hardware_concurrency();
 
-enum class FractalType
-{
-	Mandelbrot,
-	Julia
-};
 class FractalDrawer
 {
 public:
@@ -38,8 +34,8 @@ public:
 	void SetMinDeviation(double minDeviation);
 	void SetDeviationCycles(int deviationCycles, bool debugDeviations);
 	void SetLengthLimit(double lengthLimit);
-	void SetFractalType(FractalType fractal);
-	FractalType GetFractalType();
+	void SetFractalType(FractalDictionary::FractalType fractal);
+	FractalDictionary::FractalType GetFractalType();
 	void SetCustomJuliaPosition(bool use, double x, double y);
 	float GetProgress() { return drawingProgress; }
 	bool ShouldRestartInterpreter() { return shouldRestartInterpreter; }
@@ -50,25 +46,10 @@ public:
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	void CopyBuffer(CF_Float* dest, size_t bufferSize);
 protected:
-	// Change these to modify the drawn fractal equations!
-	static ComplexFloat FRACTAL_STARTING_FUNCTION_JULIA(ComplexFloat input, ComplexFloat extraValue)
-	{ return input; };
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue) {
-		//const double JULIA_NUMBER = 0.75;
-		//return previousValue * previousValue + ComplexFloat(cos(time) * JULIA_NUMBER, sin(time) * JULIA_NUMBER);
-		// Julia set takes values right outside the main cartioid of the mandelbrot set
-		//return previousValue * previousValue + ComplexFloat((cos(time) * 0.5 - cos(time * 2) * 0.25) * 1.01, (sin(time) * 0.5 - sin(time * 2) * 0.25)* 1.01);
-		return previousValue * previousValue + extraValue;
-	};
-	static ComplexFloat FRACTAL_STARTING_FUNCTION_MANDEL(ComplexFloat input, ComplexFloat extraValue)
-		{ return ComplexFloat(0,0); };
-	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue) {
-		return previousValue * previousValue + input;
-	};
 
 	std::atomic<CF_Float>* pixelBuffer = nullptr;
 
-	FractalType currentFractal;
+	FractalDictionary::FractalType currentFractal;
 	float drawingProgress = 0;
 
 	std::atomic_int iterations = 40;

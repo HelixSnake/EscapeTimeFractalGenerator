@@ -40,6 +40,8 @@ const double ZOOM_PER_SECOND = 2.0;
 const char* COLOR_RAMP_FILENAME = "colorRamp.png";
 const char* IMGUI_GLSL_VERSION = "#version 130";
 
+const ZoomTransform DEFAULT_ZOOMTRANSFORM = ZoomTransform(0.5, 0.5, 3);
+
 struct FractalInfo
 {
 	//need defaults: if these values are too high it will cause the program to hang
@@ -57,7 +59,7 @@ struct FractalInfo
 	bool liveUpdate = false;
 	double CustomJulPosX = 0;
 	double CustomJulPosY = 0;
-	FractalType type = FractalType::Julia;
+	FractalDictionary::FractalType type = FractalDictionary::FractalType::Julia;
 };
 
 void ClearPixelBuffer(float* buffer, int size)
@@ -100,6 +102,16 @@ void ImgUIInitialize(GLFWwindow* uiWindow, const char* glsl_version, ImGuiIO& io
 	ImGui_ImplOpenGL3_Init(glsl_version);
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
+}
+
+void DisplayFractalTypeCheckbox(FractalDictionary::FractalType type, FractalInfo &fractalInfo)
+{
+	bool isType = type == fractalInfo.type;
+	FractalDictionary::FractalTypeInfo typeInfo = FractalDictionary::GetInfo(type);
+	if (ImGui::Checkbox(typeInfo.name, &isType))
+	{
+		fractalInfo.type = type;
+	}
 }
 
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
@@ -145,17 +157,12 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	}
 	fractalInfo.offset = tempOffset;
 	ImGui::Text("Fractal Type:");
-	bool fractalIsJulia = fractalInfo.type == FractalType::Julia;
-	bool fractalIsMandelbrot = fractalInfo.type == FractalType::Mandelbrot;
-	if (ImGui::Checkbox("Julia", &fractalIsJulia))
-	{
-		fractalInfo.type = FractalType::Julia;
-	}
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Mandelbrot, fractalInfo);
 	ImGui::SameLine();
-	if (ImGui::Checkbox("Mandelbrot", &fractalIsMandelbrot))
-	{
-		fractalInfo.type = FractalType::Mandelbrot;
-	}
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Julia, fractalInfo);
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningShip, fractalInfo);
+	ImGui::SameLine();
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningJulia, fractalInfo);
 	if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
 	{
 		if (fractalInfo.animate)
@@ -189,7 +196,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	}
 	if (ImGui::Button("Reset Zoom"))
 	{
-		zoomTransform = ZoomTransform(0, 0, 1);
+		zoomTransform = DEFAULT_ZOOMTRANSFORM;
 		smoothZoomer.EndZoom();
 		smoothZoomer.SyncTransforms(zoomTransform);
 		updateDrawer = true;
@@ -289,7 +296,7 @@ int main(int argc, char* argv[])
 	// create fractal interpreter
 	FractalInterpreter fractalInterpreter;
 	// current zoom level
-	ZoomTransform currentZoom = ZoomTransform(0, 0, 1);
+	ZoomTransform currentZoom = DEFAULT_ZOOMTRANSFORM;
 	// create smooth zoomer
 	FractalSmoothZoomer smoothZoomer;
 	smoothZoomer.SyncTransforms(currentZoom);
@@ -378,7 +385,7 @@ int main(int argc, char* argv[])
 			fracInfo.animate = false;
 			fractalDrawer->SetCustomJuliaPosition(true, fracInfo.CustomJulPosX, fracInfo.CustomJulPosY);
 		}
-		juliaPosUpdate = chooseJuliaValue && fracInfo.type == FractalType::Julia;
+		juliaPosUpdate = chooseJuliaValue;
 
 		// Render 
 		// Clear the colorbuffer 
@@ -406,7 +413,7 @@ int main(int argc, char* argv[])
 		// Draw fractal
 		bool liveUpdate = fracInfo.liveUpdate && !smoothZoomer.IsZooming() && !smoothZoomer.IsZoomReady();
 		bool interpreterDrew = false;
-		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && fractalDrawer->GetFractalType() == FractalType::Julia;
+		bool updateIfJulia = (fracInfo.animate || juliaPosUpdate) && FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).hasExtraValue;
 		bool zoomMismatch = currentZoom.scale != fractalDrawer->GetRenderedZoom().scale;
 		bool shouldStartDrawing = (updateOnResize || updateIfJulia || updateDrawer || zoomMismatch || didZoom || firstDraw);
 		bool shouldSetupZoomer = shouldStartDrawing;

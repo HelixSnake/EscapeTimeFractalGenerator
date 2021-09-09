@@ -11,7 +11,7 @@ const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);
 //const float VALUE_PERIOD = 100;
 //const float LENGTH_LIMIT = 100;
 
-FractalDrawer::FractalDrawer(int width, int height) 
+FractalDrawer::FractalDrawer(int width, int height)
 {
 	drawFractalThreads = new std::future<bool>[NUM_FRACTAL_DRAW_THREADS];
 	threadProgress = new std::atomic<int>[NUM_FRACTAL_DRAW_THREADS];
@@ -68,16 +68,13 @@ bool FractalDrawer::DrawFractalChunk(int index, ComplexFloat extraValue, CF_Floa
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(iterations, minDeviation, deviationCycles, debugDeviations);
 	fractal.lengthLimit = lengthLimit;
-	if (currentFractal == FractalType::Julia)
+	FractalDictionary::FractalTypeInfo typeInfo = FractalDictionary::GetInfo(currentFractal);
+	if (typeInfo.recursiveFunction != nullptr && typeInfo.startingValueFunction != nullptr)
 	{
-		fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION_JULIA);
-		fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION_JULIA);
+		fractal.SetFunction(typeInfo.recursiveFunction);
+		fractal.SetStartingFunction(typeInfo.startingValueFunction);
 	}
-	else
-	{
-		fractal.SetStartingFunction(FRACTAL_STARTING_FUNCTION_MANDEL);
-		fractal.SetFunction(FRACTAL_RECURSIVE_FUNCTION_MANDEL);
-	}
+
 	int currentThreadProgress = 0;
 	for (int i = index; i < pixelBufferHeight; i += NUM_FRACTAL_DRAW_THREADS)
 	{
@@ -150,13 +147,13 @@ void FractalDrawer::SetLengthLimit(double lengthLimit)
 	UnlockAllMutexes();
 }
 
-void FractalDrawer::SetFractalType(FractalType fractal)
+void FractalDrawer::SetFractalType(FractalDictionary::FractalType fractal)
 {
 	LockAllMutexes();
 	this->currentFractal = fractal;
 	UnlockAllMutexes();
 }
-FractalType FractalDrawer::GetFractalType()
+FractalDictionary::FractalType FractalDrawer::GetFractalType()
 {
 	return currentFractal;
 }

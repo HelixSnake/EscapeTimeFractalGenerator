@@ -1,5 +1,6 @@
 #include "ComplexFloat.h"
 #include <math.h>
+#include <glm/common.hpp>
 
 ComplexFloat::ComplexFloat()
 {
@@ -66,4 +67,8 @@ CF_Float ComplexFloat::Dot(const ComplexFloat complexVector1, const ComplexFloat
 	double y1 = complexVector1.imaginary;
 	double y2 = complexVector2.imaginary;
 	return x1 * x2 + y1 * y2;
+}
+ComplexFloat ComplexFloat::Abs(const ComplexFloat cf)
+{
+	return ComplexFloat(glm::abs(cf.real), glm::abs(cf.imaginary));
 }

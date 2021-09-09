@@ -19,22 +19,22 @@ ComplexFractal::ComplexFractal(int iterations, CF_Float minDeviation, int deviat
 	this->deviationCycle = deviationCycle;
 	this->debugDeviations = debugDeviations;
 }
-void ComplexFractal::SetFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat previousValue, ComplexFloat extraValue))
+void ComplexFractal::SetFunction(RecursiveFunction func)
 {
-	ComplexFunction = func;
+	recursiveFunction = func;
 }
-void ComplexFractal::SetStartingFunction(ComplexFloat(*func)(ComplexFloat input, ComplexFloat extraValue))
+void ComplexFractal::SetStartingFunction(StartingValueFunction func)
 {
-	StartingValueFunction = func;
+	startingValueFunction = func;
 }
 double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat extraValue, glm::vec2 &UV)
 {
 	//default algorithm for starting position
 	ComplexFloat value = ComplexFloat(0, 0);
 	double lengthlimitsqr = lengthLimit * lengthLimit;
-	if (StartingValueFunction != nullptr)
+	if (startingValueFunction != nullptr)
 	{ 
-		value = StartingValueFunction(ComplexFloat(x, y), extraValue);
+		value = startingValueFunction(ComplexFloat(x, y), extraValue);
 	}
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
 	ComplexFloat prevValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
@@ -43,9 +43,9 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat 
 	double lengthLimitSqr = lengthLimit * lengthLimit;
 	for (int i = 0; i < iterations; i++)
 	{
-		if (ComplexFunction != nullptr)
+		if (recursiveFunction != nullptr)
 		{
-			value = ComplexFunction(ComplexFloat(x, y), value, extraValue);
+			value = recursiveFunction(ComplexFloat(x, y), value, extraValue);
 		}
 		else
 		{
