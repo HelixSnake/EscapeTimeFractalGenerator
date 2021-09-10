@@ -59,8 +59,12 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 			ratio = glm::clamp(ratio, 0.0, 1.0); // Extra insurance to keep the function below from spitting out NAN if ratio < 0 
 			//or infinity if lengthLimit == 1
 			//TODO: This algorithm only works at a power of 2. Figure out the proper math for other powers
-			ratio = pow(ratio, 1/(log(lengthLimit)/log(2))) * 2;
-
+			//I could not find the algorithm for the other powers so the following matrix is composed of hand-tuned values
+			//More values have to be tuned in order to support powers over 7
+			const double part1[6] = { 2, 1.86, 1.74, 1.64, 1.55, 1.47 };
+			const double part2[6] = { 2, 1.406576, 1.234300, 1.160412, 1.125840, 1.110008 };
+			int index = glm::clamp(power - 2, 0, 5); // prevent out of bounds operations 
+			ratio = pow(ratio, log(part1[index])/(log(lengthLimit))) * part2[index];
 			//double angle = ComplexFloat::Angle(value - prevValue, prevValue - prev2Value);
 			//angle = angle / PI / 2.0 + 0.5;
 			//angle = glm::fract(angle * 2); // for a better aspect ratio

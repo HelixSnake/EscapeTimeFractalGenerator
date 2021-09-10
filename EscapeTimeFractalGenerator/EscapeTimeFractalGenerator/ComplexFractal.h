@@ -2,6 +2,7 @@
 #include "EscapeTimeFractal.h"
 #include "glm/vec2.hpp"
 
+
 class ComplexFractal
 {
 public:
