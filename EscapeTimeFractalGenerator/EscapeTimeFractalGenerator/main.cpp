@@ -119,6 +119,14 @@ void DisplayFractalTypeCheckbox(FractalDictionary::FractalType type, FractalInfo
 	}
 }
 
+void DisplayToolTip(const char* s)
+{
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip(s);
+	}
+}
+
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
 void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser)
 {
@@ -139,11 +147,14 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	ImGui::SetWindowSize(ImVec2(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT));
 	ImGui::SetWindowPos(ImVec2(0, 0));
 	ImGui::Text("Left click to zoom in, right click to zoom out, \nmiddle click or J to choose custom Julia set value");
-	ImGui::InputInt("Iterations:", &fractalInfo.iterations, 10);
+	ImGui::InputInt("Iterations", &fractalInfo.iterations, 10);
+	DisplayToolTip("Higher number = better detail but slower performance");
+	ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0, "%.3f");
+	DisplayToolTip("Higher number = more precise / accurate results.\nLower values perform slightly better.");
 	fractalInfo.iterations = min(fractalInfo.iterations, 10000000); //Too many iterations will cause the program to hang, since threads are halted on a per pixel basis
-	ImGui::Text("Upsample can be any value between 0 and 1, or 2.0, or 4.0 \nRendering speed scales roughly with the upsample value squared");
 
 	ImGui::InputDouble("Upsample", &fractalInfo.upscale);
+	DisplayToolTip("Upsample can be any value between 0 and 1, or 2.0, or 4.0 \nRendering speed scales roughly with the upsample value squared");
 	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0, 4.0);
 	//keep upscale a power of 2 if it's more than 1
 	if (fractalInfo.upscale > 1.0f)
@@ -154,32 +165,61 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	{
 		updateInterpreter = true;
 	}
+	DisplayToolTip("Changes how often the ramp texture repeats");
 	//this is annoying but imgui makes you do this :(
 	float tempOffset = fractalInfo.offset;
 	if (ImGui::SliderFloat("Offset", &tempOffset, 0.0, 1.0))
 	{
 		updateInterpreter = true;
 	}
+	DisplayToolTip("Changes the offset to the ramp texture");
 	fractalInfo.offset = tempOffset;
-	ImGui::Text("Fractal Type:");
+	const char* juliaTooltip = "Press J when mousing over a certain area of the Mandelbrot version\n to get a Julia set with similar properties";
+	ImGui::Text("Fractal Type (mouse over for tips):");
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Mandelbrot, fractalInfo);
+	DisplayToolTip("Formula: n = ((n-1)^power + c);");
 	ImGui::SameLine();
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Julia, fractalInfo);
+	DisplayToolTip(juliaTooltip);
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningShip, fractalInfo);
+	DisplayToolTip("Formula: n = ((n-1)^power + c); n.x = abs(n.x); n.y = abs(n.y);");
 	ImGui::SameLine();
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningJulia, fractalInfo);
+	DisplayToolTip(juliaTooltip);
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedMandelbrot, fractalInfo);
+	DisplayToolTip("Formula: n = ((n - 1) ^ power + c); n -= v * dot(n,v) * 2;\nHold V to set the reflection vector");
 	ImGui::SameLine();
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedJulia, fractalInfo);
+	DisplayToolTip(juliaTooltip);
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SpunMandelbrot, fractalInfo);
+	DisplayToolTip("Formula: n = ((n - 1) ^ power + c); n += n / |n| * v;\nHold V to set the spin vector");
 	ImGui::SameLine();
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SpunJulia, fractalInfo);
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BackwardsMandelbrot, fractalInfo);
+	DisplayToolTip(juliaTooltip);
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Peacock, fractalInfo);
+	DisplayToolTip("Formula: n = ((v.x ^ (n - 1)) ^ power + c);\nv is Additional Constant\nSet the X value of Additional Constant to get this fractal to work\nGood values are 0.5 or 2\nSet Length Limit to a higher value for more correct results");
 	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BackwardsJulia, fractalInfo);
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::PeacockJulia, fractalInfo);
+	DisplayToolTip("Set the X value of Additional Constant to get this fractal to work\nGood values are 0.5 or 2\nSet Length Limit to a higher value for more correct results");
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::CosineMandelbrot, fractalInfo);
+	DisplayToolTip("Formula: n = (cos(n - 1)) ^ power + c);\nSet Length Limit to a higher value for more correct results");
+	ImGui::SameLine();
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::CosineJulia, fractalInfo);
+	DisplayToolTip("Set Length Limit to a higher value for more correct results");
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReciprocalMandelbrot, fractalInfo);
+	DisplayToolTip("Formula: n = (1/((n-1)^power) + c);\nTechnically only diverges at very specific points\nSet Length Limit to a higher value for more correct results");
+	ImGui::SameLine();
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReciprocalJulia, fractalInfo);
+	DisplayToolTip("Technically only diverges at very specific Julia Positions\nTo find these positions, set Length Limit to 100.0\nchoose a point on the Mandelbrot version,\n then zoom into one of the circles\nIncrease the Length Limit and zoom in as the circle becomes smaller\nMouse over the small circle and press J\nReset your zoom and enable the Julia version");
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SuperMandelbrot, fractalInfo);
+	DisplayToolTip("Formula: n = ((n-1)^v + c);\nHold V to set the complex exponent");
+	ImGui::SameLine();
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SuperJulia, fractalInfo);
+	DisplayToolTip("Hold V to set the complex exponent, hold J to set Julia Position");
 
 	ImGui::InputInt("Fractal Power", &fractalInfo.power);
-	fractalInfo.power = glm::clamp(fractalInfo.power, 2, 7); //to support values over 7 more values need to be fine tuned in ComplexFractal.cpp
+	DisplayToolTip("The power used in the fractal equation, when applicable.\n Limited to between 1 and 7");
+	fractalInfo.power = glm::clamp(fractalInfo.power, 1, 7); //to support values over 7 more values need to be fine tuned in ComplexFractal.cpp
 	if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
 	{
 		if (fractalInfo.animate)
@@ -187,6 +227,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 			fractalInfo.useCustomJulPos = false;
 		}
 	};
+	DisplayToolTip("Animate the Julia Position along a preset path");
 	if (ImGui::Checkbox("Custom Julia Position (middle mouse click or J)", &fractalInfo.useCustomJulPos))
 	{
 		if (fractalInfo.useCustomJulPos)
@@ -203,7 +244,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	}
 	if (FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues >= 2)
 	{ 
-		ImGui::Text("Distortion Vector (set with D):");
+		ImGui::Text("Additional Constant (set with V):");
 		ImGui::InputDouble("X", &fractalInfo.DistortionVectorX, 0.0, 0.0, " % .16f");
 		ImGui::InputDouble("Y", &fractalInfo.DistortionVectorY, 0.0, 0.0, " % .16f");
 	}
@@ -229,6 +270,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	{
 		rampTexFileBrowser.Open();
 	}
+	DisplayToolTip("Change the ramp texture to a PNG on your hard drive");
 	ImGui::SameLine();
 	if (ImGui::Button("Default"))
 	{
@@ -237,10 +279,10 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		glDeleteTextures(1, &rampTexture);
 		updateInterpreter = true;
 	}
+	DisplayToolTip("Use the default ramp texture");
 	ImGui::Checkbox("Show advanced options", &fractalInfo.showAdvancedOptions);
 	if (fractalInfo.showAdvancedOptions)
 	{
-		ImGui::InputDouble("Length Limit", &fractalInfo.lengthLimit, 0.0, 0.0, "%.3f");
 		ImGui::Text("Set this value to something small to improve rendering time");
 		ImGui::InputDouble("Minimum Deviation", &fractalInfo.minDeviation, SMALL_DOUBLE_VALUE, 0.0, "%.15f");
 		ImGui::InputInt("Deviation Cycles", &fractalInfo.deviationCycles);
@@ -388,8 +430,8 @@ int main(int argc, char* argv[])
 		int middleMBstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
 		int JKeyState = glfwGetKey(window, GLFW_KEY_J);
 		int JKeyState2 = glfwGetKey(uiWindow, GLFW_KEY_J);
-		int DKeyState = glfwGetKey(window, GLFW_KEY_D);
-		int DKeyState2 = glfwGetKey(uiWindow, GLFW_KEY_D);
+		int DKeyState = glfwGetKey(window, GLFW_KEY_V);
+		int DKeyState2 = glfwGetKey(uiWindow, GLFW_KEY_V);
 		double mbxpos, mbypos;
 		glfwGetCursorPos(window, &mbxpos, &mbypos);
 		mbxpos /= currentWindowWidth;

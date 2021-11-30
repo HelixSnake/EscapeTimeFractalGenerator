@@ -17,8 +17,14 @@ public:
 		ReflectedJulia,
 		SpunMandelbrot,
 		SpunJulia,
-		BackwardsMandelbrot,
-		BackwardsJulia,
+		Peacock,
+		PeacockJulia,
+		CosineMandelbrot,
+		CosineJulia,
+		ReciprocalMandelbrot,
+		ReciprocalJulia,
+		SuperMandelbrot,
+		SuperJulia,
 		NUM_ITEMS
 	};
 	const struct FractalTypeInfo
@@ -90,12 +96,44 @@ protected:
 		return newInput;
 	};
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
-		ComplexFloat newInput = ComplexFloat::Power(power, previousValue);
+		ComplexFloat newInput = ComplexFloat::Power(extraValues[1].real, previousValue).Power(power);
 		newInput = newInput + input;
 		return newInput;
 	};
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
-		ComplexFloat newInput = ComplexFloat::Power(power, previousValue);
+		ComplexFloat newInput = ComplexFloat::Power(extraValues[1].real, previousValue).Power(power);
+		newInput = newInput + extraValues[0];
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_COSINE_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = ComplexFloat(cos(previousValue.real) * cosh(previousValue.imaginary), -sin(previousValue.real) * sinh(previousValue.imaginary));
+		newInput = newInput.Power(power);
+		newInput = newInput + input;
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_COSINE_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = ComplexFloat(cos(previousValue.real) * cosh(previousValue.imaginary), -sin(previousValue.real) * sinh(previousValue.imaginary));
+		newInput = newInput.Power(power);
+		newInput = newInput + extraValues[0];
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_RECIPROCAL_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = previousValue.Power(power).Reciprocal();
+		newInput = newInput + input;
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_RECIPROCAL_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = previousValue.Power(power).Reciprocal();
+		newInput = newInput + extraValues[0];
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_SUPER_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = ComplexFloat::Power(previousValue, extraValues[1]);
+		newInput = newInput + input;
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_SUPER_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = ComplexFloat::Power(previousValue, extraValues[1]);
 		newInput = newInput + extraValues[0];
 		return newInput;
 	};

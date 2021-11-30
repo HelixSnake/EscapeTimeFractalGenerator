@@ -34,13 +34,37 @@ std::unordered_map<FractalDictionary::FractalType, FractalDictionary::FractalTyp
 		{"Spun Julia", 2, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_SPUN_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
 	},
 	{
-		FractalDictionary::FractalType::BackwardsMandelbrot,
-		{"Backwards Mandelbrot", 1, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_MANDEL, &FractalDictionary::FRACTAL_STARTING_FUNCTION_MANDEL}
+		FractalDictionary::FractalType::Peacock,
+		{"Peacock Fractal", 2, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_MANDEL, &FractalDictionary::FRACTAL_STARTING_FUNCTION_MANDEL}
 	},
 	{
-		FractalDictionary::FractalType::BackwardsJulia,
-		{"Backwards Julia", 1, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
-	}
+		FractalDictionary::FractalType::PeacockJulia,
+		{"Peacock Julia", 2, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
+	},
+	{
+		FractalDictionary::FractalType::CosineMandelbrot,
+		{"Cosine Fractal Mandelbrot", 1, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_COSINE_MANDEL, &FractalDictionary::FRACTAL_STARTING_FUNCTION_MANDEL}
+	},
+	{
+		FractalDictionary::FractalType::CosineJulia,
+		{"Cosine Fractal Julia", 1, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_COSINE_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
+	},
+	{
+		FractalDictionary::FractalType::ReciprocalMandelbrot,
+		{"Reciprocal Mandelbrot", 1, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_RECIPROCAL_MANDEL, &FractalDictionary::FRACTAL_STARTING_FUNCTION_MANDEL}
+	},
+	{
+		FractalDictionary::FractalType::ReciprocalJulia,
+		{"Reciprocal Julia", 1, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_RECIPROCAL_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
+	},
+	{
+		FractalDictionary::FractalType::SuperMandelbrot,
+		{"Super Mandelbrot", 2, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_SUPER_MANDEL, &FractalDictionary::FRACTAL_STARTING_FUNCTION_MANDEL}
+	},
+	{
+		FractalDictionary::FractalType::SuperJulia,
+		{"Super Julia", 2, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_SUPER_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
+	},
 };
 
 FractalDictionary::FractalTypeInfo FractalDictionary::GetInfo(FractalDictionary::FractalType type)
