@@ -52,6 +52,7 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 			//default algorithm for recursive function
 			value = value * value + ComplexFloat(x, y);
 		}
+		if (isnan(value.real) || isnan(value.imaginary)) return i; // if the values have gotten so extreme that a NAN showed up, just assume we diverged. Trust me, this is a good idea.
 		double absValSqr = value.AbsoluteValueSqr();
 		if (absValSqr > lengthLimitSqr)
 		{
