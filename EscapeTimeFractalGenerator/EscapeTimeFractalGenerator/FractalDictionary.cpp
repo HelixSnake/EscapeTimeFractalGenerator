@@ -24,6 +24,22 @@ std::unordered_map<FractalDictionary::FractalType, FractalDictionary::FractalTyp
 	{
 		FractalDictionary::FractalType::ReflectedJulia,
 		{"Distorted Julia", 2, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_REFLECTED_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
+	},
+	{
+		FractalDictionary::FractalType::SpunMandelbrot,
+		{"Spun Mandelbrot", 2, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_SPUN_MANDEL, &FractalDictionary::FRACTAL_STARTING_FUNCTION_MANDEL}
+	},
+	{
+		FractalDictionary::FractalType::SpunJulia,
+		{"Spun Julia", 2, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_SPUN_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
+	},
+	{
+		FractalDictionary::FractalType::BackwardsMandelbrot,
+		{"Backwards Mandelbrot", 1, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_MANDEL, &FractalDictionary::FRACTAL_STARTING_FUNCTION_MANDEL}
+	},
+	{
+		FractalDictionary::FractalType::BackwardsJulia,
+		{"Backwards Julia", 1, &FractalDictionary::FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_JULIA, &FractalDictionary::FRACTAL_STARTING_FUNCTION_JULIA}
 	}
 };
 

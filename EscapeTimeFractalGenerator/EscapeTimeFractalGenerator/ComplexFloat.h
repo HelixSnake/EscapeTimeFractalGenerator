@@ -19,5 +19,6 @@ struct ComplexFloat
 	static CF_Float Dot(ComplexFloat complexVector1, ComplexFloat complexVector2);
 	ComplexFloat Abs();
 	ComplexFloat Power(int power);
+	static ComplexFloat Power(const CF_Float first, const ComplexFloat second);
 };
 

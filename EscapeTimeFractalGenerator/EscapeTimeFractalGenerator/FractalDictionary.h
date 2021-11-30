@@ -15,6 +15,10 @@ public:
 		BurningJulia,
 		ReflectedMandelbrot,
 		ReflectedJulia,
+		SpunMandelbrot,
+		SpunJulia,
+		BackwardsMandelbrot,
+		BackwardsJulia,
 		NUM_ITEMS
 	};
 	const struct FractalTypeInfo
@@ -73,6 +77,26 @@ protected:
 		{
 			newInput = newInput - extraValues[1] * dot * 2;
 		}
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_SPUN_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = previousValue.Power(power) + input;
+		newInput = newInput + newInput.Normalized() * extraValues[1];
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_SPUN_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = previousValue.Power(power) + extraValues[0];
+		newInput = newInput + newInput.Normalized() * extraValues[1];
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = ComplexFloat::Power(power, previousValue);
+		newInput = newInput + input;
+		return newInput;
+	};
+	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_BACKWARDS_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
+		ComplexFloat newInput = ComplexFloat::Power(power, previousValue);
+		newInput = newInput + extraValues[0];
 		return newInput;
 	};
 };

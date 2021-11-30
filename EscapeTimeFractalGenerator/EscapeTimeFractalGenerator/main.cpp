@@ -171,6 +171,12 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedMandelbrot, fractalInfo);
 	ImGui::SameLine();
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedJulia, fractalInfo);
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SpunMandelbrot, fractalInfo);
+	ImGui::SameLine();
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SpunJulia, fractalInfo);
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BackwardsMandelbrot, fractalInfo);
+	ImGui::SameLine();
+	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BackwardsJulia, fractalInfo);
 
 	ImGui::InputInt("Fractal Power", &fractalInfo.power);
 	fractalInfo.power = glm::clamp(fractalInfo.power, 2, 7); //to support values over 7 more values need to be fine tuned in ComplexFractal.cpp

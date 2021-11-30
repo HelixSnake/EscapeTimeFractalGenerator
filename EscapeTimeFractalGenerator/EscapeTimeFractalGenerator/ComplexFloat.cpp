@@ -85,3 +85,10 @@ ComplexFloat ComplexFloat::Power(const int power)
 	}
 	return newValue;
 }
+
+
+ComplexFloat ComplexFloat::Power(const CF_Float first, const ComplexFloat second)
+{
+	CF_Float clna = second.imaginary * log(first);
+	return ComplexFloat(cos(clna), sin(clna)) * pow(first, second.real);
+}
