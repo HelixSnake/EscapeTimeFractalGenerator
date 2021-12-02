@@ -60,6 +60,9 @@
     <ClCompile Include="FractalDictionary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FractalCommandList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComplexFloat.h">
@@ -84,6 +87,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FractalDictionary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FractalCommandList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

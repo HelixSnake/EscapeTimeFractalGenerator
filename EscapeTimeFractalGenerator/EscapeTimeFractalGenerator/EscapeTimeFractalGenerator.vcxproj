@@ -166,6 +166,7 @@
     <ClCompile Include="..\..\..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="ComplexFloat.cpp" />
     <ClCompile Include="ComplexFractal.cpp" />
+    <ClCompile Include="FractalCommandList.cpp" />
     <ClCompile Include="FractalDictionary.cpp" />
     <ClCompile Include="FractalDrawer.cpp" />
     <ClCompile Include="FractalInterpreter.cpp" />
@@ -176,6 +177,7 @@
   <ItemGroup>
     <ClInclude Include="ComplexFloat.h" />
     <ClInclude Include="ComplexFractal.h" />
+    <ClInclude Include="FractalCommandList.h" />
     <ClInclude Include="FractalDictionary.h" />
     <ClInclude Include="FractalDrawer.h" />
     <ClInclude Include="FractalInterpreter.h" />

@@ -28,6 +28,7 @@
 #include "ComplexFractal.h"
 #include "QuadDrawer.h"
 #include "FractalSmoothZoomer.h"
+#include "FractalCommandList.h"
 
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
