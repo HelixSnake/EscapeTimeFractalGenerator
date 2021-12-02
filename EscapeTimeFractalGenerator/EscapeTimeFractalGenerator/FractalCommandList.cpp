@@ -4,7 +4,7 @@
 FractalCommandList::FractalCommandList(int numFloats, int numComplexFloats, int commandListLength, unsigned int* commandListSrc)
 {
 	this->numFloats = numFloats;
-	this->numComplexFloats = numComplexFloats;
+	this->numCFloats = numComplexFloats;
 	this->commandListLength = commandListLength;
 	commandList = new unsigned int[commandListLength];
 	memcpy(commandList, commandListSrc, commandListLength * sizeof(unsigned int));

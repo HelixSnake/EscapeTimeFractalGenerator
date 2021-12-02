@@ -30,6 +30,9 @@
 #include "FractalSmoothZoomer.h"
 #include "FractalCommandList.h"
 
+//Unit Tests
+#include "test.h"
+
 const GLint MAIN_WINDOW_WIDTH = 800;
 const GLint MAIN_WINDOW_HEIGHT = 600;
 const GLint UI_WINDOW_WIDTH = 500;
@@ -321,6 +324,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 
 int main(int argc, char* argv[])
 {
+	RunAllUnitTests();
 	glfwInit();
 	// Create main window and UI window
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

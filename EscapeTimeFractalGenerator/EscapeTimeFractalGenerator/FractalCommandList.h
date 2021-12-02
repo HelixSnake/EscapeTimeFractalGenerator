@@ -1,9 +1,9 @@
 #pragma once
 #include "ComplexFloat.h"
 class FractalCommandList //Readonly Data storage only, do not implement any functionality here besides construction and reading. This data stored in this class is stored in a way meant to be executed upon as quickly as possible.
+//Todo: Execution class
 //Todo: Add unit tests
 //Todo: Builder class
-//Todo: Execution class
 //Todo: Validator class (if the command list has bad data, the execution class may crash the program!)
 {
 public:
@@ -19,12 +19,12 @@ public:
 		getx,
 		gety,
 		floatstocomplex,
-		NUM_ENTRIES
+		NUM_ITEMS
 	};
-	FractalCommandList(int numFloats, int numComplexFloats, int commandListLength, unsigned int* commandListSrc);
+	FractalCommandList(int numFloats, int numCFloats, int commandListLength, unsigned int* commandListSrc);
 	~FractalCommandList();
 	int GetNumFloats() { return numFloats; }
-	int GetNumComplexFloats() { return numComplexFloats; }
+	int GetNumComplexFloats() { return numCFloats; }
 	int GetCommandListLength() { return commandListLength; }
 	const unsigned int* GetCommandList() {	return commandList;	}
 	static int RunTests();
@@ -32,14 +32,14 @@ private:
 	unsigned int* commandList = nullptr;
 	int commandListLength = 0; //the total length of the command tree in indices
 	int numFloats = 0;
-	int numComplexFloats = 0;
+	int numCFloats = 0;
 };
 //Command list layout:
 //each command is 7 blocks wide
 //stored as the following
 //[command enum] [command type] [command index] [argument 1 type] [argument 1 index] [argument 2 type] [argument 2 index]
 
-//Data is stored in 6 arrays (not in this class), the argument types and command types will refer to these arrays
+//Data is stored in 4 arrays (not in this class), the argument types and command types will refer to these arrays
 //variable floats: 0
 //variable complex floats: 1
 // 

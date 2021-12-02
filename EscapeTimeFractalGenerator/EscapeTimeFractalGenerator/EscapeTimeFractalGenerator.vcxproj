@@ -166,23 +166,29 @@
     <ClCompile Include="..\..\..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="ComplexFloat.cpp" />
     <ClCompile Include="ComplexFractal.cpp" />
+    <ClCompile Include="FractalCommandDelegates.cpp" />
     <ClCompile Include="FractalCommandList.cpp" />
+    <ClCompile Include="FractalCommandListExecutor.cpp" />
     <ClCompile Include="FractalDictionary.cpp" />
     <ClCompile Include="FractalDrawer.cpp" />
     <ClCompile Include="FractalInterpreter.cpp" />
     <ClCompile Include="FractalSmoothZoomer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QuadDrawer.cpp" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComplexFloat.h" />
     <ClInclude Include="ComplexFractal.h" />
+    <ClInclude Include="FractalCommandDelegates.h" />
     <ClInclude Include="FractalCommandList.h" />
+    <ClInclude Include="FractalCommandListExecutor.h" />
     <ClInclude Include="FractalDictionary.h" />
     <ClInclude Include="FractalDrawer.h" />
     <ClInclude Include="FractalInterpreter.h" />
     <ClInclude Include="FractalSmoothZoomer.h" />
     <ClInclude Include="QuadDrawer.h" />
+    <ClInclude Include="test.h" />
     <ClInclude Include="ZoomTransform.h" />
   </ItemGroup>
   <ItemGroup>
