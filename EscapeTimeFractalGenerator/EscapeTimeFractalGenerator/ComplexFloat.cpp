@@ -102,7 +102,6 @@ ComplexFloat ComplexFloat::Power(const int power) const
 	return newValue;
 }
 
-
 ComplexFloat ComplexFloat::Power(const CF_Float first, const ComplexFloat second)
 {
 	if (first == 0) return ComplexFloat(0,0); //math errors will occur if we try to do the math normally when first is 0

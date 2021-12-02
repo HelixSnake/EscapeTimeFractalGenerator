@@ -12,6 +12,7 @@ struct ComplexFloat
 	ComplexFloat operator-(const ComplexFloat other) const;
 	ComplexFloat operator*(const ComplexFloat other) const;
 	ComplexFloat operator*(const CF_Float other) const;
+	bool operator==(const ComplexFloat other) const { return real == other.real && imaginary == other.imaginary; }
 	CF_Float AbsoluteValue() const;
 	CF_Float AbsoluteValueSqr() const;
 	ComplexFloat Normalized() const;
