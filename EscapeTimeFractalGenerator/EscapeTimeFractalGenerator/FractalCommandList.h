@@ -21,9 +21,8 @@ public:
 		floatstocomplex,
 		NUM_ENTRIES
 	};
-	FractalCommandList(int numInts, int numFloats, int numComplexFloats, int commandListLength, unsigned int* commandListSrc);
+	FractalCommandList(int numFloats, int numComplexFloats, int commandListLength, unsigned int* commandListSrc);
 	~FractalCommandList();
-	int GetNumInts() { return numInts; }
 	int GetNumFloats() { return numFloats; }
 	int GetNumComplexFloats() { return numComplexFloats; }
 	int GetCommandListLength() { return commandListLength; }
@@ -32,7 +31,6 @@ public:
 private:
 	unsigned int* commandList = nullptr;
 	int commandListLength = 0; //the total length of the command tree in indices
-	int numInts = 0;
 	int numFloats = 0;
 	int numComplexFloats = 0;
 };
@@ -42,15 +40,13 @@ private:
 //[command enum] [command type] [command index] [argument 1 type] [argument 1 index] [argument 2 type] [argument 2 index]
 
 //Data is stored in 6 arrays (not in this class), the argument types and command types will refer to these arrays
-//variable ints: 0
-//variable floats: 1
-//variable complex floats: 2
+//variable floats: 0
+//variable complex floats: 1
 // 
-//constant ints: 3
-//constant floats: 4
-//constant complex floats: 5
+//constant floats: 2
+//constant complex floats: 3
 //
-// [command type] will be 0, 1, or 2, corresponding to these arrays. [argument type] can be any of the six numbers.
+// [command type] will be 0, or 1, corresponding to these arrays. [argument type] can be any of the four numbers.
 // if a command is only has one input, [argument 2 type] and [argument 2 index] will be ignored and set to 0.
 // Data for variables (non constants) will be stored in arrays with the same length as the command tree, with data only stored and used once every 7 entries. Wasted space, but it's faster and easier to keep track of, and they shouldn't be that long anyways.
 // Every time a command is executed, the result will be stored in same spot at the beginning of that command chunk, in the array of variables corresponding to the command type.

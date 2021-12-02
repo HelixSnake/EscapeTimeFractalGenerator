@@ -1,9 +1,8 @@
 #include "FractalCommandList.h"
 #include <string.h>
 
-FractalCommandList::FractalCommandList(int numInts, int numFloats, int numComplexFloats, int commandListLength, unsigned int* commandListSrc)
+FractalCommandList::FractalCommandList(int numFloats, int numComplexFloats, int commandListLength, unsigned int* commandListSrc)
 {
-	this->numInts = numInts;
 	this->numFloats = numFloats;
 	this->numComplexFloats = numComplexFloats;
 	this->commandListLength = commandListLength;
