@@ -16,7 +16,7 @@ public:
     void SetFunction(RecursiveFunction func);
     void SetStartingFunction(StartingValueFunction func);
     double CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues, int power);
-    double CalculateEscapeTime(FractalCommandListExecutor &startingFunction, FractalCommandListExecutor &recursiveFunction);
+    double CalculateEscapeTime(FractalCommandListExecutor &startingFunction, FractalCommandListExecutor &recursiveFunction, int power);
 protected:
     CF_Float minDeviationSqr = 0;
     int deviationCycle = 100;

@@ -72,7 +72,7 @@ BEGIN_TEST(FractalCommandExecutor, TestNullDelegates)
 			}
 }END_TEST
 
-BEGIN_TEST(FractalCommandExecutor, ExecuteMandelbrotFunction) // NOTE: will currently fail
+BEGIN_TEST(FractalCommandExecutor, ExecuteMandelbrotFunction)
 {
 	// construct command list array for mandelbrot function, n = (n - 1) * (n - 1) + c
 	unsigned int ints[12] = { (int)FractalCommandList::Command::multiply, 1, 1, 6, 1, 6,\

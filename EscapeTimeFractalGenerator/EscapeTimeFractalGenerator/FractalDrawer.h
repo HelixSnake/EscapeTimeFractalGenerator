@@ -84,7 +84,7 @@ protected:
 	static void SetPixel(std::atomic<CF_Float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, CF_Float value);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
 	bool DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, ComplexFloat* extraValues, int power);
-	bool DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
+	bool DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, int power);
 	void LockAllMutexes(bool haltDrawing = true);
 	void UnlockAllMutexes();
 };

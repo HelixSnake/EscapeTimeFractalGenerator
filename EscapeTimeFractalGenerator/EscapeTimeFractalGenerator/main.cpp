@@ -135,10 +135,14 @@ void DisplayToolTip(const char* s)
 void SetExecutorsForMandelbrot(FractalDrawer *fractalDrawer, FractalCommandDelegates *delegates)
 {
 	unsigned int MandelbrotStartFormula[6] = { (int)FractalCommandList::Command::move, 1, 3, 1, 3, 1 };
-	unsigned int MandelbrotRecrFormula[12] = { (int)FractalCommandList::Command::multiply, 1, 1, 6, 1, 6,\
-								(int)FractalCommandList::Command::add,      1, 1, 0, 3, 0 };
+	//unsigned int MandelbrotRecrFormula[12] = { (int)FractalCommandList::Command::multiply, 1, 1, 6, 1, 6,\
+	//							(int)FractalCommandList::Command::add,      1, 1, 0, 3, 0 };
+	//FractalCommandList recrCommandList = FractalCommandList(0, 2, 12, MandelbrotRecrFormula);
+	unsigned int MandelbrotRecrFormula[18] = { (int)FractalCommandList::Command::multiply, 1, 1, 12, 1, 12,\
+								(int)FractalCommandList::Command::multiply, 1, 1, 0, 1, 0, \
+								(int)FractalCommandList::Command::add,      1, 1, 6, 3, 0 };
+	FractalCommandList recrCommandList = FractalCommandList(0, 2, 18, MandelbrotRecrFormula);
 	FractalCommandList startCommandList = FractalCommandList(0, 2, 6, MandelbrotStartFormula);
-	FractalCommandList recrCommandList = FractalCommandList(0, 2, 12, MandelbrotRecrFormula);
 	fractalDrawer->InstantiateExecutors(startCommandList, recrCommandList, delegates);
 }
 

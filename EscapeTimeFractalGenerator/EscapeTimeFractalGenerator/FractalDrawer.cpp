@@ -123,7 +123,7 @@ bool FractalDrawer::DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_F
 	return true;
 }
 
-bool FractalDrawer::DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
+bool FractalDrawer::DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, int power)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(iterations, minDeviation, deviationCycles, debugDeviations);
@@ -151,7 +151,7 @@ bool FractalDrawer::DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Flo
 			y = (y - tfy) * tfscale;
 			startExecutors[index]->SetConstantComplexFloat(0, ComplexFloat(x, y));
 			recursiveExecutors[index]->SetConstantComplexFloat(0, ComplexFloat(x, y));
-			CF_Float value = fractal.CalculateEscapeTime(*startExecutors[index], *recursiveExecutors[index]);
+			CF_Float value = fractal.CalculateEscapeTime(*startExecutors[index], *recursiveExecutors[index], power);
 			if (value == 0)
 			{
 				SetPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0);
@@ -290,7 +290,7 @@ bool FractalDrawer::Draw(bool update, ZoomTransform transform, ComplexFloat* ext
 				if (startExecutors[i] != nullptr && recursiveExecutors[i] != nullptr)
 				{
 					drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunkFromCommands, this, i,
-						transform.x, transform.y, transform.scale);
+						transform.x, transform.y, transform.scale, power);
 				}
 			}
 		}
