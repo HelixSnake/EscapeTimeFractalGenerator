@@ -1,13 +1,28 @@
 #include "FractalCommandList.h"
 #include <string.h>
 
-FractalCommandList::FractalCommandList(int numConstFloats, int numConstComplexFloats, int commandListLength, unsigned int* commandListSrc)
+FractalCommandList::FractalCommandList(int numConstFloats, int numConstComplexFloats, int commandListLength, const unsigned int* commandListSrc)
 {
 	this->numConstFloats = numConstFloats;
 	this->numConstCFloats = numConstComplexFloats;
 	this->commandListLength = commandListLength;
 	commandList = new unsigned int[commandListLength];
-	memcpy(commandList, commandListSrc, commandListLength * sizeof(unsigned int));
+	if (commandListSrc != nullptr)
+	{
+		memcpy(commandList, commandListSrc, commandListLength * sizeof(unsigned int));
+	}
+}
+
+FractalCommandList::FractalCommandList(int numConstFloats, int numConstComplexFloats, std::vector<unsigned int> commandListVector)
+{
+	this->numConstFloats = numConstFloats;
+	this->numConstCFloats = numConstComplexFloats;
+	this->commandListLength = commandListVector.size();
+	this->commandList = new unsigned int[commandListLength];
+	for (int i = 0; i < commandListLength; i++) //memcpy COULD work but I don't trust it in this instance.
+	{
+		commandList[i] = commandListVector[i];
+	}
 }
 FractalCommandList::~FractalCommandList()
 {

@@ -1,31 +1,34 @@
 #pragma once
 #include "ComplexFloat.h"
 #include <algorithm>
+#include <vector>
+
+enum struct FractalCommand
+{
+	move,
+	add,
+	multiply,
+	power,
+	sin,
+	cos,
+	magnitude,
+	normalize,
+	getx,
+	gety,
+	floatstocomplex,
+	ALL_NULL, //used for testing; no delegates will exist for this command
+	NUM_ITEMS
+};
+
 class FractalCommandList //Readonly Data storage only, do not implement any functionality here besides construction and reading. This data stored in this class is stored in a way meant to be executed upon as quickly as possible.
 //You should only need one instance of this class at a time in the program. A new one should be created every time you need to change it.
-//Todo: Execution class
 //Todo: Builder class
 //Todo: Validator class (if the command list has bad data, the execution class may crash the program!)
-//Todo: Parser (parse strings into Builder class)
+
 {
 public:
-	enum struct Command
-	{
-		move,
-		add,
-		multiply,
-		power,
-		sin,
-		cos,
-		magnitude,
-		normalize,
-		getx,
-		gety,
-		floatstocomplex,
-		ALL_NULL, //used for testing; no delegates will exist for this command
-		NUM_ITEMS
-	};
-	FractalCommandList(int numConstFloats, int numConstCFloats, int commandListLength, unsigned int* commandListSrc);
+	FractalCommandList(int numConstFloats, int numConstCFloats, int commandListLength, const unsigned int* commandListSrc);
+	FractalCommandList(int numConstFloats, int numConstCFloats, std::vector<unsigned int> commandListVector);
 	FractalCommandList(const FractalCommandList& c);
 	~FractalCommandList();
 	FractalCommandList& operator=(FractalCommandList other)

@@ -31,7 +31,7 @@ BEGIN_TEST(FractalCommandDelegate, RunCFCFCFMove)
 		ComplexFloat first = ComplexFloat(1, 2);
 		ComplexFloat expectedResult = ComplexFloat(1, 2);
 		FractalCommandDelegates delegates;
-		ComplexFloat result = delegates.CCC_Functions[(int)FractalCommandList::Command::move](first, ComplexFloat(0,0));
+		ComplexFloat result = delegates.CCC_Functions[(int)FractalCommand::move](first, ComplexFloat(0,0));
 		EXPECT_EQ(expectedResult, result)
 	}END_TEST
 
@@ -41,7 +41,7 @@ BEGIN_TEST(FractalCommandDelegate, RunCFCFCFAdd)
 		ComplexFloat second = ComplexFloat(3, 4);
 		ComplexFloat expectedResult = ComplexFloat(4, 6);
 		FractalCommandDelegates delegates;
-		ComplexFloat result = delegates.CCC_Functions[(int)FractalCommandList::Command::add](first, second);
+		ComplexFloat result = delegates.CCC_Functions[(int)FractalCommand::add](first, second);
 		EXPECT_EQ(expectedResult, result)
 	}END_TEST
 
@@ -51,7 +51,7 @@ BEGIN_TEST(FractalCommandDelegate, RunCFCFCFMult)
 			ComplexFloat second = ComplexFloat(3, 4);
 			ComplexFloat expectedResult = ComplexFloat(-5, 10);
 			FractalCommandDelegates delegates;
-			ComplexFloat result = delegates.CCC_Functions[(int)FractalCommandList::Command::multiply](first, second);
+			ComplexFloat result = delegates.CCC_Functions[(int)FractalCommand::multiply](first, second);
 			EXPECT_EQ(expectedResult, result)
 		}END_TEST
 
@@ -65,7 +65,7 @@ BEGIN_TEST(FractalCommandExecutor, TestNullDelegates)
 		for (int j = 0; j <= 3; j++)
 			for (int k = 0; k <= 3; k++)
 			{
-				unsigned int ints[6] = { (int)FractalCommandList::Command::ALL_NULL, i, j, 0, k, 0 };
+				unsigned int ints[6] = { (int)FractalCommand::ALL_NULL, i, j, 0, k, 0 };
 				FractalCommandList commandList = FractalCommandList(1, 1, 1, ints);
 				FractalCommandListExecutor executor = FractalCommandListExecutor(commandList, &delegates);
 				EXPECT_EQ(executor.Execute(), 1);
@@ -75,8 +75,8 @@ BEGIN_TEST(FractalCommandExecutor, TestNullDelegates)
 BEGIN_TEST(FractalCommandExecutor, ExecuteMandelbrotFunction)
 {
 	// construct command list array for mandelbrot function, n = (n - 1) * (n - 1) + c
-	unsigned int ints[12] = { (int)FractalCommandList::Command::multiply, 1, 1, 6, 1, 6,\
-								(int)FractalCommandList::Command::add,      1, 1, 0, 3, 0 };
+	unsigned int ints[12] = { (int)FractalCommand::multiply, 1, 1, 6, 1, 6,\
+								(int)FractalCommand::add,      1, 1, 0, 3, 0 };
 	FractalCommandList fcl(0, 1, 12, ints);
 	FractalCommandDelegates delegates;
 	FractalCommandListExecutor executor = FractalCommandListExecutor(fcl, &delegates);

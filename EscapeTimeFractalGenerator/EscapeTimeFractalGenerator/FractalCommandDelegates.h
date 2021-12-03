@@ -16,8 +16,9 @@ public:
 	typedef ComplexFloat(*CFFloatCF) (CF_Float first, ComplexFloat second);
 	typedef ComplexFloat(*CFCFFloat) (ComplexFloat first, CF_Float second);
 	typedef ComplexFloat(*CFCFCF) (ComplexFloat first, ComplexFloat second);
+	//For functions with a single argument, both argument types will be the same.
 	
-	static const unsigned long long ARRAY_LENGTH = (unsigned long long)FractalCommandList::Command::NUM_ITEMS;
+	static const unsigned long long ARRAY_LENGTH = (unsigned long long)FractalCommand::NUM_ITEMS;
 
 	FloatFloatFloat FFF_Functions[ARRAY_LENGTH];
 	FloatFloatCF FFC_Functions[ARRAY_LENGTH];
@@ -27,7 +28,12 @@ public:
 	CFFloatCF CFC_Functions[ARRAY_LENGTH];
 	CFCFFloat CCF_Functions[ARRAY_LENGTH];
 	CFCFCF CCC_Functions[ARRAY_LENGTH];
+
+	const char* commandNames[ARRAY_LENGTH];
+
+	bool IsDelegatePointerNull(int index, int returnType, int arg1type, int arg2type);
 private:
 	void GenerateKnownCommandDelegates();
+	void GenerateKnownCommandNames();
 };
 

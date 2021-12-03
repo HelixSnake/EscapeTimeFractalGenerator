@@ -134,20 +134,20 @@ void DisplayToolTip(const char* s)
 
 void SetExecutorsForMandelbrot(FractalDrawer *fractalDrawer, FractalCommandDelegates *delegates)
 {
-	unsigned int MandelbrotStartFormula[6] = { (int)FractalCommandList::Command::move, 1, 3, 1, 3, 1 };
+	unsigned int MandelbrotStartFormula[6] = { (int)FractalCommand::move, 1, 3, 1, 3, 1 };
 	//unsigned int MandelbrotRecrFormula[12] = { (int)FractalCommandList::Command::multiply, 1, 1, 6, 1, 6,\
 	//							(int)FractalCommandList::Command::add,      1, 1, 0, 3, 0 };
 	//FractalCommandList recrCommandList = FractalCommandList(0, 2, 12, MandelbrotRecrFormula);
-	unsigned int MandelbrotRecrFormula[18] = { (int)FractalCommandList::Command::multiply, 1, 1, 12, 1, 12,\
-								(int)FractalCommandList::Command::multiply, 1, 1, 0, 1, 0, \
-								(int)FractalCommandList::Command::add,      1, 1, 6, 3, 0 };
+	unsigned int MandelbrotRecrFormula[18] = { (int)FractalCommand::multiply, 1, 1, 12, 1, 12,\
+								(int)FractalCommand::multiply, 1, 1, 0, 1, 0, \
+								(int)FractalCommand::add,      1, 1, 6, 3, 0 };
 	FractalCommandList recrCommandList = FractalCommandList(0, 2, 18, MandelbrotRecrFormula);
 	FractalCommandList startCommandList = FractalCommandList(0, 2, 6, MandelbrotStartFormula);
 	fractalDrawer->InstantiateExecutors(startCommandList, recrCommandList, delegates);
 }
 
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
-void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser)
+void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser, FractalCommandDelegates *delegates)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -195,51 +195,56 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	fractalInfo.offset = tempOffset;
 
 	ImGui::Checkbox("Custom Function", &fractalInfo.customFunction);
-	const char* juliaTooltip = "Press J when mousing over a certain area of the Mandelbrot version\n to get a Julia set with similar properties";
-	ImGui::Text("Fractal Type (mouse over for tips):");
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Mandelbrot, fractalInfo);
-	DisplayToolTip("Formula: n = ((n-1)^power + c);");
-	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Julia, fractalInfo);
-	DisplayToolTip(juliaTooltip);
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningShip, fractalInfo);
-	DisplayToolTip("Formula: n = ((n-1)^power + c); n.x = abs(n.x); n.y = abs(n.y);");
-	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningJulia, fractalInfo);
-	DisplayToolTip(juliaTooltip);
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedMandelbrot, fractalInfo);
-	DisplayToolTip("Formula: n = ((n - 1) ^ power + c); n -= v * dot(n,v) * 2;\nHold V to set the reflection vector");
-	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedJulia, fractalInfo);
-	DisplayToolTip(juliaTooltip);
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SpunMandelbrot, fractalInfo);
-	DisplayToolTip("Formula: n = ((n - 1) ^ power + c); n += n / |n| * v;\nHold V to set the spin vector");
-	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SpunJulia, fractalInfo);
-	DisplayToolTip(juliaTooltip);
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Peacock, fractalInfo);
-	DisplayToolTip("Formula: n = ((v.x ^ (n - 1)) ^ power + c);\nv is Additional Constant\nSet the X value of Additional Constant to get this fractal to work\nGood values are 0.5 or 2\nSet Length Limit to a higher value for more correct results");
-	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::PeacockJulia, fractalInfo);
-	DisplayToolTip("Set the X value of Additional Constant to get this fractal to work\nGood values are 0.5 or 2\nSet Length Limit to a higher value for more correct results");
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::CosineMandelbrot, fractalInfo);
-	DisplayToolTip("Formula: n = (cos(n - 1)) ^ power + c);\nSet Length Limit to a higher value for more correct results");
-	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::CosineJulia, fractalInfo);
-	DisplayToolTip("Set Length Limit to a higher value for more correct results");
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReciprocalMandelbrot, fractalInfo);
-	DisplayToolTip("Formula: n = (1/((n-1)^power) + c);\nTechnically only diverges at very specific points\nSet Length Limit to a higher value for more correct results");
-	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReciprocalJulia, fractalInfo);
-	DisplayToolTip("Technically only diverges at very specific Julia Positions\nTo find these positions, set Length Limit to 100.0\nchoose a point on the Mandelbrot version,\n then zoom into one of the circles\nIncrease the Length Limit and zoom in as the circle becomes smaller\nMouse over the small circle and press J\nReset your zoom and enable the Julia version");
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SuperMandelbrot, fractalInfo);
-	DisplayToolTip("Formula: n = ((n-1)^v + c);\nHold V to set the complex exponent");
-	ImGui::SameLine();
-	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SuperJulia, fractalInfo);
-	DisplayToolTip("Hold V to set the complex exponent, hold J to set Julia Position");
-
+	if (!fractalInfo.customFunction)
+	{
+		const char* juliaTooltip = "Press J when mousing over a certain area of the Mandelbrot version\n to get a Julia set with similar properties";
+		ImGui::Text("Fractal Type (mouse over for tips):");
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Mandelbrot, fractalInfo);
+		DisplayToolTip("Formula: n = ((n-1)^power + c);");
+		ImGui::SameLine();
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Julia, fractalInfo);
+		DisplayToolTip(juliaTooltip);
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningShip, fractalInfo);
+		DisplayToolTip("Formula: n = ((n-1)^power + c); n.x = abs(n.x); n.y = abs(n.y);");
+		ImGui::SameLine();
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningJulia, fractalInfo);
+		DisplayToolTip(juliaTooltip);
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedMandelbrot, fractalInfo);
+		DisplayToolTip("Formula: n = ((n - 1) ^ power + c); n -= v * dot(n,v) * 2;\nHold V to set the reflection vector");
+		ImGui::SameLine();
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedJulia, fractalInfo);
+		DisplayToolTip(juliaTooltip);
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SpunMandelbrot, fractalInfo);
+		DisplayToolTip("Formula: n = ((n - 1) ^ power + c); n += n / |n| * v;\nHold V to set the spin vector");
+		ImGui::SameLine();
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SpunJulia, fractalInfo);
+		DisplayToolTip(juliaTooltip);
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Peacock, fractalInfo);
+		DisplayToolTip("Formula: n = ((v.x ^ (n - 1)) ^ power + c);\nv is Additional Constant\nSet the X value of Additional Constant to get this fractal to work\nGood values are 0.5 or 2\nSet Length Limit to a higher value for more correct results");
+		ImGui::SameLine();
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::PeacockJulia, fractalInfo);
+		DisplayToolTip("Set the X value of Additional Constant to get this fractal to work\nGood values are 0.5 or 2\nSet Length Limit to a higher value for more correct results");
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::CosineMandelbrot, fractalInfo);
+		DisplayToolTip("Formula: n = (cos(n - 1)) ^ power + c);\nSet Length Limit to a higher value for more correct results");
+		ImGui::SameLine();
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::CosineJulia, fractalInfo);
+		DisplayToolTip("Set Length Limit to a higher value for more correct results");
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReciprocalMandelbrot, fractalInfo);
+		DisplayToolTip("Formula: n = (1/((n-1)^power) + c);\nTechnically only diverges at very specific points\nSet Length Limit to a higher value for more correct results");
+		ImGui::SameLine();
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReciprocalJulia, fractalInfo);
+		DisplayToolTip("Technically only diverges at very specific Julia Positions\nTo find these positions, set Length Limit to 100.0\nchoose a point on the Mandelbrot version,\n then zoom into one of the circles\nIncrease the Length Limit and zoom in as the circle becomes smaller\nMouse over the small circle and press J\nReset your zoom and enable the Julia version");
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SuperMandelbrot, fractalInfo);
+		DisplayToolTip("Formula: n = ((n-1)^v + c);\nHold V to set the complex exponent");
+		ImGui::SameLine();
+		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::SuperJulia, fractalInfo);
+		DisplayToolTip("Hold V to set the complex exponent, hold J to set Julia Position");
+	}
+	else
+	{
+	}
 	ImGui::InputInt("Fractal Power", &fractalInfo.power);
-	DisplayToolTip("The power used in the fractal equation, when applicable.\n Limited to between 1 and 7");
+	DisplayToolTip("The power used in the fractal equation, when applicable.\n Limited to between 1 and 7\nDetermines how the gradient effect works");
 	fractalInfo.power = glm::clamp(fractalInfo.power, 1, 7); //to support values over 7 more values need to be fine tuned in ComplexFractal.cpp
 	if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
 	{
@@ -584,7 +589,7 @@ int main(int argc, char* argv[])
 		updateInterpreter = false;
 		regenBuffer = false;
 		//Render IMGUI stuff
-		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, currentZoom, rampTexFileDialog);
+		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, currentZoom, rampTexFileDialog, fractalCommandDelegates);
 	}
 	delete fractalDrawer;
 	delete[] extraValues;
