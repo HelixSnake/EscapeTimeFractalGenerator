@@ -26,6 +26,15 @@ BEGIN_TEST(FractalCommandList, ArrayConstruction)
 	}END_TEST
 
 //Fractal Command Delegate Tests -------------------------------------------------------------------------------------------------------------------------
+BEGIN_TEST(FractalCommandDelegate, RunCFCFCFMove)
+	{
+		ComplexFloat first = ComplexFloat(1, 2);
+		ComplexFloat expectedResult = ComplexFloat(1, 2);
+		FractalCommandDelegates delegates;
+		ComplexFloat result = delegates.CCC_Functions[(int)FractalCommandList::Command::move](first, ComplexFloat(0,0));
+		EXPECT_EQ(expectedResult, result)
+	}END_TEST
+
 BEGIN_TEST(FractalCommandDelegate, RunCFCFCFAdd)
 	{
 		ComplexFloat first = ComplexFloat(1, 2);
@@ -84,6 +93,7 @@ int RunAllUnitTests()
 			RUN_TEST(FractalCommandList, ArrayConstruction)
 			RUN_TEST(FractalCommandExecutor, TestNullDelegates)
 			RUN_TEST(FractalCommandExecutor, ExecuteMandelbrotFunction)
+			RUN_TEST(FractalCommandDelegate, RunCFCFCFMove)
 			RUN_TEST(FractalCommandDelegate, RunCFCFCFAdd)
 			RUN_TEST(FractalCommandDelegate, RunCFCFCFMult)
 			return 0;

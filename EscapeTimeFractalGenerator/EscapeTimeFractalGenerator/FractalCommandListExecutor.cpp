@@ -51,6 +51,8 @@ int FractalCommandListExecutor::Execute()
 		int arg2Index = commandListArray[i + 5];
 		int arg1Type = arg1Src % 2; // 0 if float, 1 if complex float
 		int arg2Type = arg2Src % 2; // 0 if float, 1 if complex float
+		//DON'T IMPLEMENT ANY LINE OF THIS WITHOUT A FUNCTION TO TEST IT WITH AND A TEST WRITTEN
+		//IF YOU DO NOT HAVE A FUNCTION WITH THE RIGHT COMBINATION LEAVE IT AS "return 1;"
 		if (commandType == 0)
 		{
 			if (arg1Type == 0)

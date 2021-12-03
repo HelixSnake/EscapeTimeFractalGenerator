@@ -63,6 +63,7 @@ struct FractalInfo
 	bool useCustomJulPos = false;
 	bool showAdvancedOptions = false;
 	bool liveUpdate = false;
+	bool customFunction = false;
 	double CustomJulPosX = 0;
 	double CustomJulPosY = 0;
 	double DistortionVectorX = 0;
@@ -131,6 +132,16 @@ void DisplayToolTip(const char* s)
 	}
 }
 
+void SetExecutorsForMandelbrot(FractalDrawer *fractalDrawer, FractalCommandDelegates *delegates)
+{
+	unsigned int MandelbrotStartFormula[6] = { (int)FractalCommandList::Command::move, 1, 3, 1, 3, 1 };
+	unsigned int MandelbrotRecrFormula[12] = { (int)FractalCommandList::Command::multiply, 1, 1, 6, 1, 6,\
+								(int)FractalCommandList::Command::add,      1, 1, 0, 3, 0 };
+	FractalCommandList startCommandList = FractalCommandList(0, 2, 6, MandelbrotStartFormula);
+	FractalCommandList recrCommandList = FractalCommandList(0, 2, 12, MandelbrotRecrFormula);
+	fractalDrawer->InstantiateExecutors(startCommandList, recrCommandList, delegates);
+}
+
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
 void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser)
 {
@@ -178,6 +189,8 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	}
 	DisplayToolTip("Changes the offset to the ramp texture");
 	fractalInfo.offset = tempOffset;
+
+	ImGui::Checkbox("Custom Function", &fractalInfo.customFunction);
 	const char* juliaTooltip = "Press J when mousing over a certain area of the Mandelbrot version\n to get a Julia set with similar properties";
 	ImGui::Text("Fractal Type (mouse over for tips):");
 	DisplayFractalTypeCheckbox(FractalDictionary::FractalType::Mandelbrot, fractalInfo);
@@ -259,6 +272,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		fractalDrawer->SetDeviationCycles(fractalInfo.deviationCycles, fractalInfo.debugDeviations);
 		fractalDrawer->SetLengthLimit(fractalInfo.lengthLimit);
 		fractalDrawer->SetFractalType(fractalInfo.type);
+		fractalDrawer->SetUseCustomFunction(fractalInfo.customFunction);
 		updateDrawer = true;
 		// We need to regenerate the pixel buffer due to changed texture dimensions in case upscale has changed
 		regenBuffer = true;
@@ -368,6 +382,8 @@ int main(int argc, char* argv[])
 	ComplexFloat* extraValues = new ComplexFloat[numExtraValues];
 	// initialize fractal drawer class
 	FractalDrawer* fractalDrawer = new FractalDrawer(currentWindowWidth, currentWindowHeight, numExtraValues);
+	// initialize fractal command delegates class
+	FractalCommandDelegates* fractalCommandDelegates = new FractalCommandDelegates();
 	// create fractal interpreter
 	FractalInterpreter fractalInterpreter;
 	// current zoom level
@@ -417,6 +433,7 @@ int main(int argc, char* argv[])
 	rampTexFileDialog.SetTypeFilters({ ".png" });
 
 	bool firstDraw = true;
+	SetExecutorsForMandelbrot(fractalDrawer, fractalCommandDelegates);
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);

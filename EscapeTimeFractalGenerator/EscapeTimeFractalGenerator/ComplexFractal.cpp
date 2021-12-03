@@ -84,3 +84,9 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 	}
 	return 0;
 }
+
+
+double ComplexFractal::CalculateEscapeTime(FractalCommandListExecutor& startingFunction, FractalCommandListExecutor& recursiveFunction)
+{
+	return 1;
+}

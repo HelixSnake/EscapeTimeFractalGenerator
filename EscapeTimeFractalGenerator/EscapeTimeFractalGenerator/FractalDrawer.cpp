@@ -17,6 +17,13 @@ FractalDrawer::FractalDrawer(int width, int height, int numExtraValues)
 	threadProgress = new std::atomic<int>[NUM_FRACTAL_DRAW_THREADS];
 	Mutexes = new std::mutex[NUM_FRACTAL_DRAW_THREADS];
 	drawingStatus = new std::future_status[NUM_FRACTAL_DRAW_THREADS];
+	startExecutors = new FractalCommandListExecutor * [NUM_FRACTAL_DRAW_THREADS];
+	recursiveExecutors = new FractalCommandListExecutor * [NUM_FRACTAL_DRAW_THREADS];
+	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
+	{
+		startExecutors[i] = nullptr;
+		recursiveExecutors[i] = nullptr;
+	}
 
 	this->pixelBufferHeight = height;
 	this->pixelBufferWidth = width;
@@ -24,6 +31,7 @@ FractalDrawer::FractalDrawer(int width, int height, int numExtraValues)
 	currentFractal = FractalDictionary::FractalType::Mandelbrot;
 	extraValues = new ComplexFloat[numExtraValues];
 	this->numExtraValues = numExtraValues;
+
 }
 
 FractalDrawer::~FractalDrawer()
@@ -37,6 +45,15 @@ FractalDrawer::~FractalDrawer()
 	delete[] drawingStatus;
 	delete[] threadProgress;
 	delete[] Mutexes;
+	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
+	{
+		if (startExecutors[i] != nullptr)
+			delete startExecutors[i];
+		if (recursiveExecutors[i] != nullptr)
+			delete recursiveExecutors[i];
+	}
+	delete[] startExecutors;
+	delete[] recursiveExecutors;
 }
 
 
@@ -106,6 +123,50 @@ bool FractalDrawer::DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_F
 	return true;
 }
 
+bool FractalDrawer::DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale)
+{
+	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
+	ComplexFractal fractal = ComplexFractal(iterations, minDeviation, deviationCycles, debugDeviations);
+	fractal.lengthLimit = lengthLimit;
+	FractalDictionary::FractalTypeInfo typeInfo = FractalDictionary::GetInfo(currentFractal);
+	if (typeInfo.recursiveFunction != nullptr && typeInfo.startingValueFunction != nullptr)
+	{
+		fractal.SetFunction(typeInfo.recursiveFunction);
+		fractal.SetStartingFunction(typeInfo.startingValueFunction);
+	}
+
+	int currentThreadProgress = 0;
+	for (int i = index; i < pixelBufferHeight; i += NUM_FRACTAL_DRAW_THREADS)
+	{
+		for (int j = 0; j < pixelBufferWidth; j++)
+		{
+			threadProgress[index] = currentThreadProgress;
+			if (haltDrawingThread)
+			{
+				return false;
+			}
+			CF_Float x = (CF_Float)j / pixelBufferWidth;
+			CF_Float y = (CF_Float)i / pixelBufferHeight;
+			x = (x * pixelBufferWidth / pixelBufferHeight - tfx) * tfscale;
+			y = (y - tfy) * tfscale;
+			startExecutors[index]->SetConstantComplexFloat(0, ComplexFloat(x, y));
+			recursiveExecutors[index]->SetConstantComplexFloat(0, ComplexFloat(x, y));
+			CF_Float value = fractal.CalculateEscapeTime(*startExecutors[index], *recursiveExecutors[index]);
+			if (value == 0)
+			{
+				SetPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, 0);
+			}
+			else
+			{
+				//float newValue = glm::fract(value / period);
+				SetPixel(pixelBuffer, pixelBufferWidth, pixelBufferHeight, j, i, value);
+			}
+			currentThreadProgress++;
+		}
+	}
+	return true;
+}
+
 void FractalDrawer::Resize(int width, int height, double sizeMult)
 {
 	haltDrawingThread = true;
@@ -153,6 +214,20 @@ void FractalDrawer::SetFractalType(FractalDictionary::FractalType fractal)
 	this->currentFractal = fractal;
 	UnlockAllMutexes();
 }
+
+void FractalDrawer::InstantiateExecutors(FractalCommandList startingFunction, FractalCommandList recursiveFunction, FractalCommandDelegates* delegates)
+{
+	LockAllMutexes();
+	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
+	{
+		if (startExecutors[i] == nullptr) delete startExecutors[i];
+		if (recursiveExecutors[i] == nullptr) delete recursiveExecutors[i];
+		startExecutors[i] = new FractalCommandListExecutor(startingFunction, delegates);
+		recursiveExecutors[i] = new FractalCommandListExecutor(recursiveFunction, delegates);
+	}
+	UnlockAllMutexes();
+}
+
 FractalDictionary::FractalType FractalDrawer::GetFractalType()
 {
 	return currentFractal;
@@ -205,8 +280,19 @@ bool FractalDrawer::Draw(bool update, ZoomTransform transform, ComplexFloat* ext
 			int ystart = i * chunksize;
 			int yend = i == 15 ? pixelBufferHeight : (i + 1) * chunksize;
 			threadProgress[i] = 0;
-			drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i, 
-				transform.x, transform.y, transform.scale, this->extraValues, power);
+			if (!useCustomFunction)
+			{
+				drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunk, this, i,
+					transform.x, transform.y, transform.scale, this->extraValues, power);
+			}
+			else
+			{
+				if (startExecutors[i] != nullptr && recursiveExecutors[i] != nullptr)
+				{
+					drawFractalThreads[i] = std::async(std::launch::async, &FractalDrawer::DrawFractalChunkFromCommands, this, i,
+						transform.x, transform.y, transform.scale);
+				}
+			}
 		}
 		renderedZoom = transform;
 		isBusy = true;

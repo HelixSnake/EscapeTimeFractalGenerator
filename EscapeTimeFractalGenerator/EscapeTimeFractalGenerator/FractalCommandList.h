@@ -11,6 +11,7 @@ class FractalCommandList //Readonly Data storage only, do not implement any func
 public:
 	enum struct Command
 	{
+		move,
 		add,
 		multiply,
 		power,
@@ -62,3 +63,4 @@ private:
 // Data for variables (non constants) will be stored in arrays with the same length as the command tree, with data only stored and used once every 7 entries. Wasted space, but it's faster and easier to keep track of, and they shouldn't be that long anyways.
 // Every time a command is executed, the result will be stored in same spot at the beginning of that command chunk, in the array of variables corresponding to the command type.
 // Argument indexes should either be 1. the position of a previous command, and the same type as that command type was, or 2. the index of a constant in one of the constants arrays, if the type points to a constant array.
+// index 0 of the constant complex floats array is reserved for the complex float formed from the x y pixel position.

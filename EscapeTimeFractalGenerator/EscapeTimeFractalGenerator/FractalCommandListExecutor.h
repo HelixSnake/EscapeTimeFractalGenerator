@@ -4,7 +4,10 @@
 class FractalCommandListExecutor //Executes the fractal command list as many times as necessary. You should only need one of these per thread.
 {
 public:
+	FractalCommandListExecutor();
 	FractalCommandListExecutor(FractalCommandList commandList, FractalCommandDelegates* delegates);
+	void SetCommandList(FractalCommandList commandList);
+	void SetDelegates(FractalCommandDelegates* delegates);
 	bool SetConstantFloat(int index, CF_Float value); //returns false if failed
 	bool SetConstantComplexFloat(int index, ComplexFloat value); //returns false if failed
 	int Execute(); // returns 0 if succeeded, 1 if a function is unknown

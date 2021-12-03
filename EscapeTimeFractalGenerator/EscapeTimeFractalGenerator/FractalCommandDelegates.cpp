@@ -18,6 +18,7 @@ FractalCommandDelegates::FractalCommandDelegates()
 
 void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate all commands currently implemented
 {
+	CCC_Functions[(int)FractalCommandList::Command::move] = [](ComplexFloat first, ComplexFloat second) { return first; };
 	CCC_Functions[(int)FractalCommandList::Command::add] = [](ComplexFloat first, ComplexFloat second) { return first + second; };
 	CCC_Functions[(int)FractalCommandList::Command::multiply] = [](ComplexFloat first, ComplexFloat second) { return first * second; };
 }

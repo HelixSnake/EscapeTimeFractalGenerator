@@ -17,6 +17,7 @@
 #include "ComplexFloat.h"
 #include "ZoomTransform.h"
 #include "FractalDictionary.h"
+#include "FractalCommandListExecutor.h"
 
 using namespace std::chrono;
 
@@ -34,6 +35,8 @@ public:
 	void SetDeviationCycles(int deviationCycles, bool debugDeviations);
 	void SetLengthLimit(double lengthLimit);
 	void SetFractalType(FractalDictionary::FractalType fractal);
+	void InstantiateExecutors(FractalCommandList startingFunction, FractalCommandList recursiveFunction, FractalCommandDelegates* delegates);
+	void SetUseCustomFunction(bool useCustomFunction) { this->useCustomFunction = useCustomFunction; }
 	FractalDictionary::FractalType GetFractalType();
 	float GetProgress() { return drawingProgress; }
 	bool ShouldRestartInterpreter() { return shouldRestartInterpreter; }
@@ -73,9 +76,15 @@ protected:
     std::mutex *Mutexes;
 	std::future_status* drawingStatus;
 
+	FractalCommandListExecutor** startExecutors;
+	FractalCommandListExecutor** recursiveExecutors;
+
+	bool useCustomFunction = false;
+
 	static void SetPixel(std::atomic<CF_Float>* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, int x, int y, CF_Float value);
 	//static bool DrawFractal(float* pixelBuffer, int pixelBufferWidth, int pixelBufferHeight, const float* rampColors, int rampColorsWidth, glm::vec3 transform, float time, std::atomic_bool &halt);
 	bool DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, ComplexFloat* extraValues, int power);
+	bool DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale);
 	void LockAllMutexes(bool haltDrawing = true);
 	void UnlockAllMutexes();
 };
