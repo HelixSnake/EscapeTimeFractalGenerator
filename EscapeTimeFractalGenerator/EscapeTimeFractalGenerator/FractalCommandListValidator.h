@@ -1,13 +1,14 @@
 #pragma once
 #include "FractalCommandList.h"
 #include "FractalCommandDelegates.h"
+#include <unordered_map>
+#include <string>
 class FractalCommandListValidator
 {
 public:
 	enum class Error
 	{
 		NoError,
-		DelegatesNullPointer,
 		CommandListLengthNotMultipleOf6,
 		FunctionOutOfBounds,
 		ReturnTypeOutOfBounds,
@@ -20,13 +21,15 @@ public:
 		Arg2IndexVarNotMultipleOf6,
 		Arg1IndexVarAheadButNotReturnValue,
 		Arg2IndexVarAheadButNotReturnValue,
-		Arg1IndexVarPointsToCurrentCommand,
-		Arg2IndexVarPointsToCurrentCommand,
 		Arg1IndexVarDoesntMatchType,
 		Arg2IndexVarDoesntMatchType,
 		Arg1IndexConstOutOfBounds,
-		Arg2IndexConstOutOfBounds
+		Arg2IndexConstOutOfBounds,
+		NUM_ITEMS
 	};
-	static Error Check(FractalCommandList commandList, FractalCommandDelegates *delegates);
+
+	static const std::unordered_map<Error, std::string> ErrorStrings;
+
+	static std::pair<Error, int>  Check(FractalCommandList commandList, FractalCommandDelegates *delegates);
 };
 

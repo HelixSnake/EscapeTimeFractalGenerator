@@ -97,9 +97,9 @@ double ComplexFractal::CalculateEscapeTime(FractalCommandListExecutor& startingF
 	ComplexFloat cycleValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
 	ComplexFloat prev2Value = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
 	double lengthLimitSqr = lengthLimit * lengthLimit;
+	recursiveFunction.InitializeReturnValue(value);
 	for (int i = 0; i < iterations; i++)
 	{
-		recursiveFunction.InitializeReturnValue(value);
 		recursiveFunction.Execute();
 		value = recursiveFunction.GetReturnValue();
 		if (isnan(value.real) || isnan(value.imaginary)) return i; // if the values have gotten so extreme that a NAN showed up, just assume we diverged. Trust me, this is a good idea.

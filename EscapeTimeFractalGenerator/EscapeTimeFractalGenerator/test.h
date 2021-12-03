@@ -15,6 +15,7 @@
 }
 
 #define EXPECT_EQ(arg1, arg2) isTrue &= (arg1 == arg2);
+#define FAIL_TEST isTrue = false;
 
 #define RUN_TEST(TestSuite, TestName)                                      \
 {                                                                          \

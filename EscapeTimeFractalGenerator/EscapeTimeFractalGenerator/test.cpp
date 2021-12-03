@@ -1,6 +1,8 @@
 #include "test.h"
 #include "FractalCommandList.h"
 #include "FractalCommandListExecutor.h"
+#include "FractalCommandListValidator.h"
+#include "FractalCommandListValidatorTestMatrixes.h"
 
 // Function to add two integers 
 int addIntegers(const int& a, const int& b)
@@ -86,6 +88,28 @@ BEGIN_TEST(FractalCommandExecutor, ExecuteMandelbrotFunction)
 	EXPECT_EQ(executor.GetReturnValue(), ComplexFloat(12, 31))
 }END_TEST
 
+//Fractal Command List Validator Tests -------------------------------------------------------------------------------------------------------------------------
+
+BEGIN_TEST(FractalCommandValidator, RunAllValidationTests)
+{
+		FractalCommandDelegates fractalCommandDelegates;
+		for (int i = 0; i < FractalCommandListFailureTests.size(); i++)
+		{
+			FractalCommandListValidator::Error expectedErr = FractalCommandListFailureTests[i].first;
+			//if (FractalCommandListFailureTests.find((FractalCommandListValidator::Error)i) == FractalCommandListFailureTests.end()) FAIL_TEST //TODO: UNCOMMENT WHEN DONE
+			std::pair<FractalCommandListValidator::Error, int> recievedErrPair = FractalCommandListValidator::Check(FractalCommandListFailureTests[i].second, &fractalCommandDelegates);
+			if (expectedErr != recievedErrPair.first)
+			{
+				std::cout << "Failed Command List:\n" << FractalCommandListFailureTests[i].second.ToString() << std::endl;
+				if (FractalCommandListValidator::ErrorStrings.find(expectedErr) != FractalCommandListValidator::ErrorStrings.end() && FractalCommandListValidator::ErrorStrings.find(recievedErrPair.first) != FractalCommandListValidator::ErrorStrings.end())
+				{
+					std::cout << "Expected error: " << FractalCommandListValidator::ErrorStrings.at(expectedErr) <<  std::endl << "Recieved error: " << FractalCommandListValidator::ErrorStrings.at(recievedErrPair.first) << std::endl << "Line: " << std::to_string(recievedErrPair.second) << std::endl;
+				}
+			}
+			EXPECT_EQ(expectedErr, recievedErrPair.first)
+		}
+}END_TEST
+
 //Run all -------------------------------------------------------------------------------------------------------------------------
 int RunAllUnitTests()
 	{
@@ -96,5 +120,6 @@ int RunAllUnitTests()
 			RUN_TEST(FractalCommandDelegate, RunCFCFCFMove)
 			RUN_TEST(FractalCommandDelegate, RunCFCFCFAdd)
 			RUN_TEST(FractalCommandDelegate, RunCFCFCFMult)
+			RUN_TEST(FractalCommandValidator, RunAllValidationTests)
 			return 0;
 	}

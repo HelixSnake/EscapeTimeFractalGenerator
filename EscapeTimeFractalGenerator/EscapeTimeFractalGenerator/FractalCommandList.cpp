@@ -1,5 +1,6 @@
 #include "FractalCommandList.h"
-#include <string.h>
+#include <string>
+#include <iostream>
 
 FractalCommandList::FractalCommandList(int numConstFloats, int numConstComplexFloats, int commandListLength, const unsigned int* commandListSrc)
 {
@@ -43,4 +44,15 @@ void swap(FractalCommandList& first, FractalCommandList& second)
 	std::swap(first.commandListLength, second.commandListLength);
 	std::swap(first.numConstCFloats, second.numConstCFloats);
 	std::swap(first.numConstFloats, second.numConstFloats);
+}
+
+std::string FractalCommandList::ToString()
+{
+	std::string output = "Num constant floats: " + std::to_string(this->numConstFloats) + ", Num constant complex floats:" + std::to_string(this->numConstCFloats);
+	for (int i = 0; i < commandListLength; i++)
+	{
+		if (i % 6 == 0) output = output + +"\n";
+		output = output + std::to_string(commandList[i]) + ", ";
+	}
+	return output;
 }

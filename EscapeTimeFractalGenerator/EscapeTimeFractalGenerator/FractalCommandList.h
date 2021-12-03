@@ -2,6 +2,7 @@
 #include "ComplexFloat.h"
 #include <algorithm>
 #include <vector>
+#include <string>
 
 enum struct FractalCommand
 {
@@ -43,6 +44,7 @@ public:
 	int GetCommandListLength() { return commandListLength; }
 	int GetResultIndex() { return commandListLength - 6; } // The result index, or the index of the return value of the command list, will always be the index of the start of the final command block
 	const unsigned int* GetCommandList() {	return commandList;	}
+	std::string ToString();
 private:
 	unsigned int* commandList = nullptr;
 	int commandListLength = 0; //the total length of the command tree in indices
