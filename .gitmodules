@@ -1,0 +1,18 @@
+[submodule "EscapeTimeFractalGenerator/lib/glew-cmake"]
+	path = EscapeTimeFractalGenerator/lib/glew-cmake
+	url = https://github.com/Perlmint/glew-cmake.git
+[submodule "EscapeTimeFractalGenerator/lib/glfw"]
+	path = EscapeTimeFractalGenerator/lib/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "EscapeTimeFractalGenerator/lib/glm"]
+	path = EscapeTimeFractalGenerator/lib/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "EscapeTimeFractalGenerator/lib/imgui"]
+	path = EscapeTimeFractalGenerator/lib/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "EscapeTimeFractalGenerator/lib/imgui-filebrowser"]
+	path = EscapeTimeFractalGenerator/lib/imgui-filebrowser
+	url = https://github.com/AirGuanZ/imgui-filebrowser.git
+[submodule "EscapeTimeFractalGenerator/lib/SOIL"]
+	path = EscapeTimeFractalGenerator/lib/SOIL
+	url = https://github.com/paralin/soil.git
