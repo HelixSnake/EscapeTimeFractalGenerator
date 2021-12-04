@@ -1,11 +1,13 @@
 #include <iostream>
 #include <thread>
+
+//SOIL
+#include <SOIL.h>
+
 //GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-//SOIL
-#include <SOIL.h>
 //GLFW
 #include <GLFW/glfw3.h>
 

@@ -1,8 +1,8 @@
 #include "FractalDrawer.h"
 #include "ComplexFractal.h"
-#include <math.h>;
-#include <glm/vec2.hpp>;
-#include <glm/common.hpp>;
+#include <math.h>
+#include <glm/vec2.hpp>
+#include <glm/common.hpp>
 
 std::mutex mtx;
 const glm::vec3 STARTING_TRANSFORM = glm::vec3(0.5, 0.5, 3);

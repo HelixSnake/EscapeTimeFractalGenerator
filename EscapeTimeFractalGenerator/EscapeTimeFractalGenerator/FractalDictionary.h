@@ -7,7 +7,7 @@
 class FractalDictionary
 {
 public:
-	static enum class FractalType
+	enum class FractalType
 	{
 		Mandelbrot,
 		Julia,
