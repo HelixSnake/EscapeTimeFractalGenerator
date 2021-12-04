@@ -2,12 +2,13 @@
 std::pair<FractalCommandListValidator::Error, int> FractalCommandListValidator::Check(FractalCommandList commandList, FractalCommandDelegates* delegates)
 {
 	if (commandList.GetCommandListLength() % 6 != 0) return { Error::CommandListLengthNotMultipleOf6, 0 };
+	if (commandList.GetCommandListLength() == 0) return { Error::CommandListEmpty, 0 };
 	const unsigned int* commandArray = commandList.GetCommandList();
 	int commandLength = commandList.GetCommandListLength();
 	int returnValueIndex = commandLength - 6;
 	for (int i = 0; i < commandLength; i += 6)
 	{
-		int line = i / 6 + 1;
+		int line = i / 6;
 		int function = commandArray[i];
 		int returnType = commandArray[i + 1];
 		int arg1Type = commandArray[i + 2];
@@ -99,6 +100,10 @@ const std::unordered_map<FractalCommandListValidator::Error, std::string> Fracta
 	{
 		Error::Arg2TypeOutOfBounds,
 		"Argument 2's type must be bettween 0 and 3 inclusive"
+	},
+	{
+		Error::CommandListEmpty,
+		"Command List empty"
 	},
 	{
 		Error::CommandListLengthNotMultipleOf6,

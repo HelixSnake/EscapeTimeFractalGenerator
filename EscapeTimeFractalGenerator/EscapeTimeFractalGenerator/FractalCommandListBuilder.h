@@ -7,15 +7,19 @@ public:
 	enum class Datatype
 	{
 		Float,
-		ComplexFloat
+		ComplexFloat,
+		NUM_ITEMS
 	};
+	static const char* const DataTypeStrings[2];
 	enum class Source
 	{
 		Variables,
 		Constants,
 		Input,
-		PreviousValue
+		PreviousValue,
+		NUM_ITEMS
 	};
+	static const char* const SourceStrings[4];
 	struct Command
 	{
 		FractalCommand function;

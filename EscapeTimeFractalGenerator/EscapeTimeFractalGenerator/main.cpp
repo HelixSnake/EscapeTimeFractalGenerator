@@ -30,6 +30,7 @@
 #include "FractalSmoothZoomer.h"
 #include "FractalCommandList.h"
 #include "FractalCommandListBuilder.h"
+#include "FractalCommandListValidator.h"
 
 //Unit Tests
 #include "test.h"
@@ -71,6 +72,9 @@ struct FractalInfo
 	double DistortionVectorY = 0;
 	int power = 2;
 	FractalDictionary::FractalType type = FractalDictionary::FractalType::Julia;
+
+	std::pair<FractalCommandListValidator::Error, int> startCommandListError;
+	std::pair<FractalCommandListValidator::Error, int> recrCommandListError;
 };
 
 void ClearPixelBuffer(float* buffer, int size)
@@ -133,7 +137,28 @@ void DisplayToolTip(const char* s)
 	}
 }
 
-void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, FractalCommandDelegates* commandDelegates, int& imguiID)
+void DisplayCommandAttributeComboBox(const char* label, int length, int& imguiID, int prevValue, int &currentValue, const char* const options[])
+{
+	ImGui::PushID(imguiID);
+	if (ImGui::BeginCombo(label, options[prevValue]))
+	{
+		for (int n = 0; n < length; n++)
+		{
+			bool is_selected = (n == currentValue); // You can store your selection however you want, outside or inside your objects
+			if (ImGui::Selectable(options[n], is_selected))
+			{
+				currentValue = n;
+			}
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+		}
+		ImGui::EndCombo();
+	}
+	ImGui::PopID();
+	imguiID++;
+}
+
+void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, FractalCommandDelegates* commandDelegates, int& imguiID, const FractalInfo &fractalInfo)
 {
 	const std::vector<CF_Float> constFloats = commandListBuilder.GetConstFloats();
 	ImGui::Text("Const Floats:");
@@ -225,30 +250,106 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 	for (int i = 0; i < commandList.size(); i++)
 	{
 		Command currentCommand = commandList[i];
-		int PrevCurrentItem = (int)commandList[i].function;
-		int currentItem = PrevCurrentItem;
+		int PrevCurrentFunction = (int)commandList[i].function;
+		int currentFunction = PrevCurrentFunction;
 		ImGui::Text((std::to_string(i) + ": ").c_str());
+		ImGui::SameLine();
 		ImGui::PushID(imguiID);
-		if (ImGui::BeginCombo("Function", functionNames[PrevCurrentItem]))
+		if (ImGui::Button("-"))
 		{
-			for (int n = 0; n < functionNamesLength; n++)
-			{
-				bool is_selected = (n == currentItem); // You can store your selection however you want, outside or inside your objects
-				if (ImGui::Selectable(functionNames[n], is_selected))
-				{
-					currentItem = n;
-				}
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-			}
-			ImGui::EndCombo();
+			commandListBuilder.DeleteCommand(i);
 		}
 		ImGui::PopID();
 		imguiID++;
+
+		ImGui::SetNextItemWidth(150);
+		DisplayCommandAttributeComboBox("Function", functionNamesLength, imguiID, PrevCurrentFunction, currentFunction, functionNames);
+
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(150);
+		int PrevCurrentReturnType = (int)commandList[i].outputDatatype;
+		int currentReturnType = PrevCurrentReturnType;
+		DisplayCommandAttributeComboBox("Return Type", (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentReturnType, currentReturnType, FractalCommandListBuilder::DataTypeStrings);
+
+		ImGui::SetNextItemWidth(120);
+		int PrevCurrentArg1Type = (int)commandList[i].firstArgDatatype;
+		int currentArg1Type = PrevCurrentArg1Type;
+		DisplayCommandAttributeComboBox("Type", (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentArg1Type, currentArg1Type, FractalCommandListBuilder::DataTypeStrings);
+
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(120);
+		int PrevCurrentArg1Source = (int)commandList[i].firstArgSource;
+		int currentArg1Source = PrevCurrentArg1Source;
+		DisplayCommandAttributeComboBox("Source", (int)Source::NUM_ITEMS, imguiID, PrevCurrentArg1Source, currentArg1Source, FractalCommandListBuilder::SourceStrings);
+
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(80);
+		int PrevCurrentArg1Index = commandList[i].firstArgindex;
+		int currentArg1Index = PrevCurrentArg1Index;
+		ImGui::PushID(imguiID);
+		ImGui::InputInt("Index", &currentArg1Index);
+		ImGui::PopID();
+		imguiID++;
+
+		ImGui::SetNextItemWidth(120);
+		int PrevCurrentArg2Type = (int)commandList[i].secondArgDatatype;
+		int currentArg2Type = PrevCurrentArg2Type;
+		DisplayCommandAttributeComboBox("Type", (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentArg2Type, currentArg2Type, FractalCommandListBuilder::DataTypeStrings);
+
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(120);
+		int PrevCurrentArg2Source = (int)commandList[i].secondArgSource;
+		int currentArg2Source = PrevCurrentArg2Source;
+		DisplayCommandAttributeComboBox("Source", (int)Source::NUM_ITEMS, imguiID, PrevCurrentArg2Source, currentArg2Source, FractalCommandListBuilder::SourceStrings);
+
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(80);
+		int PrevCurrentArg2Index = commandList[i].secondArgindex;
+		int currentArg2Index = PrevCurrentArg2Index;
+		ImGui::PushID(imguiID);
+		ImGui::InputInt("Index", &currentArg2Index);
+		ImGui::PopID();
+		imguiID++;
+
 		bool replaceCommand = false;
-		if (PrevCurrentItem != currentItem)
+		if (PrevCurrentFunction != currentFunction)
 		{
-			currentCommand.function = (FractalCommand)currentItem;
+			currentCommand.function = (FractalCommand)currentFunction;
+			replaceCommand = true;
+		}
+		if (PrevCurrentReturnType != currentReturnType)
+		{
+			currentCommand.outputDatatype = (Datatype)currentReturnType;
+			replaceCommand = true;
+		}
+		if (PrevCurrentArg1Type != currentArg1Type)
+		{
+			currentCommand.firstArgDatatype = (Datatype)currentArg1Type;
+			replaceCommand = true;
+		}
+		if (PrevCurrentArg1Source != currentArg1Source)
+		{
+			currentCommand.firstArgSource = (Source)currentArg1Source;
+			replaceCommand = true;
+		}
+		if (PrevCurrentArg1Index != currentArg1Index)
+		{
+			currentCommand.firstArgindex = currentArg1Index;
+			replaceCommand = true;
+		}
+		if (PrevCurrentArg2Type != currentArg2Type)
+		{
+			currentCommand.secondArgDatatype = (Datatype)currentArg2Type;
+			replaceCommand = true;
+		}
+		if (PrevCurrentArg2Source != currentArg2Source)
+		{
+			currentCommand.secondArgSource = (Source)currentArg2Source;
+			replaceCommand = true;
+		}
+		if (PrevCurrentArg2Index != currentArg2Index)
+		{
+			currentCommand.secondArgindex = currentArg2Index;
 			replaceCommand = true;
 		}
 		if (replaceCommand)
@@ -265,24 +366,25 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 	imguiID++;
 }
 
-void SetExecutorsForMandelbrot(FractalDrawer *fractalDrawer, FractalCommandDelegates *delegates)
+void SetExecutorsFromBuilders(FractalDrawer *fractalDrawer, FractalCommandDelegates *delegates, FractalCommandListBuilder& commandListBuilderStart, FractalCommandListBuilder& commandListBuilderRecr,
+	std::pair< FractalCommandListValidator::Error, int> &startErr, std::pair< FractalCommandListValidator::Error, int>& recrErr)
 {
-	unsigned int MandelbrotStartFormula[6] = { (int)FractalCommand::move, 1, 3, 1, 3, 1 };
-	//unsigned int MandelbrotRecrFormula[12] = { (int)FractalCommandList::Command::multiply, 1, 1, 6, 1, 6,\
-	//							(int)FractalCommandList::Command::add,      1, 1, 0, 3, 0 };
-	//FractalCommandList recrCommandList = FractalCommandList(0, 2, 12, MandelbrotRecrFormula);
-	unsigned int MandelbrotRecrFormula[18] = { (int)FractalCommand::multiply, 1, 1, 12, 1, 12,\
-								(int)FractalCommand::multiply, 1, 1, 0, 1, 0, \
-								(int)FractalCommand::add,      1, 1, 6, 3, 0 };
-	FractalCommandList recrCommandList = FractalCommandList(0, 2, 18, MandelbrotRecrFormula);
-	FractalCommandList startCommandList = FractalCommandList(0, 2, 6, MandelbrotStartFormula);
-	fractalDrawer->InstantiateExecutors(startCommandList, recrCommandList, delegates);
+	FractalCommandList startCommandList = commandListBuilderStart.BuildCommandList();
+	FractalCommandList recrCommandList = commandListBuilderRecr.BuildCommandList();
+	startErr = FractalCommandListValidator::Check(startCommandList, delegates);
+	recrErr = FractalCommandListValidator::Check(recrCommandList, delegates);
+	if (startErr.first == FractalCommandListValidator::Error::NoError &&
+		recrErr.first == FractalCommandListValidator::Error::NoError)
+		{ 
+			fractalDrawer->InstantiateExecutors(startCommandList, recrCommandList, delegates);
+			fractalDrawer->SendConstsToExecutors(commandListBuilderStart.GetConstFloats(), commandListBuilderRecr.GetConstFloats(), commandListBuilderStart.GetConstComplexFloats(), commandListBuilderRecr.GetConstComplexFloats());
+		}
 }
 
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
 void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo,
 	FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser,
-	FractalCommandDelegates *delegates, FractalCommandListBuilder &commandListBuilderStart, FractalCommandListBuilder& commandListBuilderRecr)
+	FractalCommandDelegates *delegates, FractalCommandListBuilder &commandListBuilderStart, FractalCommandListBuilder &commandListBuilderRecr)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -379,9 +481,11 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	{
 		int imguiID = 0;
 		ImGui::Text("Starting Function:");
-		DisplayCommandListBuilder(commandListBuilderStart, delegates, imguiID);
+		DisplayCommandListBuilder(commandListBuilderStart, delegates, imguiID, fractalInfo);
+		ImGui::TextWrapped((std::string("Error: \"") + FractalCommandListValidator::ErrorStrings.at(fractalInfo.startCommandListError.first) + "\" at command " + std::to_string(fractalInfo.startCommandListError.second)).c_str());
 		ImGui::Text("Recursive Function:");
-		DisplayCommandListBuilder(commandListBuilderRecr, delegates, imguiID);
+		DisplayCommandListBuilder(commandListBuilderRecr, delegates, imguiID, fractalInfo);
+		ImGui::TextWrapped((std::string("Error: \"") + FractalCommandListValidator::ErrorStrings.at(fractalInfo.recrCommandListError.first) + "\" at command " + std::to_string(fractalInfo.recrCommandListError.second)).c_str());
 	}
 	ImGui::InputInt("Fractal Power", &fractalInfo.power);
 	DisplayToolTip("The power used in the fractal equation, when applicable.\n Limited to between 1 and 7\nDetermines how the gradient effect works");
@@ -425,6 +529,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		updateDrawer = true;
 		// We need to regenerate the pixel buffer due to changed texture dimensions in case upscale has changed
 		regenBuffer = true;
+		SetExecutorsFromBuilders(fractalDrawer, delegates, commandListBuilderStart, commandListBuilderRecr, fractalInfo.startCommandListError, fractalInfo.recrCommandListError);
 	}
 	if (ImGui::Button("Reset Zoom"))
 	{
@@ -585,7 +690,6 @@ int main(int argc, char* argv[])
 	rampTexFileDialog.SetTypeFilters({ ".png" });
 
 	bool firstDraw = true;
-	SetExecutorsForMandelbrot(fractalDrawer, fractalCommandDelegates);
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);

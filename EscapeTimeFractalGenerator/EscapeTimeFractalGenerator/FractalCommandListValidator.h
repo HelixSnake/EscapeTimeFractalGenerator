@@ -9,6 +9,7 @@ public:
 	enum class Error
 	{
 		NoError,
+		CommandListEmpty,
 		CommandListLengthNotMultipleOf6,
 		FunctionOutOfBounds,
 		ReturnTypeOutOfBounds,

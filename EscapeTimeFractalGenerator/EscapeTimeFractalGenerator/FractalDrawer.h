@@ -36,6 +36,7 @@ public:
 	void SetLengthLimit(double lengthLimit);
 	void SetFractalType(FractalDictionary::FractalType fractal);
 	void InstantiateExecutors(FractalCommandList startingFunction, FractalCommandList recursiveFunction, FractalCommandDelegates* delegates);
+	void SendConstsToExecutors(std::vector<CF_Float> startFloats, std::vector<CF_Float> recrFloats, std::vector<ComplexFloat> startCFloats, std::vector<ComplexFloat> recrCFloats);
 	void SetUseCustomFunction(bool useCustomFunction) { this->useCustomFunction = useCustomFunction; }
 	FractalDictionary::FractalType GetFractalType();
 	float GetProgress() { return drawingProgress; }

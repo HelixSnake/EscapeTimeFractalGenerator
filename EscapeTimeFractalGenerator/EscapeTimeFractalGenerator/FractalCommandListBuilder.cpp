@@ -1,5 +1,17 @@
 #include "FractalCommandListBuilder.h"
 
+const char* const FractalCommandListBuilder::DataTypeStrings[2] =
+{
+	"Float",
+	"ComplexFloat"
+};
+const char* const FractalCommandListBuilder::SourceStrings[4] =
+{
+	"Variables",
+	"Constants",
+	"Input",
+	"PreviousValue"
+};
 bool FractalCommandListBuilder::AddCommand(unsigned int index, Command command)
 {
 	if (index > commands.size()) return false;
@@ -67,7 +79,52 @@ const std::vector<ComplexFloat>  FractalCommandListBuilder::GetConstComplexFloat
 	return constComplexFloats;
 }
 
-FractalCommandList FractalCommandListBuilder::BuildCommandList() //Not implemented yet
+FractalCommandList FractalCommandListBuilder::BuildCommandList()
 {
-	return FractalCommandList(constFloats.size(), constComplexFloats.size(), commands.size(), nullptr);
+	unsigned int* ints = new unsigned int[commands.size() * 6];
+	for (int i = 0; i < commands.size(); i++)
+	{
+		int currentIndex = i * 6;
+		ints[currentIndex] = (unsigned int)commands[i].function;
+		ints[currentIndex + 1] = (unsigned int)commands[i].outputDatatype;
+		switch (commands[i].firstArgSource)
+		{
+		case Source::Variables:
+			ints[currentIndex + 2] = commands[i].firstArgDatatype == Datatype::Float ? 0 : 1;
+			ints[currentIndex + 3] = commands[i].firstArgindex * 6;
+			break;
+		case Source::Constants:
+			ints[currentIndex + 2] = commands[i].firstArgDatatype == Datatype::Float ? 2 : 3;
+			ints[currentIndex + 3] = commands[i].firstArgindex + (commands[i].firstArgDatatype == Datatype::ComplexFloat ? 1 : 0);
+			break;
+		case Source::Input:
+			ints[currentIndex + 2] = 3; 
+			ints[currentIndex + 3] = 0;
+			break;
+		case Source::PreviousValue:
+			ints[currentIndex + 2] = 1;
+			ints[currentIndex + 3] = commands.size() * 6 - 6;
+			break;
+		}
+		switch (commands[i].secondArgSource)
+		{
+		case Source::Variables:
+			ints[currentIndex + 4] = commands[i].secondArgDatatype == Datatype::Float ? 0 : 1;
+			ints[currentIndex + 5] = commands[i].secondArgindex * 6;
+			break;
+		case Source::Constants:
+			ints[currentIndex + 4] = commands[i].secondArgDatatype == Datatype::Float ? 2 : 3;
+			ints[currentIndex + 5] = commands[i].secondArgindex + (commands[i].secondArgDatatype == Datatype::ComplexFloat ? 1 : 0);
+			break;
+		case Source::Input:
+			ints[currentIndex + 4] = 3;
+			ints[currentIndex + 5] = 0;
+			break;
+		case Source::PreviousValue:
+			ints[currentIndex + 4] = 1;
+			ints[currentIndex + 5] = commands.size() * 6 - 6;
+			break;
+		}
+	}
+	return FractalCommandList(constFloats.size(), constComplexFloats.size() + 1, commands.size() * 6, ints);
 }

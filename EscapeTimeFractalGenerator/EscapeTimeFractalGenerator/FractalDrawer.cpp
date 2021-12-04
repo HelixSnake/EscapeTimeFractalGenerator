@@ -228,6 +228,24 @@ void FractalDrawer::InstantiateExecutors(FractalCommandList startingFunction, Fr
 	UnlockAllMutexes();
 }
 
+
+void FractalDrawer::SendConstsToExecutors(std::vector<CF_Float> startFloats, std::vector<CF_Float> recrFloats, std::vector<ComplexFloat> startCFloats, std::vector<ComplexFloat> recrCFloats)
+{
+	LockAllMutexes();
+	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
+	{
+		for (int j = 0; j < startFloats.size(); j++)
+			startExecutors[i]->SetConstantFloat(j, startFloats[j]);
+		for (int j = 0; j < recrFloats.size(); j++)
+			recursiveExecutors[i]->SetConstantFloat(j, recrFloats[j]);
+		for (int j = 0; j < startCFloats.size(); j++)
+			startExecutors[i]->SetConstantComplexFloat(j+1, startCFloats[j]);
+		for (int j = 0; j < recrCFloats.size(); j++)
+			recursiveExecutors[i]->SetConstantComplexFloat(j+1, recrCFloats[j]);
+	}
+	UnlockAllMutexes();
+}
+
 FractalDictionary::FractalType FractalDrawer::GetFractalType()
 {
 	return currentFractal;
