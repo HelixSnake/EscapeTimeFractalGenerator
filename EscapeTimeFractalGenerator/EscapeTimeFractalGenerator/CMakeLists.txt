@@ -3,12 +3,18 @@ add_executable(Escape
   ComplexFloat.cpp
   ComplexFractal.cpp
   EscapeTimeFractal.cpp
+  FractalCommandDelegates.cpp
+  FractalCommandList.cpp
+  FractalCommandListBuilder.cpp
+  FractalCommandListExecutor.cpp
+  FractalCommandListValidator.cpp
   FractalDictionary.cpp
   FractalDrawer.cpp
   FractalInterpreter.cpp
   FractalSmoothZoomer.cpp
   MandelbrotFractal.cpp
-  QuadDrawer.cpp) 
+  QuadDrawer.cpp
+  Test.cpp) 
 
 target_link_libraries(Escape
   soil
