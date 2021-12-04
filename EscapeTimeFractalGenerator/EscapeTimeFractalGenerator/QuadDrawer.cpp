@@ -36,4 +36,5 @@ bool QuadDrawer::DrawBuffer(GLFWwindow* window, const float* colors, GLenum form
 	glBlitFramebuffer(0, 0, width / frameBufferScale, height / frameBufferScale, x1, y1, x2, y2,
 		GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	glDeleteFramebuffers(1, &fbo);
+	return true;
 }
