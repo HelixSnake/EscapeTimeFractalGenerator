@@ -10,8 +10,6 @@ add_executable(Escape
   MandelbrotFractal.cpp
   QuadDrawer.cpp) 
 
-#TODO: Per-target glew dll
-#Properly encoded paths
 target_link_libraries(Escape
   soil
   imgui

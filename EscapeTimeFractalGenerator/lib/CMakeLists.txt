@@ -33,5 +33,5 @@ add_subdirectory(glm)
 
 #GLEW
 add_compile_definitions(GLEW_STATIC)
-ADD_LIBRARY(glew STATIC glew/src/glew.c)
-target_include_directories(glew PUBLIC glew/include)
+ADD_LIBRARY(glew STATIC glew-cmake/src/glew.c)
+target_include_directories(glew PUBLIC glew-cmake/include)
