@@ -31,6 +31,10 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 	CCF_Functions[(int)FractalCommand::multiply] = [](ComplexFloat first, CF_Float second) { return first * second; };
 	CFC_Functions[(int)FractalCommand::multiply] = [](CF_Float first, ComplexFloat second) { return second * first; };
 
+	CCC_Functions[(int)FractalCommand::divide] = [](ComplexFloat first, ComplexFloat second) {return first / second; };
+	CCF_Functions[(int)FractalCommand::divide] = [](ComplexFloat first, CF_Float second) {return first / second; };
+	FFF_Functions[(int)FractalCommand::divide] = [](CF_Float first, CF_Float second) {return first / second; };
+
 	CCC_Functions[(int)FractalCommand::power] = [](ComplexFloat first, ComplexFloat second) { return ComplexFloat::Power(first, second); };
 	CFC_Functions[(int)FractalCommand::power] = [](CF_Float first, ComplexFloat second) { return ComplexFloat::Power(first, second); };
 	FFF_Functions[(int)FractalCommand::power] = [](CF_Float first, CF_Float second) { return powl(first, second); };
@@ -50,6 +54,7 @@ void FractalCommandDelegates::GenerateKnownCommandNames()
 	commandNames[(unsigned long long)FractalCommand::move] = "Move"; 
 	commandNames[(unsigned long long)FractalCommand::add] = "Add";
 	commandNames[(unsigned long long)FractalCommand::multiply] = "Multiply";
+	commandNames[(unsigned long long)FractalCommand::divide] = "Divide";
 	commandNames[(unsigned long long)FractalCommand::power] = "Power";
 	commandNames[(unsigned long long)FractalCommand::sin] = "Sin";
 	commandNames[(unsigned long long)FractalCommand::cos] = "Cos";
@@ -68,6 +73,7 @@ void FractalCommandDelegates::GenerateKnownCommandInputs()
 	commandInputs[(unsigned long long)FractalCommand::move] = 1;
 	commandInputs[(unsigned long long)FractalCommand::add] = 2;
 	commandInputs[(unsigned long long)FractalCommand::multiply] = 2;
+	commandInputs[(unsigned long long)FractalCommand::divide] = 2;
 	commandInputs[(unsigned long long)FractalCommand::power] = 2;
 	commandInputs[(unsigned long long)FractalCommand::sin] = 1;
 	commandInputs[(unsigned long long)FractalCommand::cos] = 1;

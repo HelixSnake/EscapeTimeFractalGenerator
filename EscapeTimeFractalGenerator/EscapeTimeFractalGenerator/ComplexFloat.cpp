@@ -39,6 +39,17 @@ ComplexFloat ComplexFloat::operator*(const CF_Float other) const
 {
 	return ComplexFloat(this->real * other, this->imaginary * other);
 }
+ComplexFloat ComplexFloat::operator/(const CF_Float other) const
+{
+	return ComplexFloat(this->real / other, this->imaginary / other);
+}
+ComplexFloat ComplexFloat::operator/(const ComplexFloat other) const
+{
+	ComplexFloat output;
+	output.real = this->real* other.real + this->imaginary * other.imaginary;
+	output.imaginary = this->imaginary * other.real - this->real*other.imaginary;
+	return output / (other.real * other.real + other.imaginary * other.imaginary);
+}
 
 CF_Float ComplexFloat::AbsoluteValue() const
 {

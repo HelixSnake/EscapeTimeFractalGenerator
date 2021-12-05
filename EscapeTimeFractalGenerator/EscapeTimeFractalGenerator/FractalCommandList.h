@@ -9,6 +9,7 @@ enum struct FractalCommand
 	move,
 	add,
 	multiply,
+	divide,
 	power,
 	sin,
 	cos,
