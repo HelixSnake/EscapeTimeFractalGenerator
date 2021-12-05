@@ -60,7 +60,7 @@ FractalDrawer::~FractalDrawer()
 void FractalDrawer::LockAllMutexes(bool haltDrawing)
 {
 	if (haltDrawing) haltDrawingThread = true;
-	mtx.lock();
+	//mtx.lock();
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
 		Mutexes[i].lock();
@@ -68,7 +68,7 @@ void FractalDrawer::LockAllMutexes(bool haltDrawing)
 }
 void FractalDrawer::UnlockAllMutexes()
 {
-	mtx.unlock();
+	//mtx.unlock();
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
 		Mutexes[i].unlock();
@@ -220,12 +220,21 @@ void FractalDrawer::InstantiateExecutors(FractalCommandList startingFunction, Fr
 	LockAllMutexes();
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
-		if (startExecutors[i] == nullptr) delete startExecutors[i];
-		if (recursiveExecutors[i] == nullptr) delete recursiveExecutors[i];
+		if (startExecutors[i] != nullptr) delete startExecutors[i];
+		if (recursiveExecutors[i] != nullptr) delete recursiveExecutors[i];
 		startExecutors[i] = new FractalCommandListExecutor(startingFunction, delegates);
 		recursiveExecutors[i] = new FractalCommandListExecutor(recursiveFunction, delegates);
 	}
 	UnlockAllMutexes();
+}
+bool FractalDrawer::ExecutorsAreInstantiated()
+{
+	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
+	{
+		if (startExecutors[i] == nullptr) return false;
+		if (recursiveExecutors[i] == nullptr) return false;
+	}
+	return true;
 }
 
 
@@ -234,6 +243,7 @@ void FractalDrawer::SendConstsToExecutors(std::vector<CF_Float> startFloats, std
 	LockAllMutexes();
 	for (int i = 0; i < NUM_FRACTAL_DRAW_THREADS; i++)
 	{
+		if (startExecutors[i] == nullptr || recursiveExecutors[i] == nullptr) return;
 		for (int j = 0; j < startFloats.size(); j++)
 			startExecutors[i]->SetConstantFloat(j, startFloats[j]);
 		for (int j = 0; j < recrFloats.size(); j++)

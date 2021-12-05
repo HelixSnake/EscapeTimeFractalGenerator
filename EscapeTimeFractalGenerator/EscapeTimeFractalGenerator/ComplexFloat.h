@@ -13,7 +13,8 @@ struct ComplexFloat
 	ComplexFloat operator*(const ComplexFloat other) const;
 	ComplexFloat operator*(const CF_Float other) const; 
 	ComplexFloat operator/(const CF_Float other) const;
-	ComplexFloat operator/(const ComplexFloat other) const;
+	ComplexFloat operator/(const ComplexFloat other) const; 
+	static ComplexFloat Divide(const CF_Float first, const ComplexFloat second);
 	bool operator==(const ComplexFloat other) const { return real == other.real && imaginary == other.imaginary; }
 	CF_Float AbsoluteValue() const;
 	CF_Float AbsoluteValueSqr() const;
@@ -26,5 +27,6 @@ struct ComplexFloat
 	ComplexFloat Power(int power) const;
 	static ComplexFloat Power(const CF_Float first, const ComplexFloat second);
 	static ComplexFloat Power(const ComplexFloat first, const ComplexFloat second);
+	static ComplexFloat Power(const ComplexFloat first, const CF_Float second);
 };
 

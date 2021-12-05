@@ -51,9 +51,17 @@ ComplexFloat ComplexFloat::operator/(const ComplexFloat other) const
 	return output / (other.real * other.real + other.imaginary * other.imaginary);
 }
 
+ComplexFloat ComplexFloat::Divide(const CF_Float first, const ComplexFloat second)
+{
+	ComplexFloat output;
+	output.real = first * second.real;
+	output.imaginary = - first * second.imaginary;
+	return output / (second.real * second.real + second.imaginary * second.imaginary);
+}
+
 CF_Float ComplexFloat::AbsoluteValue() const
 {
-	return (CF_Float)sqrt(this->real * this->real + this->imaginary * this->imaginary);
+	return (CF_Float)sqrtl(this->real * this->real + this->imaginary * this->imaginary);
 }
 CF_Float ComplexFloat::AbsoluteValueSqr() const
 {
@@ -92,7 +100,7 @@ ComplexFloat ComplexFloat::Abs() const
 
 CF_Float ComplexFloat::Arg() const
 {
-	return atan2(imaginary, real);
+	return atan2l(imaginary, real);
 }
 
 ComplexFloat ComplexFloat::Reciprocal() const
@@ -117,7 +125,7 @@ ComplexFloat ComplexFloat::Power(const CF_Float first, const ComplexFloat second
 {
 	if (first == 0) return ComplexFloat(0,0); //math errors will occur if we try to do the math normally when first is 0
 	CF_Float clna = second.imaginary * log(first);
-	return ComplexFloat(cos(clna), sin(clna)) * pow(first, second.real);
+	return ComplexFloat(cosl(clna), sinl(clna)) * powl(first, second.real);
 }
 
 ComplexFloat ComplexFloat::Power(const ComplexFloat first, const ComplexFloat second)
@@ -126,7 +134,17 @@ ComplexFloat ComplexFloat::Power(const ComplexFloat first, const ComplexFloat se
 	{
 		return first;
 	}
-	ComplexFloat exponent1 = second * log(first.AbsoluteValue());
-	ComplexFloat exponent2 = ComplexFloat(0, first.Arg()) * second;
-	return ComplexFloat::Power(E_CONSTANT, exponent1 + exponent2);
+	ComplexFloat step1 = second * log(first.AbsoluteValue());
+	ComplexFloat step2 = step1 + ComplexFloat(0, first.Arg()) * second;
+	return ComplexFloat(cosl(step2.imaginary), sinl(step2.imaginary)) * powl(E_CONSTANT, step2.real);
+}
+ComplexFloat ComplexFloat::Power(const ComplexFloat first, const CF_Float second)
+{
+	if (first.real == 0 && first.imaginary == 0) //will cause multiple math errors if this is true; just return 0 + 0i
+	{
+		return first;
+	}
+	CF_Float r = first.AbsoluteValue();
+	CF_Float nt = second*first.Arg();
+	return ComplexFloat(cosl(nt), sinl(nt)) * r;
 }
