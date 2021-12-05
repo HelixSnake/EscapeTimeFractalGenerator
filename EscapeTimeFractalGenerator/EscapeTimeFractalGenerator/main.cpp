@@ -77,6 +77,10 @@ struct FractalInfo
 
 	std::pair<FractalCommandListValidator::Error, int> startCommandListError;
 	std::pair<FractalCommandListValidator::Error, int> recrCommandListError;
+	bool setCustomConst = false;
+	double customConstX = 0;
+	double customConstY = 0;
+	bool constChanged = false;
 };
 
 void ClearPixelBuffer(float* buffer, int size)
@@ -160,8 +164,11 @@ void DisplayCommandAttributeComboBox(const char* label, int length, int& imguiID
 	imguiID++;
 }
 
-void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, FractalCommandDelegates* commandDelegates, int& imguiID, const FractalInfo &fractalInfo)
+void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, FractalCommandDelegates* commandDelegates, int& imguiID, FractalInfo &fractalInfo)
 {
+	int readOnlyFlags = 0;
+	fractalInfo.constChanged = false;
+	if (fractalInfo.setCustomConst) readOnlyFlags = ImGuiInputTextFlags_ReadOnly;
 	const std::vector<CF_Float> constFloats = commandListBuilder.GetConstFloats();
 	ImGui::Text("Const Floats:");
 	for (int i = 0; i < constFloats.size(); i++)
@@ -171,7 +178,12 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		ImGui::Text((std::to_string(i) + ": ").c_str());
 		ImGui::SameLine();
 		ImGui::PushID(imguiID);
-		ImGui::InputDouble("", &currentFloat, 0, 0, " % .16f");
+		ImGui::InputDouble("", &currentFloat, 0, 0, " % .16f", readOnlyFlags);
+		if (ImGui::IsItemActive())
+		{
+			currentFloat = fractalInfo.customConstX;
+			fractalInfo.constChanged = true;
+		}
 		ImGui::PopID();
 		imguiID++;
 		if (currentFloatPrev != currentFloat)
@@ -200,6 +212,7 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 	ImGui::Text("Const Complex Floats:");
 	for (int i = 0; i < constComplexFloats.size(); i++)
 	{
+		bool setCurrentFloat = false;
 		double currentFloatRealPrev = constComplexFloats.at(i).real;
 		double currentFloatReal = currentFloatRealPrev;
 		double currentFloatImgPrev = constComplexFloats.at(i).imaginary;
@@ -207,15 +220,29 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		ImGui::Text((std::to_string(i) + " X: ").c_str());
 		ImGui::SameLine();
 		ImGui::PushID(imguiID);
-		ImGui::InputDouble("", &currentFloatReal, 0, 0, " % .16f");
+		ImGui::InputDouble("", &currentFloatReal, 0, 0, " % .16f", readOnlyFlags);
+		if (ImGui::IsItemActive())
+		{
+			setCurrentFloat = true;
+		}
 		ImGui::PopID();
 		imguiID++;
 		ImGui::Text((std::to_string(i) + " Y: ").c_str());
 		ImGui::SameLine();
 		ImGui::PushID(imguiID);
-		ImGui::InputDouble("", &currentFloatImg, 0, 0, " % .16f");
+		ImGui::InputDouble("", &currentFloatImg, 0, 0, " % .16f", readOnlyFlags);
+		if (ImGui::IsItemActive())
+		{
+			setCurrentFloat = true;
+		}
 		ImGui::PopID();
 		imguiID++;
+		if (setCurrentFloat && fractalInfo.setCustomConst)
+		{
+			currentFloatReal = fractalInfo.customConstX;
+			currentFloatImg = fractalInfo.customConstY;
+			fractalInfo.constChanged = true;
+		}
 		if (currentFloatRealPrev != currentFloatReal || currentFloatImgPrev != currentFloatImg)
 		{
 			commandListBuilder.SetConstComplexFloat(i, ComplexFloat(currentFloatReal, currentFloatImg));
@@ -763,26 +790,41 @@ int main(int argc, char* argv[])
 			currentZoom.ZoomInOrOut(mbxpos, 1 - mbypos, pow(ZOOM_PER_SECOND, deltaTime), (float)currentWindowWidth / currentWindowHeight);
 			didZoom = true;
 		}
-
-		bool chooseJuliaValue = middleMBstate == GLFW_PRESS || JKeyState == GLFW_PRESS || JKeyState2 == GLFW_PRESS;
-		if (chooseJuliaValue)
+		bool chooseDirectionValue = false;
+		bool chooseJuliaValue = false;
+		fracInfo.setCustomConst = false;
+		if (!fracInfo.customFunction)
 		{
-			ComplexFloat newPos = currentZoom.ScreenToWorldPos(mbxpos, 1 - mbypos, (float)currentWindowWidth / currentWindowHeight);
-			fracInfo.CustomJulPosX = newPos.real;
-			fracInfo.CustomJulPosY = newPos.imaginary;
-			fracInfo.useCustomJulPos = true;
-			fracInfo.animate = false;
-		}
-		juliaPosUpdate = chooseJuliaValue;
+			chooseJuliaValue = middleMBstate == GLFW_PRESS || JKeyState == GLFW_PRESS || JKeyState2 == GLFW_PRESS;
+			if (chooseJuliaValue)
+			{
+				ComplexFloat newPos = currentZoom.ScreenToWorldPos(mbxpos, 1 - mbypos, (float)currentWindowWidth / currentWindowHeight);
+				fracInfo.CustomJulPosX = newPos.real;
+				fracInfo.CustomJulPosY = newPos.imaginary;
+				fracInfo.useCustomJulPos = true;
+				fracInfo.animate = false;
+			}
+			juliaPosUpdate = chooseJuliaValue;
 
-		bool chooseDirectionValue = DKeyState == GLFW_PRESS || DKeyState2 == GLFW_PRESS;
-		if (chooseDirectionValue && numExtraValues >= 2)
-		{
-			ComplexFloat newPos = currentZoom.ScreenToWorldPos(mbxpos, 1 - mbypos, (float)currentWindowWidth / currentWindowHeight);
-			fracInfo.DistortionVectorX = newPos.real;
-			fracInfo.DistortionVectorY = newPos.imaginary;
+			chooseDirectionValue = DKeyState == GLFW_PRESS || DKeyState2 == GLFW_PRESS;
+			if (chooseDirectionValue && numExtraValues >= 2)
+			{
+				ComplexFloat newPos = currentZoom.ScreenToWorldPos(mbxpos, 1 - mbypos, (float)currentWindowWidth / currentWindowHeight);
+				fracInfo.DistortionVectorX = newPos.real;
+				fracInfo.DistortionVectorY = newPos.imaginary;
+			}
+			extraValues[1] = ComplexFloat(fracInfo.DistortionVectorX, fracInfo.DistortionVectorY);
 		}
-		extraValues[1] = ComplexFloat(fracInfo.DistortionVectorX, fracInfo.DistortionVectorY);
+		else
+		{
+			if (DKeyState == GLFW_PRESS || DKeyState2 == GLFW_PRESS)
+			{
+				ComplexFloat newPos = currentZoom.ScreenToWorldPos(mbxpos, 1 - mbypos, (float)currentWindowWidth / currentWindowHeight);
+				fracInfo.setCustomConst = true;
+				fracInfo.customConstX = newPos.real;
+				fracInfo.customConstY = newPos.imaginary;
+			}
+		}
 
 		// Render 
 		// Clear the colorbuffer 
@@ -811,6 +853,7 @@ int main(int argc, char* argv[])
 		bool interpreterDrew = false;
 		bool updateOnExtraValueChange = (fracInfo.animate || juliaPosUpdate) && FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues > 0;
 		updateOnExtraValueChange = updateOnExtraValueChange || chooseDirectionValue && FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues > 1;
+		updateOnExtraValueChange = updateOnExtraValueChange || fracInfo.customFunction && fracInfo.constChanged;
 		bool zoomMismatch = currentZoom.scale != fractalDrawer->GetRenderedZoom().scale;
 		bool shouldStartDrawing = (updateOnResize || updateOnExtraValueChange || updateDrawer || zoomMismatch || didZoom || firstDraw);
 		bool shouldSetupZoomer = shouldStartDrawing;
@@ -826,6 +869,9 @@ int main(int argc, char* argv[])
 			extraValues[0] = ComplexFloat((cos(totalTime) * 0.5 - cos(totalTime * 2) * 0.25) * 1.01,
 				(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
 		}
+		if (updateOnExtraValueChange && !fractalDrawer->IsBusy()) 			
+			fractalDrawer->SendConstsToExecutors(commandListBuilderStart.GetConstFloats(), commandListBuilderRecr.GetConstFloats(), commandListBuilderStart.GetConstComplexFloats(), commandListBuilderRecr.GetConstComplexFloats());
+
 		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom, extraValues, fracInfo.power);
 		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
