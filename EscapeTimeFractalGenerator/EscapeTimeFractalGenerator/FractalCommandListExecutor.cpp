@@ -59,7 +59,8 @@ int FractalCommandListExecutor::Execute()
 			{
 				if (arg2Type == 0) //000
 				{
-					return 1;
+					if (delegates->FFF_Functions[commandListArray[i]] == nullptr) return 1;
+					floats[i] = delegates->FFF_Functions[commandListArray[i]](((CF_Float*)arraysByNumber[arg1Src])[arg1Index], ((CF_Float*)arraysByNumber[arg2Src])[arg2Index]);
 				}
 				else //001
 				{
@@ -93,15 +94,16 @@ int FractalCommandListExecutor::Execute()
 				}
 				else // 101
 				{
-
-					return 1;
+					if (delegates->CFC_Functions[commandListArray[i]] == nullptr) return 1;
+					cfloats[i] = delegates->CFC_Functions[commandListArray[i]](((CF_Float*)arraysByNumber[arg1Src])[arg1Index], ((ComplexFloat*)arraysByNumber[arg2Src])[arg2Index]);
 				}
 			}
 			else
 			{
 				if (arg2Type == 0) //110
 				{
-					return 1;
+					if (delegates->CCF_Functions[commandListArray[i]] == nullptr) return 1;
+					cfloats[i] = delegates->CCF_Functions[commandListArray[i]](((ComplexFloat*)arraysByNumber[arg1Src])[arg1Index], ((CF_Float*)arraysByNumber[arg2Src])[arg2Index]);
 				}
 				else //111
 				{

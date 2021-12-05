@@ -32,6 +32,7 @@ public:
 		int secondArgindex;
 	};
 	bool AddCommand(unsigned int index, Command command);
+	bool AddCommand(unsigned int index);
 	bool AddConstFloat(unsigned int index, CF_Float value);
 	bool AddConstComplexFloat(unsigned int index, ComplexFloat value);
 	bool DeleteCommand(unsigned int index);

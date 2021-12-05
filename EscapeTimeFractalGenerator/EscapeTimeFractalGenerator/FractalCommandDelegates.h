@@ -30,10 +30,12 @@ public:
 	CFCFCF CCC_Functions[ARRAY_LENGTH];
 
 	const char* commandNames[ARRAY_LENGTH];
+	int commandInputs[ARRAY_LENGTH];
 
 	bool IsDelegatePointerNull(int index, int returnType, int arg1type, int arg2type);
 private:
 	void GenerateKnownCommandDelegates();
 	void GenerateKnownCommandNames();
+	void GenerateKnownCommandInputs();
 };
 

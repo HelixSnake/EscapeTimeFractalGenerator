@@ -14,16 +14,34 @@ FractalCommandDelegates::FractalCommandDelegates()
 	memset(CCF_Functions, 0, ARRAY_LENGTH * sizeof(CFCFFloat));
 	memset(CCC_Functions, 0, ARRAY_LENGTH * sizeof(CFCFCF));
 	GenerateKnownCommandDelegates(); 
-	GenerateKnownCommandNames();
+	GenerateKnownCommandNames(); 
+	GenerateKnownCommandInputs();
 }
 
 void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate all commands currently implemented
 {
 	CCC_Functions[(int)FractalCommand::move] = [](ComplexFloat first, ComplexFloat second) { return first; };
+	FFF_Functions[(int)FractalCommand::move] = [](CF_Float first, CF_Float second) { return first; };
+
 	CCC_Functions[(int)FractalCommand::add] = [](ComplexFloat first, ComplexFloat second) { return first + second; };
+	FFF_Functions[(int)FractalCommand::add] = [](CF_Float first, CF_Float second) { return first + second; };
+
 	CCC_Functions[(int)FractalCommand::multiply] = [](ComplexFloat first, ComplexFloat second) { return first * second; };
+	FFF_Functions[(int)FractalCommand::multiply] = [](CF_Float first, CF_Float second) { return first * second; };
+	CCF_Functions[(int)FractalCommand::multiply] = [](ComplexFloat first, CF_Float second) { return first * second; };
+	CFC_Functions[(int)FractalCommand::multiply] = [](CF_Float first, ComplexFloat second) { return second * first; };
+
+	CCC_Functions[(int)FractalCommand::power] = [](ComplexFloat first, ComplexFloat second) { return ComplexFloat::Power(first, second); };
+	CFC_Functions[(int)FractalCommand::power] = [](CF_Float first, ComplexFloat second) { return ComplexFloat::Power(first, second); };
+	FFF_Functions[(int)FractalCommand::power] = [](CF_Float first, CF_Float second) { return powl(first, second); };
+
+	CCC_Functions[(int)FractalCommand::cos] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat(cos(first.real) * cosh(first.imaginary), -sin(first.real) * sinh(first.imaginary)); };
+	FFF_Functions[(int)FractalCommand::cos] = [](CF_Float first, CF_Float second) {return cosl(first); };
+
+	CCC_Functions[(int)FractalCommand::sin] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat(sin(first.real) * cosh(first.imaginary), +cos(first.real) * sinh(first.imaginary)); };
+	FFF_Functions[(int)FractalCommand::sin] = [](CF_Float first, CF_Float second) {return sinl(first); };
 }
-void FractalCommandDelegates::GenerateKnownCommandNames() // Todo: generate all commands currently implemented
+void FractalCommandDelegates::GenerateKnownCommandNames()
 {
 	for (int i = 0; i < ARRAY_LENGTH; i++)
 	{
@@ -41,6 +59,24 @@ void FractalCommandDelegates::GenerateKnownCommandNames() // Todo: generate all 
 	commandNames[(unsigned long long)FractalCommand::gety] = "Get Imaginary";
 	commandNames[(unsigned long long)FractalCommand::floatstocomplex] = "Build Complex Float";
 }
+void FractalCommandDelegates::GenerateKnownCommandInputs()
+{
+	for (int i = 0; i < ARRAY_LENGTH; i++)
+	{
+		commandInputs[i] = 2;
+	}
+	commandInputs[(unsigned long long)FractalCommand::move] = 1;
+	commandInputs[(unsigned long long)FractalCommand::add] = 2;
+	commandInputs[(unsigned long long)FractalCommand::multiply] = 2;
+	commandInputs[(unsigned long long)FractalCommand::power] = 2;
+	commandInputs[(unsigned long long)FractalCommand::sin] = 1;
+	commandInputs[(unsigned long long)FractalCommand::cos] = 1;
+	commandInputs[(unsigned long long)FractalCommand::magnitude] = 1;
+	commandInputs[(unsigned long long)FractalCommand::normalize] = 1;
+	commandInputs[(unsigned long long)FractalCommand::getx] = 1;
+	commandInputs[(unsigned long long)FractalCommand::gety] = 1;
+	commandInputs[(unsigned long long)FractalCommand::floatstocomplex] = 2;
+}
 
 bool FractalCommandDelegates::IsDelegatePointerNull(int index, int returnType, int arg1Type, int arg2Type)
 {
@@ -50,25 +86,22 @@ bool FractalCommandDelegates::IsDelegatePointerNull(int index, int returnType, i
 		{
 			if (arg2Type == 0) //000
 			{
-				return true;
+				return (FFF_Functions[index] == nullptr);
 			}
 			else //001
 			{
-
-				return true;
+				return (FFC_Functions[index] == nullptr);
 			}
 		}
 		else
 		{
 			if (arg2Type == 0) //010
 			{
-
-				return true;
+				return (FCF_Functions[index] == nullptr);
 			}
 			else //011
 			{
-
-				return true;
+				return (FCC_Functions[index] == nullptr);
 			}
 		}
 	}
@@ -79,20 +112,19 @@ bool FractalCommandDelegates::IsDelegatePointerNull(int index, int returnType, i
 
 			if (arg2Type == 0) //100
 			{
-
-				return true;
+				return (CFF_Functions[index] == nullptr);
 			}
 			else // 101
 			{
 
-				return true;
+				return (CFC_Functions[index] == nullptr);
 			}
 		}
 		else
 		{
 			if (arg2Type == 0) //110
 			{
-				return true;
+				return (CCF_Functions[index] == nullptr);
 			}
 			else //111
 			{

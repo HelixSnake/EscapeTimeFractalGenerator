@@ -102,6 +102,11 @@ std::vector<std::pair<FractalCommandListValidator::Error, FractalCommandList>> F
 								(unsigned int)FractalCommand::add,      1, 0, 0, 1, 0 })
 	},
 	{
+	FractalCommandListValidator::Error::Arg1IndexVarDoesntMatchType,
+	FractalCommandList(0, 1, {(unsigned int)FractalCommand::multiply, 1, 0, 6, 1, 6,\
+								(unsigned int)FractalCommand::add,      1, 0, 0, 1, 0 })
+	},
+	{
 	FractalCommandListValidator::Error::Arg2IndexVarDoesntMatchType,
 	FractalCommandList(0, 1, {(unsigned int)FractalCommand::multiply, 1, 1, 6, 0, 6,\
 								(unsigned int)FractalCommand::add,      1, 1, 0, 1, 0 })

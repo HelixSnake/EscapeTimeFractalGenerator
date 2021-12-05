@@ -7,16 +7,21 @@ const char* const FractalCommandListBuilder::DataTypeStrings[2] =
 };
 const char* const FractalCommandListBuilder::SourceStrings[4] =
 {
-	"Variables",
+	"CommandResults",
 	"Constants",
-	"Input",
-	"PreviousValue"
+	"InputPosition",
+	"(n - 1)"
 };
 bool FractalCommandListBuilder::AddCommand(unsigned int index, Command command)
 {
 	if (index > commands.size()) return false;
 	commands.insert(commands.begin() + index, command);
 	return true;
+}
+
+bool FractalCommandListBuilder::AddCommand(unsigned int index)
+{
+	return AddCommand(index, { FractalCommand::move, Datatype::ComplexFloat, Datatype::ComplexFloat, Datatype::ComplexFloat, Source::Constants, Source::Constants, 0, 0 });
 }
 bool FractalCommandListBuilder::AddConstFloat(unsigned int index, CF_Float value)
 {
