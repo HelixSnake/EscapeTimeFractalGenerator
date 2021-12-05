@@ -167,7 +167,6 @@ void DisplayCommandAttributeComboBox(const char* label, int length, int& imguiID
 void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, FractalCommandDelegates* commandDelegates, int& imguiID, FractalInfo &fractalInfo)
 {
 	int readOnlyFlags = 0;
-	fractalInfo.constChanged = false;
 	if (fractalInfo.setCustomConst) readOnlyFlags = ImGuiInputTextFlags_ReadOnly;
 	const std::vector<CF_Float> constFloats = commandListBuilder.GetConstFloats();
 	ImGui::Text("Const Floats:");
@@ -920,6 +919,7 @@ int main(int argc, char* argv[])
 		updateInterpreter = false;
 		regenBuffer = false;
 		//Render IMGUI stuff
+		fracInfo.constChanged = false;
 		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, currentZoom, rampTexFileDialog,
 			fractalCommandDelegates, commandListBuilderStart, commandListBuilderRecr);
 	}
