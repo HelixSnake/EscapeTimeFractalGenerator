@@ -111,7 +111,7 @@ const std::unordered_map<FractalCommandListValidator::Error, std::string> Fracta
 	},
 	{
 		Error::FunctionNotFound,
-		"Function not found"
+		"Function with that set of argument types not found"
 	},
 	{
 		Error::FunctionOutOfBounds,
