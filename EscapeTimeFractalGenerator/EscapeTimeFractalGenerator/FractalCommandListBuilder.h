@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "FractalCommandList.h"
+#include "FractalCommandDelegates.h"
 class FractalCommandListBuilder
 {
 public:

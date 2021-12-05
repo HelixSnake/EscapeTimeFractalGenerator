@@ -78,7 +78,8 @@ int FractalCommandListExecutor::Execute()
 				else //011
 				{
 
-					return 1;
+					if (delegates->FCC_Functions[commandListArray[i]] == nullptr) return 1;
+					floats[i] = delegates->FCC_Functions[commandListArray[i]](((ComplexFloat*)arraysByNumber[arg1Src])[arg1Index], ((ComplexFloat*)arraysByNumber[arg2Src])[arg2Index]);
 				}
 			}
 		}

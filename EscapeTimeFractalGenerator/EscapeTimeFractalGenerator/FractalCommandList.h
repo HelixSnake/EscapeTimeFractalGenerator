@@ -4,24 +4,6 @@
 #include <vector>
 #include <string>
 
-enum struct FractalCommand
-{
-	move,
-	add,
-	multiply,
-	divide,
-	power,
-	sin,
-	cos,
-	magnitude,
-	normalize,
-	getx,
-	gety,
-	floatstocomplex,
-	ALL_NULL, //used for testing; no delegates will exist for this command
-	NUM_ITEMS
-};
-
 class FractalCommandList //Readonly Data storage only, do not implement any functionality here besides construction and reading. This data stored in this class is stored in a way meant to be executed upon as quickly as possible.
 //You should only need one instance of this class at a time in the program. A new one should be created every time you need to change it.
 //Todo: Builder class

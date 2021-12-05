@@ -1,6 +1,27 @@
 #pragma once
 #include "ComplexFloat.h"
 #include "FractalCommandList.h"
+
+enum struct FractalCommand
+{
+	move,
+	add,
+	multiply,
+	divide,
+	power,
+	sin,
+	cos,
+	sinh,
+	cosh,
+	magnitude,
+	magnitudesqr,
+	normalize,
+	getx,
+	gety,
+	floatstocomplex,
+	ALL_NULL, //used for testing; no delegates will exist for this command
+	NUM_ITEMS
+};
 class FractalCommandDelegates //A generated set of function pointer arrays. Used for calling the functions indicated by the commands in FractalCommandList. You only need one instance of this class for the lifetime of the program.
 //Once you have created an instance of this class, do not delete it!
 {
