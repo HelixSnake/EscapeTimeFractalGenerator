@@ -146,5 +146,5 @@ ComplexFloat ComplexFloat::Power(const ComplexFloat first, const CF_Float second
 	}
 	CF_Float r = first.AbsoluteValue();
 	CF_Float nt = second*first.Arg();
-	return ComplexFloat(cosl(nt), sinl(nt)) * r;
+	return ComplexFloat(cosl(nt), sinl(nt)) * powl(r, second);
 }

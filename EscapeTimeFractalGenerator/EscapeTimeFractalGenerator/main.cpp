@@ -178,7 +178,7 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		ImGui::SameLine();
 		ImGui::PushID(imguiID);
 		ImGui::InputDouble("", &currentFloat, 0, 0, " % .16f", readOnlyFlags);
-		if (ImGui::IsItemActive())
+		if (ImGui::IsItemActive() && fractalInfo.setCustomConst)
 		{
 			currentFloat = fractalInfo.customConstX;
 			fractalInfo.constChanged = true;
@@ -868,8 +868,8 @@ int main(int argc, char* argv[])
 			extraValues[0] = ComplexFloat((cos(totalTime) * 0.5 - cos(totalTime * 2) * 0.25) * 1.01,
 				(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
 		}
-		//if (updateOnExtraValueChange && !fractalDrawer->IsBusy()) 			
-			//fractalDrawer->SendConstsToExecutors(commandListBuilderStart.GetConstFloats(), commandListBuilderRecr.GetConstFloats(), commandListBuilderStart.GetConstComplexFloats(), commandListBuilderRecr.GetConstComplexFloats());
+		if (updateOnExtraValueChange && !fractalDrawer->IsBusy()) 			
+			fractalDrawer->SendConstsToExecutors(commandListBuilderStart.GetConstFloats(), commandListBuilderRecr.GetConstFloats(), commandListBuilderStart.GetConstComplexFloats(), commandListBuilderRecr.GetConstComplexFloats());
 
 		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom, extraValues, fracInfo.power);
 		bool shouldRenderInterpreter = fractalDrawerReady; //render if the fractal drawer finished this frame;
