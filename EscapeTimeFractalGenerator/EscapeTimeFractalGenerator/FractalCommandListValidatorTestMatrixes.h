@@ -40,6 +40,11 @@ std::vector<std::pair<FractalCommandListValidator::Error, FractalCommandList>> F
 								(unsigned int)FractalCommand::add,      1, 1, 0, 3, 0 })
 	},
 	{
+	FractalCommandListValidator::Error::ReturnTypeOfFinalCommandNotComplex,
+	FractalCommandList(0, 1, {(unsigned int)FractalCommand::multiply, 1, 1, 6, 1, 6,\
+								(unsigned int)FractalCommand::add,      0, 1, 0, 3, 0 })
+	},
+	{
 	FractalCommandListValidator::Error::Arg1TypeOutOfBounds,
 	FractalCommandList(0, 1, {(unsigned int)FractalCommand::multiply, 1, 1, 6, 1, 6,\
 								(unsigned int)FractalCommand::add,      1, 4, 0, 3, 0 })

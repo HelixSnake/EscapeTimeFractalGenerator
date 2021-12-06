@@ -6,6 +6,7 @@ std::pair<FractalCommandListValidator::Error, int> FractalCommandListValidator::
 	const unsigned int* commandArray = commandList.GetCommandList();
 	int commandLength = commandList.GetCommandListLength();
 	int returnValueIndex = commandLength - 6;
+	if (commandArray[returnValueIndex + 1] != 1) return { Error::ReturnTypeOfFinalCommandNotComplex, commandLength / 6 - 1 };
 	for (int i = 0; i < commandLength; i += 6)
 	{
 		int line = i / 6;
@@ -120,6 +121,10 @@ const std::unordered_map<FractalCommandListValidator::Error, std::string> Fracta
 	{
 		Error::NoError,
 		"No Error"
+	},
+	{
+		Error::ReturnTypeOfFinalCommandNotComplex,
+		"Return type of final command must be a complex float"
 	},
 	{
 		Error::ReturnTypeOutOfBounds,

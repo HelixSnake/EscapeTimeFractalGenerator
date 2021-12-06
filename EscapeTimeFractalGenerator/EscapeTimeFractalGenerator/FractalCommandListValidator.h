@@ -13,6 +13,7 @@ public:
 		CommandListLengthNotMultipleOf6,
 		FunctionOutOfBounds,
 		ReturnTypeOutOfBounds,
+		ReturnTypeOfFinalCommandNotComplex,
 		Arg1TypeOutOfBounds,
 		Arg2TypeOutOfBounds,
 		FunctionNotFound,
