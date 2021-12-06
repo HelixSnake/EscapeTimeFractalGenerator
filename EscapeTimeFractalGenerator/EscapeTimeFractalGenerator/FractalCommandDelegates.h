@@ -21,6 +21,7 @@ enum struct FractalCommand
 	gety,
 	floatstocomplex,
 	dot,
+	arg,
 	step,
 	ALL_NULL, //used for testing; no delegates will exist for this command
 	NUM_ITEMS

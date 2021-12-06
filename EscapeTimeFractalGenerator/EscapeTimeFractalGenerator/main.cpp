@@ -599,33 +599,36 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	ImGui::InputInt("Fractal Power", &fractalInfo.power);
 	DisplayToolTip("The power used in the fractal equation, when applicable.\n Limited to between 1 and 7\nDetermines how the gradient effect works");
 	fractalInfo.power = glm::clamp(fractalInfo.power, 1, 7); //to support values over 7 more values need to be fine tuned in ComplexFractal.cpp
-	if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
+	/*if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
 	{
 		if (fractalInfo.animate)
 		{
 			fractalInfo.useCustomJulPos = false;
 		}
 	};
-	DisplayToolTip("Animate the Julia Position along a preset path");
-	if (ImGui::Checkbox("Custom Julia Position (middle mouse click or J)", &fractalInfo.useCustomJulPos))
+	DisplayToolTip("Animate the Julia Position along a preset path");*/
+	if (!fractalInfo.customFunction)
 	{
+		if (ImGui::Checkbox("Custom Julia Position (middle mouse click or J)", &fractalInfo.useCustomJulPos))
+		{
+			if (fractalInfo.useCustomJulPos)
+			{
+				fractalInfo.animate = false;
+				fractalInfo.useCustomJulPos = true;
+			}
+			updateDrawer = true;
+		}
 		if (fractalInfo.useCustomJulPos)
 		{
-			fractalInfo.animate = false;
-			fractalInfo.useCustomJulPos = true;
+			ImGui::InputDouble("Custom Position X", &fractalInfo.CustomJulPosX, 0.0, 0.0, " % .16f");
+			ImGui::InputDouble("Custom Position Y", &fractalInfo.CustomJulPosY, 0.0, 0.0, " % .16f");
 		}
-		updateDrawer = true;
-	}
-	if (fractalInfo.useCustomJulPos)
-	{
-		ImGui::InputDouble("Custom Position X", &fractalInfo.CustomJulPosX, 0.0, 0.0, " % .16f");
-		ImGui::InputDouble("Custom Position Y", &fractalInfo.CustomJulPosY, 0.0, 0.0, " % .16f");
-	}
-	if (FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues >= 2)
-	{ 
-		ImGui::Text("Additional Constant (set with V):");
-		ImGui::InputDouble("X", &fractalInfo.DistortionVectorX, 0.0, 0.0, " % .16f");
-		ImGui::InputDouble("Y", &fractalInfo.DistortionVectorY, 0.0, 0.0, " % .16f");
+		if (FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues >= 2)
+		{
+			ImGui::Text("Additional Constant (set with V):");
+			ImGui::InputDouble("X", &fractalInfo.DistortionVectorX, 0.0, 0.0, " % .16f");
+			ImGui::InputDouble("Y", &fractalInfo.DistortionVectorY, 0.0, 0.0, " % .16f");
+		}
 	}
 	if (ImGui::Button("Update"))
 	{
