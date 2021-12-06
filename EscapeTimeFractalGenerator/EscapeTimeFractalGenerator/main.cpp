@@ -144,7 +144,7 @@ void DisplayToolTip(const char* s)
 	}
 }
 
-void DisplayCommandAttributeComboBox(const char* label, int boxWidth, int length, int& imguiID, int prevValue, int &currentValue, const char* const options[])
+void DisplayCommandAttributeComboBox(const char* label, int boxWidth, int length, int& imguiID, int prevValue, int &currentValue, const char* const options[], const bool const disabled[] = nullptr)
 {
 	ImGui::Text(label);
 	ImGui::SameLine();
@@ -155,10 +155,17 @@ void DisplayCommandAttributeComboBox(const char* label, int boxWidth, int length
 		for (int n = 0; n < length; n++)
 		{
 			bool is_selected = (n == currentValue); // You can store your selection however you want, outside or inside your objects
+			ImVec4 color = ImColor(255, 255, 255);
+			if (disabled != nullptr && disabled[n] == true)
+			{
+				color = ImColor(100, 100, 100);
+			}
+			ImGui::PushStyleColor(ImGuiCol_Text, color);
 			if (ImGui::Selectable(options[n], is_selected))
 			{
 				currentValue = n;
 			}
+			ImGui::PopStyleColor();
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
 		}
@@ -166,6 +173,67 @@ void DisplayCommandAttributeComboBox(const char* label, int boxWidth, int length
 	}
 	ImGui::PopID();
 	imguiID++;
+}
+
+void DisplayCommandListBuilderArgument(FractalCommandListBuilder& commandListBuilder, int& imguiID, const std::vector<FractalCommandListBuilder::Command> &commandList, int index,
+	int &currentArgType, int &prevArgType, int &currentArgSource, int &prevArgSource, int &currentArgIndex, int &prevArgIndex)
+{
+	using Command = FractalCommandListBuilder::Command;
+	using Datatype = FractalCommandListBuilder::Datatype;
+	using Source = FractalCommandListBuilder::Source;
+	bool ArgSourceDisabled[(int)Source::NUM_ITEMS] = { false, false, false, false };
+	if (index == 0) ArgSourceDisabled[0] = true;
+	DisplayCommandAttributeComboBox("Source", 120, (int)Source::NUM_ITEMS, imguiID, prevArgSource, currentArgSource, FractalCommandListBuilder::SourceStrings, ArgSourceDisabled);
+	if (index == 0 && currentArgSource == 0)
+	{
+		currentArgSource = std::clamp(prevArgSource, 1, 3);
+	}
+
+	if (prevArgSource == (int)Source::Variables)
+	{
+		int sourceIndex = std::clamp(prevArgIndex, 0, (int)commandList.size());
+		currentArgType = (int)commandList[sourceIndex].outputDatatype;
+		currentArgType = std::clamp(currentArgType, 0, 1);
+		ImGui::SameLine();
+		ImGui::Text("Type: ");
+		ImGui::SameLine();
+		ImGui::Text(FractalCommandListBuilder::DataTypeStrings[currentArgType]);
+	}
+	else if (prevArgSource == (int)Source::Constants)
+	{
+		ImGui::SameLine();
+		DisplayCommandAttributeComboBox("Type", 120, (int)Datatype::NUM_ITEMS, imguiID, prevArgType, currentArgType, FractalCommandListBuilder::DataTypeStrings);
+	}
+
+	if (prevArgSource < 2)
+	{
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(350);
+		ImGui::Text("Index");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(80);
+		ImGui::PushID(imguiID);
+		ImGui::InputInt("", &currentArgIndex);
+		ImGui::PopID();
+		imguiID++;
+	}
+	int argIClampValue = 0;
+	if (prevArgSource == (int)Source::Variables)
+	{
+		argIClampValue = max(index - 1, 0);
+	}
+	else if (prevArgSource == (int)Source::Constants)
+	{
+		if (prevArgType == (int)Datatype::Float)
+		{
+			argIClampValue = max((int)commandListBuilder.GetConstFloats().size() - 1, 0);
+		}
+		else
+		{
+			argIClampValue = max((int)commandListBuilder.GetConstComplexFloats().size() - 1, 0);
+		}
+	}
+	currentArgIndex = std::clamp(currentArgIndex, 0, argIClampValue);
 }
 
 void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, FractalCommandDelegates* commandDelegates, int& imguiID, FractalInfo &fractalInfo)
@@ -282,8 +350,8 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 	for (int i = 0; i < commandList.size(); i++)
 	{
 		Command currentCommand = commandList[i];
-		int PrevCurrentFunction = (int)commandList[i].function;
-		int currentFunction = PrevCurrentFunction;
+		int prevFunction = (int)commandList[i].function;
+		int currentFunction = prevFunction;
 		ImGui::Text((std::to_string(i) + ": ").c_str());
 		ImGui::SameLine();
 		ImGui::PushID(imguiID);
@@ -302,16 +370,16 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		ImGui::PopID();
 		imguiID++;
 
-		DisplayCommandAttributeComboBox("Function", 150, functionNamesLength, imguiID, PrevCurrentFunction, currentFunction, functionNames);
+		DisplayCommandAttributeComboBox("Function", 150, functionNamesLength, imguiID, prevFunction, currentFunction, functionNames);
 
 		//ImGui::SameLine();
 		//int PrevCurrentReturnType = (int)commandList[i].outputDatatype;
 		//int currentReturnType = PrevCurrentReturnType;
 		//DisplayCommandAttributeComboBox("Return Type", 150, (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentReturnType, currentReturnType, FractalCommandListBuilder::DataTypeStrings);
-		int PrevCurrentReturnType = (int)commandList[i].outputDatatype;
-		int currentReturnType = commandDelegates->resultTypes[PrevCurrentFunction][(int)commandList[i].firstArgDatatype][(int)commandList[i].secondArgDatatype];
+		int prevReturnType = (int)commandList[i].outputDatatype;
+		int currentReturnType = commandDelegates->resultTypes[prevFunction][(int)commandList[i].firstArgDatatype][(int)commandList[i].secondArgDatatype];
 		ImGui::SameLine();
-		ImGui::Text("Return Type: "); 
+		ImGui::Text("Return Type: ");
 		ImGui::SameLine();
 		if (currentReturnType >= 0)
 		{
@@ -320,68 +388,22 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		else
 			ImGui::Text("Not Found");
 
+		int prevArg1Type = (int)commandList[i].firstArgDatatype;
+		int currentArg1Type = prevArg1Type;
+		int prevArg1Source = (int)commandList[i].firstArgSource;
+		int currentArg1Source = prevArg1Source;
+		int prevArg1Index = commandList[i].firstArgindex;
+		int currentArg1Index = prevArg1Index;
 
-		int PrevCurrentArg1Source = (int)commandList[i].firstArgSource;
-		int currentArg1Source = PrevCurrentArg1Source;
-		DisplayCommandAttributeComboBox("Source", 120, (int)Source::NUM_ITEMS, imguiID, PrevCurrentArg1Source, currentArg1Source, FractalCommandListBuilder::SourceStrings);
+		int prevArg2Type = (int)commandList[i].secondArgDatatype;
+		int currentArg2Type = prevArg2Type;
+		int prevArg2Source = (int)commandList[i].secondArgSource;
+		int currentArg2Source = prevArg2Source;
+		int prevArg2Index = commandList[i].secondArgindex;
+		int currentArg2Index = prevArg2Index;
 
-		int PrevCurrentArg1Type = (int)commandList[i].firstArgDatatype;
-		int currentArg1Type = PrevCurrentArg1Type;
-		if (PrevCurrentArg1Source == (int)Source::Variables)
-		{
-			int sourceIndex = std::clamp(commandList[i].firstArgindex, 0, (int)commandList.size());
-			currentArg1Type = (int)commandList[sourceIndex].outputDatatype;
-			currentArg1Type = std::clamp(currentArg1Type, 0, 1);
-			ImGui::SameLine();
-			ImGui::Text("Type: ");
-			ImGui::SameLine();
-			ImGui::Text(FractalCommandListBuilder::DataTypeStrings[currentArg1Type]);
-		}
-		else if (PrevCurrentArg1Source == (int)Source::Constants)
-		{
-			ImGui::SameLine();
-			DisplayCommandAttributeComboBox("Type", 120, (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentArg1Type, currentArg1Type, FractalCommandListBuilder::DataTypeStrings);
-		}
-
-		int PrevCurrentArg1Index = commandList[i].firstArgindex;
-		int currentArg1Index = PrevCurrentArg1Index;
-		if (PrevCurrentArg1Source < 2)
-		{
-			ImGui::SameLine();
-			ImGui::SetCursorPosX(350);
-			ImGui::Text("Index");
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(80);
-			ImGui::PushID(imguiID);
-			ImGui::InputInt("", &currentArg1Index);
-			ImGui::PopID();
-			imguiID++;
-		}
-		int arg1IClampValue = 0;
-		if (PrevCurrentArg1Source == (int)Source::Variables)
-		{
-			arg1IClampValue = max(i - 1, 0);
-		}
-		else if (PrevCurrentArg1Source == (int)Source::Constants)
-		{
-			if (PrevCurrentArg1Type == (int)Datatype::Float)
-			{
-				arg1IClampValue = max((int)commandListBuilder.GetConstFloats().size() - 1, 0);
-			}
-			else
-			{
-				arg1IClampValue = max((int)commandListBuilder.GetConstComplexFloats().size() - 1, 0);
-			}
-		}
-		currentArg1Index = std::clamp(currentArg1Index, 0, arg1IClampValue);
-
-		int PrevCurrentArg2Type = (int)commandList[i].secondArgDatatype;
-		int currentArg2Type = PrevCurrentArg2Type;
-		int PrevCurrentArg2Source = (int)commandList[i].secondArgSource;
-		int currentArg2Source = PrevCurrentArg2Type;
-		int PrevCurrentArg2Index = commandList[i].secondArgindex;
-		int currentArg2Index = PrevCurrentArg2Type
-			;
+		DisplayCommandListBuilderArgument(commandListBuilder, imguiID, commandList, i,
+			currentArg1Type, prevArg1Type, currentArg1Source, prevArg1Source, currentArg1Index, prevArg1Index);
 		if (commandDelegates->commandInputs[currentFunction] == 1)
 		{
 			currentArg2Type = currentArg1Type;
@@ -390,98 +412,47 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		}
 		else
 		{
-			PrevCurrentArg2Source = (int)commandList[i].secondArgSource;
-			currentArg2Source = PrevCurrentArg2Source;
-			DisplayCommandAttributeComboBox("Source", 120, (int)Source::NUM_ITEMS, imguiID, PrevCurrentArg2Source, currentArg2Source, FractalCommandListBuilder::SourceStrings);
-
-			PrevCurrentArg2Type = (int)commandList[i].secondArgDatatype;
-			currentArg2Type = PrevCurrentArg2Type;
-			if (PrevCurrentArg2Source == (int)Source::Variables)
-			{
-				int sourceIndex = std::clamp(commandList[i].secondArgindex, 0, (int)commandList.size());
-				currentArg2Type = (int)commandList[sourceIndex].outputDatatype;
-				currentArg2Type = std::clamp(currentArg2Type, 0, 1);
-				ImGui::SameLine();
-				ImGui::Text("Type: ");
-				ImGui::SameLine();
-				ImGui::Text(FractalCommandListBuilder::DataTypeStrings[currentArg2Type]);
-			}
-			else if (PrevCurrentArg2Source == (int)Source::Constants)
-			{
-				ImGui::SameLine();
-				DisplayCommandAttributeComboBox("Type", 120, (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentArg2Type, currentArg2Type, FractalCommandListBuilder::DataTypeStrings);
-			}
-
-			PrevCurrentArg2Index = commandList[i].secondArgindex;
-			currentArg2Index = PrevCurrentArg2Index;
-			if (PrevCurrentArg2Source < 2)
-			{
-				ImGui::SameLine();
-				ImGui::SetCursorPosX(350);
-				ImGui::Text("Index");
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(80);
-				ImGui::PushID(imguiID);
-				ImGui::InputInt("", &currentArg2Index);
-				ImGui::PopID();
-				imguiID++;
-			}
-			int arg2IClampValue = 0;
-			if (PrevCurrentArg2Source == (int)Source::Variables)
-			{
-				arg2IClampValue = max(i - 1, 0);
-			}
-			else if (PrevCurrentArg2Source == (int)Source::Constants)
-			{
-				if (PrevCurrentArg2Type == (int)Datatype::Float)
-				{
-					arg2IClampValue = max((int)commandListBuilder.GetConstFloats().size() - 1, 0);
-				}
-				else
-				{
-					arg2IClampValue = max((int)commandListBuilder.GetConstComplexFloats().size() - 1, 0);
-				}
-			}
-			currentArg2Index = std::clamp(currentArg2Index, 0, arg2IClampValue);
+			DisplayCommandListBuilderArgument(commandListBuilder, imguiID, commandList, i,
+				currentArg2Type, prevArg2Type, currentArg2Source, prevArg2Source, currentArg2Index, prevArg2Index);
 		}
 
 		bool replaceCommand = false;
-		if (PrevCurrentFunction != currentFunction)
+		if (prevFunction != currentFunction)
 		{
 			currentCommand.function = (FractalCommand)currentFunction;
 			replaceCommand = true;
 		}
-		if (PrevCurrentReturnType != currentReturnType)
+		if (prevReturnType != currentReturnType)
 		{
 			currentCommand.outputDatatype = (Datatype)currentReturnType;
 			replaceCommand = true;
 		}
-		if (PrevCurrentArg1Type != currentArg1Type)
+		if (prevArg1Type != currentArg1Type)
 		{
 			currentCommand.firstArgDatatype = (Datatype)currentArg1Type;
 			replaceCommand = true;
 		}
-		if (PrevCurrentArg1Source != currentArg1Source)
+		if (prevArg1Source != currentArg1Source)
 		{
 			currentCommand.firstArgSource = (Source)currentArg1Source;
 			replaceCommand = true;
 		}
-		if (PrevCurrentArg1Index != currentArg1Index)
+		if (prevArg1Index != currentArg1Index)
 		{
 			currentCommand.firstArgindex = currentArg1Index;
 			replaceCommand = true;
 		}
-		if (PrevCurrentArg2Type != currentArg2Type)
+		if (prevArg2Type != currentArg2Type)
 		{
 			currentCommand.secondArgDatatype = (Datatype)currentArg2Type;
 			replaceCommand = true;
 		}
-		if (PrevCurrentArg2Source != currentArg2Source)
+		if (prevArg2Source != currentArg2Source)
 		{
 			currentCommand.secondArgSource = (Source)currentArg2Source;
 			replaceCommand = true;
 		}
-		if (PrevCurrentArg2Index != currentArg2Index)
+		if (prevArg2Index != currentArg2Index)
 		{
 			currentCommand.secondArgindex = currentArg2Index;
 			replaceCommand = true;

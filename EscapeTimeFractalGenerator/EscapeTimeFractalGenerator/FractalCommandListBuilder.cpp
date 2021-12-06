@@ -21,7 +21,7 @@ bool FractalCommandListBuilder::AddCommand(unsigned int index, Command command)
 
 bool FractalCommandListBuilder::AddCommand(unsigned int index)
 {
-	return AddCommand(index, { FractalCommand::move, Datatype::ComplexFloat, Datatype::ComplexFloat, Datatype::ComplexFloat, Source::Constants, Source::Constants, 0, 0 });
+	return AddCommand(index, { FractalCommand::move, Datatype::ComplexFloat, Datatype::ComplexFloat, Datatype::ComplexFloat, Source::Variables, Source::Variables, std::max((int)(index) - 1,0), std::max((int)(index) - 1,0) });
 }
 bool FractalCommandListBuilder::AddConstFloat(unsigned int index, CF_Float value)
 {
