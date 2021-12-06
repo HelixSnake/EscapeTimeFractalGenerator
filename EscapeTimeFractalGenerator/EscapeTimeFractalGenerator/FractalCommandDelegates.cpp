@@ -25,6 +25,8 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 
 	CCC_Functions[(int)FractalCommand::add] = [](ComplexFloat first, ComplexFloat second) { return first + second; };
 	FFF_Functions[(int)FractalCommand::add] = [](CF_Float first, CF_Float second) { return first + second; };
+	CCC_Functions[(int)FractalCommand::subtract] = [](ComplexFloat first, ComplexFloat second) { return first - second; };
+	FFF_Functions[(int)FractalCommand::subtract] = [](CF_Float first, CF_Float second) { return first - second; };
 
 	CCC_Functions[(int)FractalCommand::multiply] = [](ComplexFloat first, ComplexFloat second) { return first * second; };
 	FFF_Functions[(int)FractalCommand::multiply] = [](CF_Float first, CF_Float second) { return first * second; };
@@ -55,11 +57,16 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 
 	FCC_Functions[(int)FractalCommand::magnitude] = [](ComplexFloat first, ComplexFloat second) {return first.AbsoluteValue(); };
 	FCC_Functions[(int)FractalCommand::magnitudesqr] = [](ComplexFloat first, ComplexFloat second) {return first.AbsoluteValueSqr(); };
+	FFF_Functions[(int)FractalCommand::magnitude] = [](CF_Float first, CF_Float second) {return fabsl(first); };
+	FFF_Functions[(int)FractalCommand::magnitudesqr] = [](CF_Float first, CF_Float second) {return first*first; };
+
 	CCC_Functions[(int)FractalCommand::normalize] = [](ComplexFloat first, ComplexFloat second) {return first.Normalized(); };
 
 	FCC_Functions[(int)FractalCommand::getx] = [](ComplexFloat first, ComplexFloat second) {return first.real; };
 	FCC_Functions[(int)FractalCommand::gety] = [](ComplexFloat first, ComplexFloat second) {return first.imaginary; };
 	CFF_Functions[(int)FractalCommand::floatstocomplex] = [](CF_Float first, CF_Float second) {return ComplexFloat(first, second); };
+	FCC_Functions[(int)FractalCommand::dot] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Dot(first, second); };
+	FFF_Functions[(int)FractalCommand::step] = [](CF_Float first, CF_Float second) {return first >= second ? 1.0L : 0.0L; };
 }
 void FractalCommandDelegates::GenerateKnownCommandNames()
 {
@@ -69,6 +76,7 @@ void FractalCommandDelegates::GenerateKnownCommandNames()
 	}
 	commandNames[(unsigned long long)FractalCommand::move] = "Move"; 
 	commandNames[(unsigned long long)FractalCommand::add] = "Add";
+	commandNames[(unsigned long long)FractalCommand::subtract] = "Subtract";
 	commandNames[(unsigned long long)FractalCommand::multiply] = "Multiply";
 	commandNames[(unsigned long long)FractalCommand::divide] = "Divide";
 	commandNames[(unsigned long long)FractalCommand::power] = "Power";
@@ -82,6 +90,8 @@ void FractalCommandDelegates::GenerateKnownCommandNames()
 	commandNames[(unsigned long long)FractalCommand::getx] = "Get Real";
 	commandNames[(unsigned long long)FractalCommand::gety] = "Get Imaginary";
 	commandNames[(unsigned long long)FractalCommand::floatstocomplex] = "Build Complex Float";
+	commandNames[(unsigned long long)FractalCommand::dot] = "Dot";
+	commandNames[(unsigned long long)FractalCommand::step] = "Step";
 }
 void FractalCommandDelegates::GenerateKnownCommandInputs()
 {
@@ -91,6 +101,7 @@ void FractalCommandDelegates::GenerateKnownCommandInputs()
 	}
 	commandInputs[(unsigned long long)FractalCommand::move] = 1;
 	commandInputs[(unsigned long long)FractalCommand::add] = 2;
+	commandInputs[(unsigned long long)FractalCommand::subtract] = 2;
 	commandInputs[(unsigned long long)FractalCommand::multiply] = 2;
 	commandInputs[(unsigned long long)FractalCommand::divide] = 2;
 	commandInputs[(unsigned long long)FractalCommand::power] = 2;
@@ -104,6 +115,8 @@ void FractalCommandDelegates::GenerateKnownCommandInputs()
 	commandInputs[(unsigned long long)FractalCommand::getx] = 1;
 	commandInputs[(unsigned long long)FractalCommand::gety] = 1;
 	commandInputs[(unsigned long long)FractalCommand::floatstocomplex] = 2;
+	commandInputs[(unsigned long long)FractalCommand::dot] = 2;
+	commandInputs[(unsigned long long)FractalCommand::step] = 2;
 }
 
 bool FractalCommandDelegates::IsDelegatePointerNull(int index, int returnType, int arg1Type, int arg2Type)

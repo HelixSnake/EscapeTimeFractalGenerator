@@ -5,7 +5,8 @@
 enum struct FractalCommand
 {
 	move,
-	add,
+	add, 
+	subtract,
 	multiply,
 	divide,
 	power,
@@ -19,6 +20,8 @@ enum struct FractalCommand
 	getx,
 	gety,
 	floatstocomplex,
+	dot,
+	step,
 	ALL_NULL, //used for testing; no delegates will exist for this command
 	NUM_ITEMS
 };

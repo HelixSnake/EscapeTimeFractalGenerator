@@ -68,8 +68,9 @@ protected:
 		return (previousValue.Power(power) + ComplexFloat(extraValues[0].real, -extraValues[0].imaginary)).Abs();
 	};
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_REFLECTED_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
-		ComplexFloat newInput = previousValue.Power(power) + input;
+		ComplexFloat newInput = previousValue.Power(power);
 		CF_Float dot = ComplexFloat::Dot(newInput, extraValues[1]);
+		newInput = newInput + input;
 		if (dot < 0)
 		{
 			newInput = newInput - extraValues[1] * dot * 2;
@@ -77,8 +78,9 @@ protected:
 		return newInput;
 	};
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_REFLECTED_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
-		ComplexFloat newInput = previousValue.Power(power) + extraValues[0];
+		ComplexFloat newInput = previousValue.Power(power);
 		CF_Float dot = ComplexFloat::Dot(newInput, extraValues[1]);
+		newInput = newInput + extraValues[0];
 		if (dot < 0)
 		{
 			newInput = newInput - extraValues[1] * dot * 2;
@@ -106,13 +108,13 @@ protected:
 		return newInput;
 	};
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_COSINE_MANDEL(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
-		ComplexFloat newInput = ComplexFloat(cos(previousValue.real) * cosh(previousValue.imaginary), -sin(previousValue.real) * sinh(previousValue.imaginary));
+		ComplexFloat newInput = ComplexFloat(cosl(previousValue.real) * coshl(previousValue.imaginary), -sinl(previousValue.real) * sinhl(previousValue.imaginary));
 		newInput = newInput.Power(power);
 		newInput = newInput + input;
 		return newInput;
 	};
 	static ComplexFloat FRACTAL_RECURSIVE_FUNCTION_COSINE_JULIA(ComplexFloat input, ComplexFloat previousValue, ComplexFloat* extraValues, int power) {
-		ComplexFloat newInput = ComplexFloat(cos(previousValue.real) * cosh(previousValue.imaginary), -sin(previousValue.real) * sinh(previousValue.imaginary));
+		ComplexFloat newInput = ComplexFloat(cosl(previousValue.real) * coshl(previousValue.imaginary), -sinl(previousValue.real) * sinhl(previousValue.imaginary));
 		newInput = newInput.Power(power);
 		newInput = newInput + extraValues[0];
 		return newInput;

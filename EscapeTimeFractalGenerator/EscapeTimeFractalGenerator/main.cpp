@@ -511,7 +511,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::BurningJulia, fractalInfo);
 		DisplayToolTip(juliaTooltip);
 		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedMandelbrot, fractalInfo);
-		DisplayToolTip("Formula: n = ((n - 1) ^ power + c); n -= v * dot(n,v) * 2;\nHold V to set the reflection vector");
+		DisplayToolTip("Formula: a = ((n - 1) ^ power); n = a + c;\nif(dot(a,v)<0) n -= v * dot(a,v) * 2;\nHold V to set the reflection vector");
 		ImGui::SameLine();
 		DisplayFractalTypeCheckbox(FractalDictionary::FractalType::ReflectedJulia, fractalInfo);
 		DisplayToolTip(juliaTooltip);
@@ -852,7 +852,8 @@ int main(int argc, char* argv[])
 		bool interpreterDrew = false;
 		bool updateOnExtraValueChange = (fracInfo.animate || juliaPosUpdate) && FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues > 0;
 		updateOnExtraValueChange = updateOnExtraValueChange || chooseDirectionValue && FractalDictionary::GetInfo(fractalDrawer->GetFractalType()).extraValues > 1;
-		updateOnExtraValueChange = updateOnExtraValueChange || fracInfo.customFunction && fracInfo.constChanged && fractalDrawer->ExecutorsAreInstantiated();
+		bool updateOnExtraValueChangeCustom = fracInfo.customFunction && fracInfo.constChanged && fractalDrawer->ExecutorsAreInstantiated();
+		updateOnExtraValueChange = updateOnExtraValueChange || updateOnExtraValueChangeCustom;
 		bool zoomMismatch = currentZoom.scale != fractalDrawer->GetRenderedZoom().scale;
 		bool shouldStartDrawing = (updateOnResize || updateOnExtraValueChange || updateDrawer || zoomMismatch || didZoom || firstDraw);
 		bool shouldSetupZoomer = shouldStartDrawing;
@@ -868,7 +869,7 @@ int main(int argc, char* argv[])
 			extraValues[0] = ComplexFloat((cos(totalTime) * 0.5 - cos(totalTime * 2) * 0.25) * 1.01,
 				(sin(totalTime) * 0.5 - sin(totalTime * 2) * 0.25) * 1.01);
 		}
-		if (updateOnExtraValueChange && !fractalDrawer->IsBusy()) 			
+		if (updateOnExtraValueChangeCustom && !fractalDrawer->IsBusy())
 			fractalDrawer->SendConstsToExecutors(commandListBuilderStart.GetConstFloats(), commandListBuilderRecr.GetConstFloats(), commandListBuilderStart.GetConstComplexFloats(), commandListBuilderRecr.GetConstComplexFloats());
 
 		bool fractalDrawerReady = fractalDrawer->Draw(shouldStartDrawing, currentZoom, extraValues, fracInfo.power);
