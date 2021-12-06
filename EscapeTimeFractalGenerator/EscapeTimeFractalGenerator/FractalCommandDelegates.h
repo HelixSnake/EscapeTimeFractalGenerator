@@ -55,11 +55,13 @@ public:
 
 	const char* commandNames[ARRAY_LENGTH];
 	int commandInputs[ARRAY_LENGTH];
+	int resultTypes[ARRAY_LENGTH][2][2];
 
 	bool IsDelegatePointerNull(int index, int returnType, int arg1type, int arg2type);
 private:
 	void GenerateKnownCommandDelegates();
 	void GenerateKnownCommandNames();
 	void GenerateKnownCommandInputs();
+	void GenerateKnownCommandReturnTypes();
 };
 

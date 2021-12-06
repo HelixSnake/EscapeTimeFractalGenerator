@@ -15,11 +15,13 @@ FractalCommandDelegates::FractalCommandDelegates()
 	memset(CCC_Functions, 0, ARRAY_LENGTH * sizeof(CFCFCF));
 	GenerateKnownCommandDelegates(); 
 	GenerateKnownCommandNames(); 
-	GenerateKnownCommandInputs();
+	GenerateKnownCommandInputs(); 
+	GenerateKnownCommandReturnTypes();
 }
 
 void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate all commands currently implemented
 {
+
 	CCC_Functions[(int)FractalCommand::move] = [](ComplexFloat first, ComplexFloat second) { return first; };
 	FFF_Functions[(int)FractalCommand::move] = [](CF_Float first, CF_Float second) { return first; };
 
@@ -117,6 +119,38 @@ void FractalCommandDelegates::GenerateKnownCommandInputs()
 	commandInputs[(unsigned long long)FractalCommand::floatstocomplex] = 2;
 	commandInputs[(unsigned long long)FractalCommand::dot] = 2;
 	commandInputs[(unsigned long long)FractalCommand::step] = 2;
+}
+
+void FractalCommandDelegates::GenerateKnownCommandReturnTypes()
+{
+
+	for (int i = 0; i < ARRAY_LENGTH; i++)
+	{
+		for (int j = 0; j < 2; j++)
+		{
+			for (int k = 0; k < 2; k++)
+			{
+				resultTypes[i][j][k] = -1;
+			}
+		}
+	}
+	for (int i = 0; i < ARRAY_LENGTH; i++)
+	{
+		for (int j = 0; j < 2; j++)
+		{
+			for (int k = 0; k < 2; k++)
+			{
+				for (int l = 0; l < 2; l++)
+				{
+					if (!IsDelegatePointerNull(i, l, j, k))
+					{
+						resultTypes[i][j][k] = l;
+						continue;
+					}
+				}
+			}
+		}
+	}
 }
 
 bool FractalCommandDelegates::IsDelegatePointerNull(int index, int returnType, int arg1Type, int arg2Type)

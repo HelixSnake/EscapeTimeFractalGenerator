@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <math.h>
 
 //SOIL
 #include <SOIL.h>
@@ -303,10 +304,22 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 
 		DisplayCommandAttributeComboBox("Function", 150, functionNamesLength, imguiID, PrevCurrentFunction, currentFunction, functionNames);
 
-		ImGui::SameLine();
+		//ImGui::SameLine();
+		//int PrevCurrentReturnType = (int)commandList[i].outputDatatype;
+		//int currentReturnType = PrevCurrentReturnType;
+		//DisplayCommandAttributeComboBox("Return Type", 150, (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentReturnType, currentReturnType, FractalCommandListBuilder::DataTypeStrings);
 		int PrevCurrentReturnType = (int)commandList[i].outputDatatype;
-		int currentReturnType = PrevCurrentReturnType;
-		DisplayCommandAttributeComboBox("Return Type", 150, (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentReturnType, currentReturnType, FractalCommandListBuilder::DataTypeStrings);
+		int currentReturnType = commandDelegates->resultTypes[PrevCurrentFunction][(int)commandList[i].firstArgDatatype][(int)commandList[i].secondArgDatatype];
+		ImGui::SameLine();
+		ImGui::Text("Return Type: "); 
+		ImGui::SameLine();
+		if (currentReturnType >= 0)
+		{
+			ImGui::Text(FractalCommandListBuilder::DataTypeStrings[currentReturnType]);
+		}
+		else
+			ImGui::Text("Not Found");
+
 
 		int PrevCurrentArg1Source = (int)commandList[i].firstArgSource;
 		int currentArg1Source = PrevCurrentArg1Source;
@@ -333,6 +346,23 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 			ImGui::PopID();
 			imguiID++;
 		}
+		int arg1IClampValue = 0;
+		if (PrevCurrentArg1Source == (int)Source::Variables)
+		{
+			arg1IClampValue = max(i - 1, 0);
+		}
+		else if (PrevCurrentArg1Source == (int)Source::Constants)
+		{
+			if (PrevCurrentArg1Type == (int)Datatype::Float)
+			{
+				arg1IClampValue = max((int)commandListBuilder.GetConstFloats().size() - 1, 0);
+			}
+			else
+			{
+				arg1IClampValue = max((int)commandListBuilder.GetConstComplexFloats().size() - 1, 0);
+			}
+		}
+		currentArg1Index = std::clamp(currentArg1Index, 0, arg1IClampValue);
 
 		int PrevCurrentArg2Type = (int)commandList[i].secondArgDatatype;
 		int currentArg2Type = PrevCurrentArg2Type;
@@ -374,6 +404,23 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 				ImGui::PopID();
 				imguiID++;
 			}
+			int arg2IClampValue = 0;
+			if (PrevCurrentArg2Source == (int)Source::Variables)
+			{
+				arg2IClampValue = max(i - 1, 0);
+			}
+			else if (PrevCurrentArg2Source == (int)Source::Constants)
+			{
+				if (PrevCurrentArg2Type == (int)Datatype::Float)
+				{
+					arg2IClampValue = max((int)commandListBuilder.GetConstFloats().size() - 1, 0);
+				}
+				else
+				{
+					arg2IClampValue = max((int)commandListBuilder.GetConstComplexFloats().size() - 1, 0);
+				}
+			}
+			currentArg2Index = std::clamp(currentArg2Index, 0, arg2IClampValue);
 		}
 
 		bool replaceCommand = false;
