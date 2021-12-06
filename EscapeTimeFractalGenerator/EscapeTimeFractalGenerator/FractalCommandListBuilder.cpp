@@ -15,6 +15,17 @@ const char* const FractalCommandListBuilder::SourceStrings[4] =
 bool FractalCommandListBuilder::AddCommand(unsigned int index, Command command)
 {
 	if (index > commands.size()) return false;
+	for (int i = 0; i < commands.size(); i++)
+	{
+		if (commands[i].firstArgindex >= index)
+		{
+			commands[i].firstArgindex++;
+		}
+		if (commands[i].secondArgindex >= index)
+		{
+			commands[i].secondArgindex++;
+		}
+	}
 	commands.insert(commands.begin() + index, command);
 	return true;
 }
@@ -38,6 +49,17 @@ bool FractalCommandListBuilder::AddConstComplexFloat(unsigned int index, Complex
 bool FractalCommandListBuilder::DeleteCommand(unsigned int index)
 {
 	if (index >= commands.size()) return false;
+	for (int i = 0; i < commands.size(); i++)
+	{
+		if (commands[i].firstArgindex >= index)
+		{
+			commands[i].firstArgindex--;
+		}
+		if (commands[i].secondArgindex >= index)
+		{
+			commands[i].secondArgindex--;
+		}
+	}
 	commands.erase(commands.begin() + index);
 	return true;
 }
