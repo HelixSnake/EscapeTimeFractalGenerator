@@ -143,10 +143,13 @@ void DisplayToolTip(const char* s)
 	}
 }
 
-void DisplayCommandAttributeComboBox(const char* label, int length, int& imguiID, int prevValue, int &currentValue, const char* const options[])
+void DisplayCommandAttributeComboBox(const char* label, int boxWidth, int length, int& imguiID, int prevValue, int &currentValue, const char* const options[])
 {
+	ImGui::Text(label);
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(boxWidth);
 	ImGui::PushID(imguiID);
-	if (ImGui::BeginCombo(label, options[prevValue]))
+	if (ImGui::BeginCombo("", options[prevValue]))
 	{
 		for (int n = 0; n < length; n++)
 		{
@@ -298,27 +301,23 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		ImGui::PopID();
 		imguiID++;
 
-		ImGui::SetNextItemWidth(150);
-		DisplayCommandAttributeComboBox("Function", functionNamesLength, imguiID, PrevCurrentFunction, currentFunction, functionNames);
+		DisplayCommandAttributeComboBox("Function", 150, functionNamesLength, imguiID, PrevCurrentFunction, currentFunction, functionNames);
 
 		ImGui::SameLine();
-		ImGui::SetNextItemWidth(150);
 		int PrevCurrentReturnType = (int)commandList[i].outputDatatype;
 		int currentReturnType = PrevCurrentReturnType;
-		DisplayCommandAttributeComboBox("Return Type", (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentReturnType, currentReturnType, FractalCommandListBuilder::DataTypeStrings);
+		DisplayCommandAttributeComboBox("Return Type", 150, (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentReturnType, currentReturnType, FractalCommandListBuilder::DataTypeStrings);
 
-		ImGui::SetNextItemWidth(120);
 		int PrevCurrentArg1Source = (int)commandList[i].firstArgSource;
 		int currentArg1Source = PrevCurrentArg1Source;
-		DisplayCommandAttributeComboBox("Source", (int)Source::NUM_ITEMS, imguiID, PrevCurrentArg1Source, currentArg1Source, FractalCommandListBuilder::SourceStrings);
+		DisplayCommandAttributeComboBox("Source", 120, (int)Source::NUM_ITEMS, imguiID, PrevCurrentArg1Source, currentArg1Source, FractalCommandListBuilder::SourceStrings);
 
 		int PrevCurrentArg1Type = (int)commandList[i].firstArgDatatype;
 		int currentArg1Type = PrevCurrentArg1Type;
 		if (PrevCurrentArg1Source < 2)
 		{
 			ImGui::SameLine();
-			ImGui::SetNextItemWidth(120);
-			DisplayCommandAttributeComboBox("Type", (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentArg1Type, currentArg1Type, FractalCommandListBuilder::DataTypeStrings); \
+			DisplayCommandAttributeComboBox("Type", 120, (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentArg1Type, currentArg1Type, FractalCommandListBuilder::DataTypeStrings); \
 		}
 
 		int PrevCurrentArg1Index = commandList[i].firstArgindex;
@@ -326,9 +325,11 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		if (PrevCurrentArg1Source < 2)
 		{
 			ImGui::SameLine();
+			ImGui::Text("Index");
+			ImGui::SameLine();
 			ImGui::SetNextItemWidth(80);
 			ImGui::PushID(imguiID);
-			ImGui::InputInt("Index", &currentArg1Index);
+			ImGui::InputInt("", &currentArg1Index);
 			ImGui::PopID();
 			imguiID++;
 		}
@@ -348,18 +349,16 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		}
 		else
 		{
-			ImGui::SetNextItemWidth(120);
 			PrevCurrentArg2Source = (int)commandList[i].secondArgSource;
 			currentArg2Source = PrevCurrentArg2Source;
-			DisplayCommandAttributeComboBox("Source", (int)Source::NUM_ITEMS, imguiID, PrevCurrentArg2Source, currentArg2Source, FractalCommandListBuilder::SourceStrings);
+			DisplayCommandAttributeComboBox("Source", 120, (int)Source::NUM_ITEMS, imguiID, PrevCurrentArg2Source, currentArg2Source, FractalCommandListBuilder::SourceStrings);
 
 			PrevCurrentArg2Type = (int)commandList[i].secondArgDatatype;
 			currentArg2Type = PrevCurrentArg2Type;
 			if (PrevCurrentArg2Source < 2)
 			{
 				ImGui::SameLine();
-				ImGui::SetNextItemWidth(120);
-				DisplayCommandAttributeComboBox("Type", (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentArg2Type, currentArg2Type, FractalCommandListBuilder::DataTypeStrings);
+				DisplayCommandAttributeComboBox("Type", 120, (int)Datatype::NUM_ITEMS, imguiID, PrevCurrentArg2Type, currentArg2Type, FractalCommandListBuilder::DataTypeStrings);
 			}
 
 			PrevCurrentArg2Index = commandList[i].secondArgindex;
@@ -367,9 +366,11 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 			if (PrevCurrentArg2Source < 2)
 			{
 				ImGui::SameLine();
+				ImGui::Text("Index");
+				ImGui::SameLine();
 				ImGui::SetNextItemWidth(80);
 				ImGui::PushID(imguiID);
-				ImGui::InputInt("Index", &currentArg2Index);
+				ImGui::InputInt("", &currentArg2Index);
 				ImGui::PopID();
 				imguiID++;
 			}
