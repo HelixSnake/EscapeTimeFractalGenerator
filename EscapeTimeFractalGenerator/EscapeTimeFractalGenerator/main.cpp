@@ -204,6 +204,10 @@ void DisplayCommandListBuilderArgument(FractalCommandListBuilder& commandListBui
 		ImGui::SameLine();
 		DisplayCommandAttributeComboBox("Type", 120, (int)Datatype::NUM_ITEMS, imguiID, prevArgType, currentArgType, FractalCommandListBuilder::DataTypeStrings);
 	}
+	else
+	{
+		currentArgType = (int)Datatype::ComplexFloat;
+	}
 
 	if (prevArgSource < 2)
 	{
