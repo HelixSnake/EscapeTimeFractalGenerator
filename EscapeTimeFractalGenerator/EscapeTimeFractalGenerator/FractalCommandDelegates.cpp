@@ -56,6 +56,10 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 	FCC_Functions[(int)FractalCommand::magnitude] = [](ComplexFloat first, ComplexFloat second) {return first.AbsoluteValue(); };
 	FCC_Functions[(int)FractalCommand::magnitudesqr] = [](ComplexFloat first, ComplexFloat second) {return first.AbsoluteValueSqr(); };
 	CCC_Functions[(int)FractalCommand::normalize] = [](ComplexFloat first, ComplexFloat second) {return first.Normalized(); };
+
+	FCC_Functions[(int)FractalCommand::getx] = [](ComplexFloat first, ComplexFloat second) {return first.real; };
+	FCC_Functions[(int)FractalCommand::gety] = [](ComplexFloat first, ComplexFloat second) {return first.imaginary; };
+	CFF_Functions[(int)FractalCommand::floatstocomplex] = [](CF_Float first, CF_Float second) {return ComplexFloat(first, second); };
 }
 void FractalCommandDelegates::GenerateKnownCommandNames()
 {

@@ -90,8 +90,8 @@ int FractalCommandListExecutor::Execute()
 
 				if (arg2Type == 0) //100
 				{
-
-					return 1;
+					if (delegates->CFF_Functions[commandListArray[i]] == nullptr) return 1;
+					cfloats[i] = delegates->CFF_Functions[commandListArray[i]](((CF_Float*)arraysByNumber[arg1Src])[arg1Index], ((CF_Float*)arraysByNumber[arg2Src])[arg2Index]);
 				}
 				else // 101
 				{
