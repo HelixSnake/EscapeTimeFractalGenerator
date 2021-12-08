@@ -144,7 +144,13 @@ void DisplayToolTip(const char* s)
 	}
 }
 
-void DisplayCommandAttributeComboBox(const char* label, int boxWidth, int length, int& imguiID, int prevValue, int &currentValue, const char* const options[], const bool const disabled[] = nullptr)
+void ImGuiPopIncr(unsigned int& id) // ImGui forces you to do dumb stuff to prevent collisions when multiple controls have the same label.
+{
+	ImGui::PopID();
+	id++;
+}
+
+void DisplayCommandAttributeComboBox(const char* label, int boxWidth, int length, unsigned int& imguiID, int prevValue, int &currentValue, const char* const options[], const bool const disabled[] = nullptr)
 {
 	ImGui::Text(label);
 	ImGui::SameLine();
@@ -171,11 +177,10 @@ void DisplayCommandAttributeComboBox(const char* label, int boxWidth, int length
 		}
 		ImGui::EndCombo();
 	}
-	ImGui::PopID();
-	imguiID++;
+	ImGuiPopIncr(imguiID);
 }
 
-void DisplayCommandListBuilderArgument(FractalCommandListBuilder& commandListBuilder, int& imguiID, const std::vector<FractalCommandListBuilder::Command> &commandList, int index,
+void DisplayCommandListBuilderArgument(FractalCommandListBuilder& commandListBuilder, unsigned int& imguiID, const std::vector<FractalCommandListBuilder::Command> &commandList, int index,
 	int &currentArgType, int &prevArgType, int &currentArgSource, int &prevArgSource, int &currentArgIndex, int &prevArgIndex)
 {
 	using Command = FractalCommandListBuilder::Command;
@@ -218,8 +223,7 @@ void DisplayCommandListBuilderArgument(FractalCommandListBuilder& commandListBui
 		ImGui::SetNextItemWidth(80);
 		ImGui::PushID(imguiID);
 		ImGui::InputInt("", &currentArgIndex);
-		ImGui::PopID();
-		imguiID++;
+		ImGuiPopIncr(imguiID);
 	}
 	int argIClampValue = 0;
 	if (prevArgSource == (int)Source::Variables)
@@ -240,7 +244,7 @@ void DisplayCommandListBuilderArgument(FractalCommandListBuilder& commandListBui
 	currentArgIndex = std::clamp(currentArgIndex, 0, argIClampValue);
 }
 
-void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, FractalCommandDelegates* commandDelegates, int& imguiID, FractalInfo &fractalInfo)
+void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, FractalCommandDelegates* commandDelegates, unsigned int& imguiID, FractalInfo &fractalInfo)
 {
 	int readOnlyFlags = 0;
 	if (fractalInfo.setCustomConst) readOnlyFlags = ImGuiInputTextFlags_ReadOnly;
@@ -259,8 +263,7 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 			currentFloat = fractalInfo.customConstX;
 			fractalInfo.constChanged = true;
 		}
-		ImGui::PopID();
-		imguiID++;
+		ImGuiPopIncr(imguiID);
 		if (currentFloatPrev != currentFloat)
 		{
 			commandListBuilder.SetConstFloat(i, currentFloat);
@@ -271,16 +274,14 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		{
 			commandListBuilder.DeleteConstFloat(i);
 		}
-		ImGui::PopID();
-		imguiID++;
+		ImGuiPopIncr(imguiID);
 	}
 	ImGui::PushID(imguiID);
 	if (ImGui::Button("+"))
 	{
 		commandListBuilder.AddConstFloat(constFloats.size(), 0);
 	}
-	ImGui::PopID();
-	imguiID++;
+	ImGuiPopIncr(imguiID);
 
 
 	const std::vector<ComplexFloat> constComplexFloats = commandListBuilder.GetConstComplexFloats();
@@ -300,8 +301,7 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		{
 			setCurrentFloat = true;
 		}
-		ImGui::PopID();
-		imguiID++;
+		ImGuiPopIncr(imguiID);
 		ImGui::Text((std::to_string(i) + " Y: ").c_str());
 		ImGui::SameLine();
 		ImGui::PushID(imguiID);
@@ -310,8 +310,7 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		{
 			setCurrentFloat = true;
 		}
-		ImGui::PopID();
-		imguiID++;
+		ImGuiPopIncr(imguiID);
 		if (setCurrentFloat && fractalInfo.setCustomConst)
 		{
 			currentFloatReal = fractalInfo.customConstX;
@@ -328,16 +327,14 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		{
 			commandListBuilder.DeleteConstComplexFloat(i);
 		}
-		ImGui::PopID();
-		imguiID++;
+		ImGuiPopIncr(imguiID);
 	}
 	ImGui::PushID(imguiID);
 	if (ImGui::Button("+"))
 	{
 		commandListBuilder.AddConstComplexFloat(constComplexFloats.size(), ComplexFloat(0,0));
 	}
-	ImGui::PopID();
-	imguiID++;
+	ImGuiPopIncr(imguiID);
 
 	const unsigned long long functionNamesLength = (unsigned long long)FractalCommand::NUM_ITEMS;
 	const char* functionNames[functionNamesLength];
@@ -363,16 +360,14 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 		{
 			commandListBuilder.DeleteCommand(i);
 		}
-		ImGui::PopID();
-		imguiID++;
+		ImGuiPopIncr(imguiID);
 		ImGui::SameLine();
 		ImGui::PushID(imguiID);
 		if (ImGui::Button("+"))
 		{
 			commandListBuilder.AddCommand(i);
 		}
-		ImGui::PopID();
-		imguiID++;
+		ImGuiPopIncr(imguiID);
 
 		DisplayCommandAttributeComboBox("Function", 150, functionNamesLength, imguiID, prevFunction, currentFunction, functionNames);
 
@@ -471,8 +466,7 @@ void DisplayCommandListBuilder(FractalCommandListBuilder& commandListBuilder, Fr
 	{
 		commandListBuilder.AddCommand(commandList.size());
 	}
-	ImGui::PopID();
-	imguiID++;
+	ImGuiPopIncr(imguiID);
 }
 
 void SetExecutorsFromBuilders(FractalDrawer *fractalDrawer, FractalCommandDelegates *delegates, FractalCommandListBuilder& commandListBuilderStart, FractalCommandListBuilder& commandListBuilderRecr,
@@ -588,7 +582,7 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 	}
 	else
 	{
-		int imguiID = 0;
+		unsigned int imguiID = 0; // Used to prevent collisions in dynamically generated ImGui UI
 		ImGui::Text("Starting Function:");
 		DisplayCommandListBuilder(commandListBuilderStart, delegates, imguiID, fractalInfo);
 		ImGui::TextWrapped((std::string("Error: \"") + FractalCommandListValidator::ErrorStrings.at(fractalInfo.startCommandListError.first) + "\" at command " + std::to_string(fractalInfo.startCommandListError.second)).c_str());
