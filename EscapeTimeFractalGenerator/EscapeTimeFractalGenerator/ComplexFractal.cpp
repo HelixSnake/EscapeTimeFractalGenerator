@@ -28,9 +28,32 @@ void ComplexFractal::SetStartingFunction(StartingValueFunction func)
 	startingValueFunction = func;
 }
 
-double LogTower(double input, double power)
+inline double LogTower(double input, double power)
 {
 	return log(log(input)/log(power)) / log(power);
+}
+
+double inline CalculateEscapedValue(int iteration, double lengthLimit, ComplexFloat value, double power)
+{
+	double smoothValue = 0;
+	if (power > 1.0)
+	{
+		double nextLengthLimit = pow(lengthLimit, power);
+		double logNextLengthLimit = log(nextLengthLimit);
+
+		smoothValue = (log(value.AbsoluteValue()) - logNextLengthLimit) / (log(lengthLimit) - logNextLengthLimit); // linear gradient between iterations
+		double smoothPower = pow(power, 0.4); // magic number - moderately better results on high powers
+		double logSmoothPower = log(smoothPower);
+		double twoToPower = pow(2, smoothPower);
+		double reverseLerp = smoothValue * (2 - twoToPower) + twoToPower;
+		double dLogUpperLimit = log(log(twoToPower) / logSmoothPower) / logSmoothPower;
+		smoothValue = dLogUpperLimit - log(log(reverseLerp) / logSmoothPower) / logSmoothPower;
+	}
+	else
+	{
+		smoothValue = log(lengthLimit) / log(value.AbsoluteValue()); // linear gradient between iterations
+	}
+	return (double)iteration + smoothValue;
 }
 
 double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues, CF_Float power)
@@ -62,25 +85,7 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 		double absValSqr = value.AbsoluteValueSqr();
 		if (absValSqr > lengthLimitSqr)
 		{ 
-			double smoothValue = 0;
-			if (power > 1.0)
-			{
-				double nextLengthLimit = pow(lengthLimit, power);
-				double logNextLengthLimit = log(nextLengthLimit);
-
-				smoothValue = (log(value.AbsoluteValue()) - logNextLengthLimit) / (log(lengthLimit) - logNextLengthLimit); // linear gradient between iterations
-				double smoothPower = pow(power, 0.4); // magic number - moderately better results on high powers
-				double logSmoothPower = log(smoothPower);
-				double twoToPower = pow(2, smoothPower);
-				double reverseLerp = smoothValue * (2 - twoToPower) + twoToPower;
-				double dLogUpperLimit = log(log(twoToPower) / logSmoothPower) / logSmoothPower;
-				smoothValue = dLogUpperLimit - log(log(reverseLerp) / logSmoothPower) / logSmoothPower;
-			}
-			else
-			{
-				smoothValue = log(lengthLimit) / log(value.AbsoluteValue()); // linear gradient between iterations
-			}
-			return (double)i + smoothValue;
+			return CalculateEscapedValue(i, lengthLimit, value, power);
 		}
 		ComplexFloat deviation = value - cycleValue;
 		if (deviation.AbsoluteValueSqr() < minDeviationSqr)
@@ -115,25 +120,7 @@ double ComplexFractal::CalculateEscapeTime(FractalCommandListExecutor& startingF
 		double absValSqr = value.AbsoluteValueSqr();
 		if (absValSqr > lengthLimitSqr)
 		{
-			double smoothValue = 0;
-			if (power > 1.0)
-			{
-				double nextLengthLimit = pow(lengthLimit, power);
-				double logNextLengthLimit = log(nextLengthLimit);
-
-				smoothValue = (log(value.AbsoluteValue()) - logNextLengthLimit) / (log(lengthLimit) - logNextLengthLimit); // linear gradient between iterations
-				double smoothPower = pow(power, 0.4); // magic number - moderately better results on high powers
-				double logSmoothPower = log(smoothPower);
-				double twoToPower = pow(2, smoothPower);
-				double reverseLerp = smoothValue * (2 - twoToPower) + twoToPower;
-				double dLogUpperLimit = log(log(twoToPower) / logSmoothPower) / logSmoothPower;
-				smoothValue = dLogUpperLimit - log(log(reverseLerp) / logSmoothPower) / logSmoothPower;
-			}
-			else
-			{
-				smoothValue = log(lengthLimit) / log(value.AbsoluteValue()); // linear gradient between iterations
-			}
-			return (double)i + smoothValue;
+			return CalculateEscapedValue(i, lengthLimit, value, power);
 		}
 		ComplexFloat deviation = value - cycleValue;
 		if (deviation.AbsoluteValueSqr() < minDeviationSqr)
