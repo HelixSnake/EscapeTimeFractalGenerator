@@ -28,6 +28,15 @@ ComplexFloat ComplexFloat::operator-(const ComplexFloat other) const
 	output.imaginary = other.imaginary - this->imaginary;
 	return output;
 }
+ComplexFloat ComplexFloat::operator+(const CF_Float other) const
+{
+	return ComplexFloat(this->real + other, this->imaginary);
+}
+ComplexFloat ComplexFloat::operator-(const CF_Float other) const
+{
+	return ComplexFloat(this->real - other, this->imaginary);
+}
+
 ComplexFloat ComplexFloat::operator*(const ComplexFloat other) const
 {
 	ComplexFloat output;
@@ -57,6 +66,10 @@ ComplexFloat ComplexFloat::Divide(const CF_Float first, const ComplexFloat secon
 	output.real = first * second.real;
 	output.imaginary = - first * second.imaginary;
 	return output / (second.real * second.real + second.imaginary * second.imaginary);
+}
+ComplexFloat ComplexFloat::Subtract(const CF_Float first, const ComplexFloat second)
+{
+	return ComplexFloat(first - second.real, -second.imaginary);
 }
 
 CF_Float ComplexFloat::AbsoluteValue() const
@@ -113,6 +126,10 @@ ComplexFloat ComplexFloat::Reciprocal() const
 }
 ComplexFloat ComplexFloat::Power(const int power) const
 {
+	if (power < 0 || power > 20)
+	{
+		return ComplexFloat::Power(*this, CF_Float(power));
+	}
 	ComplexFloat newValue = *this;
 	for (int i = 1; i < power; i++)
 	{

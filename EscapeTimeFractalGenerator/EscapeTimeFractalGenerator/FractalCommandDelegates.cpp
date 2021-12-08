@@ -27,8 +27,13 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 
 	CCC_Functions[(int)FractalCommand::add] = [](ComplexFloat first, ComplexFloat second) { return first + second; };
 	FFF_Functions[(int)FractalCommand::add] = [](CF_Float first, CF_Float second) { return first + second; };
+	CCF_Functions[(int)FractalCommand::add] = [](ComplexFloat first, CF_Float second) { return first + second; };
+	CFC_Functions[(int)FractalCommand::add] = [](CF_Float first, ComplexFloat second) { return second + first; };
+
 	CCC_Functions[(int)FractalCommand::subtract] = [](ComplexFloat first, ComplexFloat second) { return first - second; };
 	FFF_Functions[(int)FractalCommand::subtract] = [](CF_Float first, CF_Float second) { return first - second; };
+	CCF_Functions[(int)FractalCommand::subtract] = [](ComplexFloat first, CF_Float second) { return first - second; };
+	CFC_Functions[(int)FractalCommand::subtract] = [](CF_Float first, ComplexFloat second) { return ComplexFloat::Subtract(first, second); };
 
 	CCC_Functions[(int)FractalCommand::multiply] = [](ComplexFloat first, ComplexFloat second) { return first * second; };
 	FFF_Functions[(int)FractalCommand::multiply] = [](CF_Float first, CF_Float second) { return first * second; };
@@ -67,6 +72,7 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 	FCC_Functions[(int)FractalCommand::getx] = [](ComplexFloat first, ComplexFloat second) {return first.real; };
 	FCC_Functions[(int)FractalCommand::gety] = [](ComplexFloat first, ComplexFloat second) {return first.imaginary; };
 	CFF_Functions[(int)FractalCommand::floatstocomplex] = [](CF_Float first, CF_Float second) {return ComplexFloat(first, second); };
+	CFF_Functions[(int)FractalCommand::toimaginary] = [](CF_Float first, CF_Float second) {return ComplexFloat(0, first); };
 	FCC_Functions[(int)FractalCommand::dot] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Dot(first, second); };
 	FCC_Functions[(int)FractalCommand::arg] = [](ComplexFloat first, ComplexFloat second) {return first.Arg(); };
 	FFF_Functions[(int)FractalCommand::step] = [](CF_Float first, CF_Float second) {return first >= second ? 1.0L : 0.0L; };
@@ -93,6 +99,7 @@ void FractalCommandDelegates::GenerateKnownCommandNames()
 	commandNames[(unsigned long long)FractalCommand::getx] = "Get Real";
 	commandNames[(unsigned long long)FractalCommand::gety] = "Get Imaginary";
 	commandNames[(unsigned long long)FractalCommand::floatstocomplex] = "Build Complex Float";
+	commandNames[(unsigned long long)FractalCommand::toimaginary] = "To Imaginary";
 	commandNames[(unsigned long long)FractalCommand::dot] = "Dot";
 	commandNames[(unsigned long long)FractalCommand::arg] = "Arg";
 	commandNames[(unsigned long long)FractalCommand::step] = "Step";
@@ -119,6 +126,7 @@ void FractalCommandDelegates::GenerateKnownCommandInputs()
 	commandInputs[(unsigned long long)FractalCommand::getx] = 1;
 	commandInputs[(unsigned long long)FractalCommand::gety] = 1;
 	commandInputs[(unsigned long long)FractalCommand::floatstocomplex] = 2;
+	commandInputs[(unsigned long long)FractalCommand::toimaginary] = 1;
 	commandInputs[(unsigned long long)FractalCommand::dot] = 2;
 	commandInputs[(unsigned long long)FractalCommand::arg] = 1;
 	commandInputs[(unsigned long long)FractalCommand::step] = 2;

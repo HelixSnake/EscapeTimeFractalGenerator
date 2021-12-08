@@ -20,6 +20,7 @@ enum struct FractalCommand
 	getx,
 	gety,
 	floatstocomplex,
+	toimaginary,
 	dot,
 	arg,
 	step,

@@ -15,8 +15,8 @@ public:
     ComplexFractal(int iterations, CF_Float minDeviation, int deviationCycle = 100, bool debugDeviations = false);
     void SetFunction(RecursiveFunction func);
     void SetStartingFunction(StartingValueFunction func);
-    double CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues, int power);
-    double CalculateEscapeTime(FractalCommandListExecutor &startingFunction, FractalCommandListExecutor &recursiveFunction, int power);
+    double CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues, CF_Float power);
+    double CalculateEscapeTime(FractalCommandListExecutor &startingFunction, FractalCommandListExecutor &recursiveFunction, CF_Float power);
 protected:
     CF_Float minDeviationSqr = 0;
     int deviationCycle = 100;

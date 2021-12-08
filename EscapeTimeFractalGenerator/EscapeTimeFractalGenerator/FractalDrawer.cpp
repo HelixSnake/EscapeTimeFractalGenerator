@@ -81,7 +81,7 @@ void FractalDrawer::SetPixel(std::atomic<CF_Float>* pixelBuffer, int pixelBuffer
 	pixelBuffer[y * pixelBufferWidth + x] = value;
 }
 
-bool FractalDrawer::DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, ComplexFloat* extraValues, int power)
+bool FractalDrawer::DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, ComplexFloat* extraValues, CF_Float power)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(iterations, minDeviation, deviationCycles, debugDeviations);
@@ -123,7 +123,7 @@ bool FractalDrawer::DrawFractalChunk(int index, CF_Float tfx, CF_Float tfy, CF_F
 	return true;
 }
 
-bool FractalDrawer::DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, int power)
+bool FractalDrawer::DrawFractalChunkFromCommands(int index, CF_Float tfx, CF_Float tfy, CF_Float tfscale, CF_Float power)
 {
 	std::lock_guard<std::mutex> lock1{ Mutexes[index] };
 	ComplexFractal fractal = ComplexFractal(iterations, minDeviation, deviationCycles, debugDeviations);
@@ -282,7 +282,7 @@ void FractalDrawer::CopyBuffer(CF_Float* dest, size_t bufferSize)
 	}
 }
 
-bool FractalDrawer::Draw(bool update, ZoomTransform transform, ComplexFloat* extraValues, int power)
+bool FractalDrawer::Draw(bool update, ZoomTransform transform, ComplexFloat* extraValues, CF_Float power)
 {
 	bool areWeDone = false; // Value to return from function when we're done
 	//Draw Fractal

@@ -73,7 +73,7 @@ struct FractalInfo
 	double CustomJulPosY = 0;
 	double DistortionVectorX = 0;
 	double DistortionVectorY = 0;
-	int power = 2;
+	CF_Float power = 2.0;
 	FractalDictionary::FractalType type = FractalDictionary::FractalType::Julia;
 
 	std::pair<FractalCommandListValidator::Error, int> startCommandListError;
@@ -596,9 +596,11 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		DisplayCommandListBuilder(commandListBuilderRecr, delegates, imguiID, fractalInfo);
 		ImGui::TextWrapped((std::string("Error: \"") + FractalCommandListValidator::ErrorStrings.at(fractalInfo.recrCommandListError.first) + "\" at command " + std::to_string(fractalInfo.recrCommandListError.second)).c_str());
 	}
-	ImGui::InputInt("Fractal Power", &fractalInfo.power);
-	DisplayToolTip("The power used in the fractal equation, when applicable.\n Limited to between 1 and 7\nDetermines how the gradient effect works");
-	fractalInfo.power = glm::clamp(fractalInfo.power, 1, 7); //to support values over 7 more values need to be fine tuned in ComplexFractal.cpp
+	double fractalPower = fractalInfo.power;
+	ImGui::InputDouble("Fractal Power", &fractalPower);
+	fractalInfo.power = fractalPower;
+	DisplayToolTip("The power used in the fractal equation, when applicable.\nDetermines how the gradient effect works");
+	//fractalInfo.power = glm::clamp(fractalInfo.power, 1, 7); //to support values over 7 more values need to be fine tuned in ComplexFractal.cpp
 	/*if (ImGui::Checkbox("Animate!", &fractalInfo.animate))
 	{
 		if (fractalInfo.animate)

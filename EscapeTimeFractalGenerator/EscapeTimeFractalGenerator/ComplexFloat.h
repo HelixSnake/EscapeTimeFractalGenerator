@@ -10,11 +10,14 @@ struct ComplexFloat
 	ComplexFloat(CF_Float real, CF_Float imaginary);
 	ComplexFloat operator+(const ComplexFloat other) const;
 	ComplexFloat operator-(const ComplexFloat other) const;
+	ComplexFloat operator+(const CF_Float other) const;
+	ComplexFloat operator-(const CF_Float other) const;
 	ComplexFloat operator*(const ComplexFloat other) const;
 	ComplexFloat operator*(const CF_Float other) const; 
 	ComplexFloat operator/(const CF_Float other) const;
 	ComplexFloat operator/(const ComplexFloat other) const; 
 	static ComplexFloat Divide(const CF_Float first, const ComplexFloat second);
+	static ComplexFloat Subtract(const CF_Float first, const ComplexFloat second);
 	bool operator==(const ComplexFloat other) const { return real == other.real && imaginary == other.imaginary; }
 	CF_Float AbsoluteValue() const;
 	CF_Float AbsoluteValueSqr() const;
