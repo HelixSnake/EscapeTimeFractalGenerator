@@ -132,4 +132,4 @@ double ComplexFractal::CalculateEscapeTime(FractalCommandListExecutor& startingF
 		if (i % deviationCycle == 0) cycleValue = value;
 	}
 	return 0;
-}
+}	

@@ -57,6 +57,14 @@ BEGIN_TEST(FractalCommandDelegate, RunCFCFCFMult)
 			EXPECT_EQ(expectedResult, result)
 		}END_TEST
 
+BEGIN_TEST(FractalMath, SqrtPow)
+		{
+			ComplexFloat first = ComplexFloat(5, 7);
+			ComplexFloat result = ComplexFloat::Sqrt(first);
+			ComplexFloat expectedResult = ComplexFloat::Power(first, 0.5);
+			EXPECT_EQ(expectedResult, result)
+		}END_TEST
+
 
 //Fractal Command List Executor Tests -------------------------------------------------------------------------------------------------------------------------
 
@@ -120,6 +128,7 @@ int RunAllUnitTests()
 			RUN_TEST(FractalCommandDelegate, RunCFCFCFMove)
 			RUN_TEST(FractalCommandDelegate, RunCFCFCFAdd)
 			RUN_TEST(FractalCommandDelegate, RunCFCFCFMult)
+			RUN_TEST(FractalMath, SqrtPow)
 			RUN_TEST(FractalCommandValidator, RunAllValidationTests)
 			return 0;
 	}

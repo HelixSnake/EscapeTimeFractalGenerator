@@ -3,6 +3,8 @@
 #include <glm/common.hpp>
 
 const long double E_CONSTANT = 2.71828182845904523536028747135266249775724709369995;
+const long double PI_CONSTANT = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068; // is this enough digits?
+const long double SQRT2 = 1.4142135623730950488016887242096980785696718753769480731766797379907324784621;
 
 ComplexFloat::ComplexFloat()
 {
@@ -26,6 +28,13 @@ ComplexFloat ComplexFloat::operator-(const ComplexFloat other) const
 	ComplexFloat output;
 	output.real = other.real - this->real;
 	output.imaginary = other.imaginary - this->imaginary;
+	return output;
+}
+ComplexFloat ComplexFloat::operator-() const
+{
+	ComplexFloat output;
+	output.real =  -this->real;
+	output.imaginary = -this->imaginary;
 	return output;
 }
 ComplexFloat ComplexFloat::operator+(const CF_Float other) const
@@ -165,3 +174,53 @@ ComplexFloat ComplexFloat::Power(const ComplexFloat first, const CF_Float second
 	CF_Float nt = second*first.Arg();
 	return ComplexFloat(cosl(nt), sinl(nt)) * powl(r, second);
 }
+
+ComplexFloat ComplexFloat::MultByi(const ComplexFloat first)
+{
+	return ComplexFloat(-first.imaginary, first.real);
+}
+ComplexFloat ComplexFloat::Sqrt(ComplexFloat cfloat)
+{
+	CF_Float r = cfloat.AbsoluteValue();
+	CF_Float ssign = cfloat.imaginary < 0 ? (CF_Float )-1 : (CF_Float)1;
+	return ComplexFloat(sqrtl(r + cfloat.real), ssign * sqrtl(r - cfloat.real)) * SQRT2 * 0.5;
+}
+
+ComplexFloat ComplexFloat::Sin(ComplexFloat cfloat)
+{
+	return ComplexFloat(sinl(cfloat.real) * coshl(cfloat.imaginary), cosl(cfloat.real) * sinhl(cfloat.imaginary));
+}
+ComplexFloat ComplexFloat::Cos(ComplexFloat cfloat)
+{
+	return ComplexFloat(cosl(cfloat.real) * coshl(cfloat.imaginary), -sinl(cfloat.real) * sinhl(cfloat.imaginary));
+}
+ComplexFloat ComplexFloat::Sinh(ComplexFloat cfloat) 
+{
+	return ComplexFloat(sinhl(cfloat.real) * cosl(cfloat.imaginary), coshl(cfloat.real) * sinl(cfloat.imaginary));
+}
+ComplexFloat ComplexFloat::Cosh(ComplexFloat cfloat)
+{
+	return ComplexFloat(coshl(cfloat.real) * cosl(cfloat.imaginary), sinhl(cfloat.real) * sinl(cfloat.imaginary));
+}
+ComplexFloat ComplexFloat::Ln(ComplexFloat cfloat)
+{
+	return ComplexFloat(logl(cfloat.AbsoluteValue()), cfloat.Arg());
+}
+ComplexFloat ComplexFloat::Asin(ComplexFloat cfloat)
+{
+	ComplexFloat part1 = ComplexFloat::Sqrt(ComplexFloat::Subtract(1, cfloat * cfloat));
+	ComplexFloat part2 = ComplexFloat::Ln(part1 + ComplexFloat::MultByi(cfloat));
+	return -ComplexFloat::MultByi(part2);
+}/*
+ComplexFloat ComplexFloat::Acos(ComplexFloat cfloat)
+{}
+ComplexFloat ComplexFloat::Atan(ComplexFloat cfloat)
+{}
+ComplexFloat ComplexFloat::Asinh(ComplexFloat cfloat)
+{}
+ComplexFloat ComplexFloat::Acosh(ComplexFloat cfloat)
+{}
+ComplexFloat ComplexFloat::Atanh(ComplexFloat cfloat)
+{
+
+}*/

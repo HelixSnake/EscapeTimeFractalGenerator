@@ -12,6 +12,7 @@ struct ComplexFloat
 	ComplexFloat operator-(const ComplexFloat other) const;
 	ComplexFloat operator+(const CF_Float other) const;
 	ComplexFloat operator-(const CF_Float other) const;
+	ComplexFloat operator-() const;
 	ComplexFloat operator*(const ComplexFloat other) const;
 	ComplexFloat operator*(const CF_Float other) const; 
 	ComplexFloat operator/(const CF_Float other) const;
@@ -31,5 +32,21 @@ struct ComplexFloat
 	static ComplexFloat Power(const CF_Float first, const ComplexFloat second);
 	static ComplexFloat Power(const ComplexFloat first, const ComplexFloat second);
 	static ComplexFloat Power(const ComplexFloat first, const CF_Float second);
+	static ComplexFloat MultByi(const ComplexFloat first);
+
+	static ComplexFloat Sqrt(ComplexFloat cfloat);
+	static ComplexFloat Sin(ComplexFloat cfloat);
+	static ComplexFloat Cos(ComplexFloat cfloat);
+	static ComplexFloat Sinh(ComplexFloat cfloat);
+	static ComplexFloat Cosh(ComplexFloat cfloat);
+	static ComplexFloat Ln(ComplexFloat cfloat);
+	
+	static ComplexFloat Asin(ComplexFloat cfloat); //TODO: Test function
+	/*
+	static ComplexFloat Acos(ComplexFloat cfloat);
+	static ComplexFloat Atan(ComplexFloat cfloat);
+	static ComplexFloat Asinh(ComplexFloat cfloat);
+	static ComplexFloat Acosh(ComplexFloat cfloat);
+	static ComplexFloat Atanh(ComplexFloat cfloat);*/
 };
 

@@ -50,17 +50,29 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 	FFF_Functions[(int)FractalCommand::power] = [](CF_Float first, CF_Float second) { return powl(first, second); };
 	CCF_Functions[(int)FractalCommand::power] = [](ComplexFloat first, CF_Float second) { return ComplexFloat::Power(first, second); };
 
-	CCC_Functions[(int)FractalCommand::sin] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat(sinl(first.real) * coshl(first.imaginary), cosl(first.real) * sinhl(first.imaginary)); };
+	FFF_Functions[(int)FractalCommand::ln] = [](CF_Float first, CF_Float second) { return logl(first); };
+	CCC_Functions[(int)FractalCommand::ln] = [](ComplexFloat first, ComplexFloat second) { return ComplexFloat::Ln(first); };
+
+	CCC_Functions[(int)FractalCommand::sin] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Sin(first); };
 	FFF_Functions[(int)FractalCommand::sin] = [](CF_Float first, CF_Float second) {return sinl(first); };
 
-	CCC_Functions[(int)FractalCommand::cos] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat(cosl(first.real) * coshl(first.imaginary), -sinl(first.real) * sinhl(first.imaginary)); };
+	CCC_Functions[(int)FractalCommand::cos] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Cos(first); };
 	FFF_Functions[(int)FractalCommand::cos] = [](CF_Float first, CF_Float second) {return cosl(first); };
 
-	CCC_Functions[(int)FractalCommand::sinh] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat(sinhl(first.real) * cosl(first.imaginary), coshl(first.real) * sinl(first.imaginary)); };
+	CCC_Functions[(int)FractalCommand::tan] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Sin(first) / ComplexFloat::Cos(first); };
+	FFF_Functions[(int)FractalCommand::tan] = [](CF_Float first, CF_Float second) {return tanl(first); };
+
+	CCC_Functions[(int)FractalCommand::sinh] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Sinh(first); };
 	FFF_Functions[(int)FractalCommand::sinh] = [](CF_Float first, CF_Float second) {return sinhl(first); };
 
-	CCC_Functions[(int)FractalCommand::cosh] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat(coshl(first.real) * cosl(first.imaginary), sinhl(first.real) * sinl(first.imaginary)); };
+	CCC_Functions[(int)FractalCommand::cosh] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Cosh(first); };
 	FFF_Functions[(int)FractalCommand::cosh] = [](CF_Float first, CF_Float second) {return coshl(first); };
+
+	CCC_Functions[(int)FractalCommand::tanh] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Sinh(first) / ComplexFloat::Cosh(first); };
+	FFF_Functions[(int)FractalCommand::tanh] = [](CF_Float first, CF_Float second) {return tanhl(first); };
+
+	//CCC_Functions[(int)FractalCommand::asin] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Asin(first); };
+	//FFF_Functions[(int)FractalCommand::asin] = [](CF_Float first, CF_Float second) {return asinl(first); };
 
 	FCC_Functions[(int)FractalCommand::magnitude] = [](ComplexFloat first, ComplexFloat second) {return first.AbsoluteValue(); };
 	FCC_Functions[(int)FractalCommand::magnitudesqr] = [](ComplexFloat first, ComplexFloat second) {return first.AbsoluteValueSqr(); };
@@ -89,10 +101,14 @@ void FractalCommandDelegates::GenerateKnownCommandNames()
 	commandNames[(unsigned long long)FractalCommand::multiply] = "Multiply";
 	commandNames[(unsigned long long)FractalCommand::divide] = "Divide";
 	commandNames[(unsigned long long)FractalCommand::power] = "Power";
+	commandNames[(unsigned long long)FractalCommand::ln] = "Natural Log";
 	commandNames[(unsigned long long)FractalCommand::sin] = "Sin";
 	commandNames[(unsigned long long)FractalCommand::cos] = "Cos";
+	commandNames[(unsigned long long)FractalCommand::tan] = "Tan";
 	commandNames[(unsigned long long)FractalCommand::sinh] = "Sinh";
 	commandNames[(unsigned long long)FractalCommand::cosh] = "Cosh";
+	commandNames[(unsigned long long)FractalCommand::tanh] = "Tanh";
+	//commandNames[(unsigned long long)FractalCommand::asin] = "Arcsin";
 	commandNames[(unsigned long long)FractalCommand::magnitude] = "Magnitude";
 	commandNames[(unsigned long long)FractalCommand::magnitudesqr] = "Magnitude Square";
 	commandNames[(unsigned long long)FractalCommand::normalize] = "Normalize";
@@ -116,10 +132,14 @@ void FractalCommandDelegates::GenerateKnownCommandInputs()
 	commandInputs[(unsigned long long)FractalCommand::multiply] = 2;
 	commandInputs[(unsigned long long)FractalCommand::divide] = 2;
 	commandInputs[(unsigned long long)FractalCommand::power] = 2;
+	commandInputs[(unsigned long long)FractalCommand::ln] = 1;
 	commandInputs[(unsigned long long)FractalCommand::sin] = 1;
 	commandInputs[(unsigned long long)FractalCommand::cos] = 1;
+	commandInputs[(unsigned long long)FractalCommand::tan] = 1;
 	commandInputs[(unsigned long long)FractalCommand::sinh] = 1;
 	commandInputs[(unsigned long long)FractalCommand::cosh] = 1;
+	commandInputs[(unsigned long long)FractalCommand::tanh] = 1;
+	//commandInputs[(unsigned long long)FractalCommand::asin] = 1;
 	commandInputs[(unsigned long long)FractalCommand::magnitude] = 1;
 	commandInputs[(unsigned long long)FractalCommand::magnitudesqr] = 1;
 	commandInputs[(unsigned long long)FractalCommand::normalize] = 1;
