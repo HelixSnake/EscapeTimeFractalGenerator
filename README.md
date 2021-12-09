@@ -20,6 +20,7 @@ Currently this project is only designed to be ran on Windows.
 ##### Starting Out
 You will need a file called "colorRamp.png" in the same folder as the executable. Otherwise you will not have a working render until you choose a color ramp file. Sample color ramps are supplied in the root folder.  
 
+![DefaultUI](https://github.com/HelixSnake/EscapeTimeFractalGenerator/blob/main/Documentation/UI_Normal_View.png)  
 You can see a set of controls here. Here are the explanations for them:
 ##### Iterations:
 Determines the amount of recursive iterations the fractal goes through. More iterations means more expensive, but more accurate. Each pixel does not always run the full number of iterations, so rendering time does not always scale linearly with this value. If parts of the fractal are rendering black that you think should be filled in, increase this. Click "Update" after changing.
