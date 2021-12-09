@@ -63,7 +63,7 @@ If the fractal you are rendering has one of these, the fields will show up autom
 You can hand-set this value, or mouse over the drawing window and press/hold V to choose a constant for that value. 
 Pressing V will re-render the fractal. 
 The Super Mandelbrot and Peacock Fractals require this to be set to something other than 0 in order to render.
-__Click "Update" after changing._
+_Click "Update" after changing._
 
 ##### Update
 You will need to click this after you do anything that would affect the fractal itself rendering.
