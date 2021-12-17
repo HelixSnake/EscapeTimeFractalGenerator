@@ -44,7 +44,7 @@ so this can be changed without clicking "Update" or re-rendering the fractal._
 Offsets the ramp texture by a value between 0 and 1 for tweaking the visuals. 
 _Only affects the "intrepretation" step, so this can be changed without clicking "Update" or re-rendering the fractal._
 ##### Custom Function
-See "How to use the custom function mode" [Under Construction]
+See "How to use the custom function mode"
 ##### Fractal Type
 A handful of different fractals. Mouse over these for helpful notes on how to get them to work. 
 _Click "Update" after changing._
@@ -83,3 +83,60 @@ Makes the fractal render step by step as it is generated. Recommended to have on
 There are 2 steps to the rendering process: the generation of the fractal, 
 and the interpretation step that turns a value into a color from the color ramp. 
 As these processes are separate, they are tracked by separate progress bars.
+
+## How To Use The Custom Function Mode
+The custom function mode is a way for you to create your own equations. 
+I wanted to represent this as a graph system but that was out of scope for this project.
+I also considered writing a parser but I also believe that for it to be as feature rich
+as I wanted it would also be out of scope. I settled with a pattern that is closely modeled
+after the way the custom functions are modeled in code, for both feature completion and
+speed of development.
+##### How It Works
+Custom functions are run using a series of commands. The arguments for a command
+can be either the result of the previous iteration, the input position
+(passed in through the x, y position of the pixel), the result of a previous
+command, or a constant value (either a float or a complex float).
+There is a custom function for both the starting value, and the recursive function.
+The last command in the sequence is the "return value" of the custom function.
+Most of the math functions provided are self explanatory math functions, but it's worth
+noting the "move" function; this takes an input and simply sets the output of that
+command as that input. This is useful in the starting function when you want the result
+to be a constant or the input position.
+
+For the fractal to be able to generate, you need at least one command for both the starting
+function and the recursive function. If you use any constant variables, you will have to create a constant
+variable using the + button for that data type. Constants can be set to specific pixel location values by 
+clicking the input field for one,
+holding "v", and mousing over the drawing window. Doing this will redraw the fractal.
+
+#### Getting Started and Useful Setups
+If you want to start messing around, the following patterns are good for creating fractals:
+##### Simple Tower Functions
+ Setting the starting function to "move" with the source being "input position", and then experimenting 
+with different functions in the recursive function is a good starting point. There are a handful of interesting
+fractals that can be made using this setup and just one command for the recursive function. Make sure your recursive
+function command involves (n-1) as one of its inputs; you need this to get the recursive nature
+of the fractal generation to work.
+##### The Mandelbrot-like Setup
+Mandelbrots use a starting position of (0,0) and use an "add" command at the end
+of the recursive function to add the input position. Using the "move" command in your
+starting function and setting it to move a constant complex float (make sure to add one to your
+list of complex floats), and then adding a command to the recursive function with (n-1)
+as an input, followed by an "add" command with one source being the previous command (make sure to
+set the index to that of the command you want to use the result from) and the other source being "input position".
+There are quite a few interesting results that can come from this.
+##### The Julia-like Setup
+For most fractals that you can get from the above Mandelbrot-like setup, there is
+an associated "Julia set" like fractal. In order to make it, instead of having the starting function
+be a constant, change the input of the "move" command to be the input position, and
+instead of adding the input position at the end of the recursive function, add a constant complex float.
+You will get a fractal that is similar to the "mandelbrot-like" version in some ways; setting the complex float
+added in the recursive function to various values will change the result.
+#### Tweaking The Gradient Using The "Power" Value
+The "Power" value does not affect the actual equation of the fractal, but it affects
+the way the gradient between iteration steps is generated. If you have an overly complex gradient for some fractals with
+a higher "Power" value than 1 (usually tower functions are a good example that can cause this)
+it's a good idea to set this value to 1. If you have a polynomial growth rate (depending on how you are doing
+the math in your recursive function) you should tweak the power value to match the growth rate of your recursive function.
+If you're unsure of how to know what power your growth rate is at, just try tweaking this value up and down until you get a smooth
+gradient between iteration steps, or you get a more aesthetically pleasing result.
