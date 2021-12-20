@@ -15,7 +15,7 @@ ComplexFractal::ComplexFractal(int iterations)
 ComplexFractal::ComplexFractal(int iterations, CF_Float minDeviation, int deviationCycle, bool debugDeviations)
 {
 	this->iterations = iterations;
-	this->minDeviationSqr = minDeviation * minDeviation;
+	this->minDeviation = minDeviation;
 	this->deviationCycle = deviationCycle;
 	this->debugDeviations = debugDeviations;
 }
@@ -60,16 +60,13 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 {
 	//default algorithm for starting position
 	ComplexFloat value = ComplexFloat(0, 0);
-	double lengthlimitsqr = lengthLimit * lengthLimit;
 	if (startingValueFunction != nullptr)
 	{ 
 		value = startingValueFunction(ComplexFloat(x, y), extraValues, power);
 	}
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
-	ComplexFloat prevValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
-	ComplexFloat cycleValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
-	ComplexFloat prev2Value = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
-	double lengthLimitSqr = lengthLimit * lengthLimit;
+	ComplexFloat cycleValue = value + ComplexFloat(minDeviation, minDeviation);
+	int setCycleValueNext = 0;
 	for (int i = 0; i < iterations; i++)
 	{
 		if (recursiveFunction != nullptr)
@@ -82,19 +79,20 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 			value = value * value + ComplexFloat(x, y);
 		}
 		if (isnan(value.real) || isnan(value.imaginary)) return i; // if the values have gotten so extreme that a NAN showed up, just assume we diverged. Trust me, this is a good idea.
-		double absValSqr = value.AbsoluteValueSqr();
-		if (absValSqr > lengthLimitSqr)
+		if (abs(value.real) > lengthLimit || abs(value.imaginary) > lengthLimit)
 		{ 
 			return CalculateEscapedValue(i, lengthLimit, value, power);
 		}
 		ComplexFloat deviation = value - cycleValue;
-		if (deviation.AbsoluteValueSqr() < minDeviationSqr)
+		if (abs(deviation.real) < minDeviation && abs(deviation.imaginary) < minDeviation)
 		{
 			return debugDeviations? i : 0;
 		}
-		prev2Value = prevValue;
-		prevValue = value;
-		if (i % deviationCycle == 0) cycleValue = value;
+		if (i == setCycleValueNext)
+		{
+			cycleValue = value;
+			setCycleValueNext += deviationCycle;
+		}
 	}
 	return 0;
 }
@@ -103,33 +101,31 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 double ComplexFractal::CalculateEscapeTime(FractalCommandListExecutor& startingFunction, FractalCommandListExecutor& recursiveFunction, CF_Float power)
 {//default algorithm for starting position
 	ComplexFloat value = ComplexFloat(0, 0);
-	double lengthlimitsqr = lengthLimit * lengthLimit;
 	startingFunction.Execute();
 	value = startingFunction.GetReturnValue();
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
-	ComplexFloat prevValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
-	ComplexFloat cycleValue = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
-	ComplexFloat prev2Value = value + ComplexFloat(minDeviationSqr, minDeviationSqr);
-	double lengthLimitSqr = lengthLimit * lengthLimit;
+	ComplexFloat cycleValue = value + ComplexFloat(minDeviation, minDeviation);
 	recursiveFunction.InitializeReturnValue(value);
+	int setCycleValueNext = 0;
 	for (int i = 0; i < iterations; i++)
 	{
 		recursiveFunction.Execute();
 		value = recursiveFunction.GetReturnValue();
 		if (isnan(value.real) || isnan(value.imaginary)) return i; // if the values have gotten so extreme that a NAN showed up, just assume we diverged. Trust me, this is a good idea.
-		double absValSqr = value.AbsoluteValueSqr();
-		if (absValSqr > lengthLimitSqr)
+		if (abs(value.real) > lengthLimit || abs(value.imaginary) > lengthLimit)
 		{
 			return CalculateEscapedValue(i, lengthLimit, value, power);
 		}
 		ComplexFloat deviation = value - cycleValue;
-		if (deviation.AbsoluteValueSqr() < minDeviationSqr)
+		if (abs(deviation.real) < minDeviation && abs(deviation.imaginary) < minDeviation)
 		{
 			return debugDeviations ? i : 0;
 		}
-		prev2Value = prevValue;
-		prevValue = value;
-		if (i % deviationCycle == 0) cycleValue = value;
+		if (i == setCycleValueNext)
+		{
+			cycleValue = value;
+			setCycleValueNext += deviationCycle;
+		}
 	}
 	return 0;
 }	

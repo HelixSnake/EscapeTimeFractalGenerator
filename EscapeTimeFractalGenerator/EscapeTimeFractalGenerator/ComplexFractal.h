@@ -18,7 +18,7 @@ public:
     double CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat* extraValues, CF_Float power);
     double CalculateEscapeTime(FractalCommandListExecutor &startingFunction, FractalCommandListExecutor &recursiveFunction, CF_Float power);
 protected:
-    CF_Float minDeviationSqr = 0;
+    CF_Float minDeviation = 0;
     int deviationCycle = 100;
     int iterations = 0;
     bool debugDeviations = false;
