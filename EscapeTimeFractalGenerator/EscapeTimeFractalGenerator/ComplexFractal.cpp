@@ -66,6 +66,7 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 	}
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
 	ComplexFloat cycleValue = value + ComplexFloat(minDeviation, minDeviation);
+	CF_Float lengthLimitSqr = lengthLimit * lengthLimit;
 	int setCycleValueNext = 0;
 	for (int i = 0; i < iterations; i++)
 	{
@@ -79,7 +80,7 @@ double ComplexFractal::CalculateEscapeTime(CF_Float x, CF_Float y, ComplexFloat*
 			value = value * value + ComplexFloat(x, y);
 		}
 		if (isnan(value.real) || isnan(value.imaginary)) return i; // if the values have gotten so extreme that a NAN showed up, just assume we diverged. Trust me, this is a good idea.
-		if (abs(value.real) > lengthLimit || abs(value.imaginary) > lengthLimit)
+		if (value.AbsoluteValueSqr() > lengthLimitSqr)
 		{ 
 			return CalculateEscapedValue(i, lengthLimit, value, power);
 		}
@@ -106,13 +107,14 @@ double ComplexFractal::CalculateEscapeTime(FractalCommandListExecutor& startingF
 	// adding this constant to the value will insure that the fractal does not escape the first iteration due to the minimum deviation
 	ComplexFloat cycleValue = value + ComplexFloat(minDeviation, minDeviation);
 	recursiveFunction.InitializeReturnValue(value);
+	CF_Float lengthLimitSqr = lengthLimit * lengthLimit;
 	int setCycleValueNext = 0;
 	for (int i = 0; i < iterations; i++)
 	{
 		recursiveFunction.Execute();
 		value = recursiveFunction.GetReturnValue();
 		if (isnan(value.real) || isnan(value.imaginary)) return i; // if the values have gotten so extreme that a NAN showed up, just assume we diverged. Trust me, this is a good idea.
-		if (abs(value.real) > lengthLimit || abs(value.imaginary) > lengthLimit)
+		if (value.AbsoluteValueSqr() > lengthLimitSqr)
 		{
 			return CalculateEscapedValue(i, lengthLimit, value, power);
 		}
