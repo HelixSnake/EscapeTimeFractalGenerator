@@ -107,6 +107,7 @@ bool FractalInterpreter::Draw(bool startDrawing)
 bool FractalInterpreter::Draw_Threaded()
 {
 	const std::lock_guard<std::mutex> lock(interpreterMutex);
+	double oneDivPeriod = 1.0 / period;
 	for (int i = 0; i < bufferWidth; i++)
 	{
 		for (int j = 0; j < bufferHeight; j++) 
@@ -118,7 +119,7 @@ bool FractalInterpreter::Draw_Threaded()
 			if (valueBuffer[valueBufferPos] != 0)
 			{
 				//logarithmic function keeps period similar at all zoom levels
-				newValue = glm::fract(log(valueBuffer[valueBufferPos]) / period + offset);
+				newValue = glm::fract(log(valueBuffer[valueBufferPos]) * oneDivPeriod + offset);
 				color = glm::vec3(newValue, newValue, newValue);
 				if (rampColors != nullptr)
 				{
