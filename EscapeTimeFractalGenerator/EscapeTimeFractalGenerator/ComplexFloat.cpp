@@ -101,18 +101,18 @@ ComplexFloat ComplexFloat::Normalized() const
 }
 
 CF_Float ComplexFloat::Angle(const ComplexFloat complexVector1, const ComplexFloat complexVector2) {
-	double x1 = complexVector1.real;
-	double x2 = complexVector2.real;
-	double y1 = complexVector1.imaginary;
-	double y2 = complexVector2.imaginary;
-	return atan2(x1 * y2 - x2 * y1, x1 * x2 + y1 * y2);
+	CF_Float x1 = complexVector1.real;
+	CF_Float x2 = complexVector2.real;
+	CF_Float y1 = complexVector1.imaginary;
+	CF_Float y2 = complexVector2.imaginary;
+	return atan2l(x1 * y2 - x2 * y1, x1 * x2 + y1 * y2);
 }
 
 CF_Float ComplexFloat::Dot(const ComplexFloat complexVector1, const ComplexFloat complexVector2) {
-	double x1 = complexVector1.real;
-	double x2 = complexVector2.real;
-	double y1 = complexVector1.imaginary;
-	double y2 = complexVector2.imaginary;
+	CF_Float x1 = complexVector1.real;
+	CF_Float x2 = complexVector2.real;
+	CF_Float y1 = complexVector1.imaginary;
+	CF_Float y2 = complexVector2.imaginary;
 	return x1 * x2 + y1 * y2;
 }
 ComplexFloat ComplexFloat::Abs() const
@@ -160,7 +160,7 @@ ComplexFloat ComplexFloat::Power(const ComplexFloat first, const ComplexFloat se
 	{
 		return first;
 	}
-	ComplexFloat step1 = second * log(first.AbsoluteValue());
+	ComplexFloat step1 = second * logl(first.AbsoluteValue());
 	ComplexFloat step2 = step1 + ComplexFloat(0, first.Arg()) * second;
 	return ComplexFloat(cosl(step2.imaginary), sinl(step2.imaginary)) * powl(E_CONSTANT, step2.real);
 }
