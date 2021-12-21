@@ -14,7 +14,7 @@ add_executable(Escape
   FractalSmoothZoomer.cpp
   MandelbrotFractal.cpp
   QuadDrawer.cpp
-  Test.cpp) 
+  Test.cpp "HammerslySequence.h" "HammerslySequence.cpp") 
 
 target_link_libraries(Escape
   soil
