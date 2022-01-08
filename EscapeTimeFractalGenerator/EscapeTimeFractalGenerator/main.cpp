@@ -27,6 +27,7 @@
 
 #include "FractalDrawer.h"
 #include "FractalInterpreter.h"
+#include "FractalFourier.h"
 #include "MandelbrotFractal.h"
 #include "ComplexFractal.h"
 #include "QuadDrawer.h"
@@ -67,6 +68,7 @@ struct FractalInfo
 	bool animate = false;
 	bool useCustomJulPos = false;
 	bool showAdvancedOptions = false;
+	bool fastFourierTransform = false;
 	bool liveUpdate = false;
 	bool customFunction = false;
 	double CustomJulPosX = 0;
@@ -485,9 +487,10 @@ void SetExecutorsFromBuilders(FractalDrawer *fractalDrawer, FractalCommandDelega
 }
 
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
-void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& updateDrawer, bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo,
-	FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser,
-	FractalCommandDelegates *delegates, FractalCommandListBuilder &commandListBuilderStart, FractalCommandListBuilder &commandListBuilderRecr)
+void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fractalDrawer, FractalFourier* fractalFourier, bool& updateDrawer, 
+	bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, 
+	ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser, FractalCommandDelegates *delegates, 
+	FractalCommandListBuilder &commandListBuilderStart, FractalCommandListBuilder &commandListBuilderRecr)
 {
 	glfwMakeContextCurrent(uiWindow);
 	glfwPollEvents();
@@ -669,6 +672,23 @@ void RenderUIWindow(GLFWwindow* uiWindow, FractalDrawer* fractalDrawer, bool& up
 		ImGui::Checkbox("Show Deviation Iterations", &fractalInfo.debugDeviations);
 	}
 
+	ImGui::Checkbox("Fast Fourier Transform", &fractalInfo.fastFourierTransform);
+	if (fractalInfo.fastFourierTransform)
+	{
+		if (ImGui::Button("Set dimensions to powers of two"))
+		{
+			int windowWidth = 0;
+			int windowHeight = 0;
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+			glfwSetWindowSize(window, (int)pow(2, std::roundf(log2f(windowWidth))), (int)pow(2, std::roundf(log2f(windowHeight))));
+		}
+		if (ImGui::Button("Execute"))
+		{
+			fractalFourier->Execute();
+			updateInterpreter = true;
+		}
+	}
+
 	ImGui::Checkbox("Live Rendering", &fractalInfo.liveUpdate);
 	ImGui::ProgressBar(fractalDrawer->GetProgress());
 	ImGui::ProgressBar(fractalInterpreter.GetProgress());
@@ -751,6 +771,8 @@ int main(int argc, char* argv[])
 	FractalCommandListBuilder commandListBuilderRecr;
 	// create fractal interpreter
 	FractalInterpreter fractalInterpreter;
+	// create fractal fourier
+	FractalFourier* fractalFourier = new FractalFourier(currentWindowWidth, currentWindowHeight);
 	// current zoom level
 	ZoomTransform currentZoom = DEFAULT_ZOOMTRANSFORM;
 	// create smooth zoomer
@@ -886,6 +908,7 @@ int main(int argc, char* argv[])
 			currentWindowHeight = nextWindowHeight;
 			updateOnResize = true;
 			fractalDrawer->Resize(currentWindowWidth, currentWindowHeight, fracInfo.upscale);
+			fractalFourier->Resize(currentWindowWidth, currentWindowHeight, fracInfo.upscale);
 		}
 		fractalInterpreter.period = fracInfo.period;
 		fractalInterpreter.offset = fracInfo.offset;
@@ -921,13 +944,28 @@ int main(int argc, char* argv[])
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
 		shouldRenderInterpreter = shouldRenderInterpreter || updateInterpreter; // render if we've change a UI thing that affects the interpreter
 		//shouldRenderInterpreter = shouldRenderInterpreter && !fractalInterpreter.IsBusy(); // don't render the interpreter if it's already busy
+		if (fractalDrawerReady && fracInfo.fastFourierTransform)
+		{
+			fractalFourier->FillFromBuffer(fractalDrawer->GetBuffer(), fractalDrawer->GetBufferLength());
+		}
 		if (shouldRenderInterpreter)
 		{
-			int fractalWidth = 0;
-			int fractalHeight = 0;
-			fractalDrawer->GetBufferDimensions(fractalWidth, fractalHeight);
-			fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
-			fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight * sizeof(CF_Float));
+			if (fracInfo.fastFourierTransform)
+			{
+				int fractalWidth = 0;
+				int fractalHeight = 0;
+				fractalFourier->GetBufferDimensions(fractalWidth, fractalHeight);
+				fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
+				fractalFourier->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight);
+			}
+			else
+			{
+				int fractalWidth = 0;
+				int fractalHeight = 0;
+				fractalDrawer->GetBufferDimensions(fractalWidth, fractalHeight);
+				fractalInterpreter.CreateOrUpdateBuffers(fractalWidth, fractalHeight);
+				fractalDrawer->CopyBuffer(fractalInterpreter.GetValueBufferStart(), fractalWidth * fractalHeight);
+			}
 		}
 		bool interpreterReady = fractalInterpreter.Draw(shouldRenderInterpreter);
 		int interpreterWidth = 0;
@@ -965,7 +1003,7 @@ int main(int argc, char* argv[])
 		regenBuffer = false;
 		//Render IMGUI stuff
 		fracInfo.constChanged = false;
-		RenderUIWindow(uiWindow, fractalDrawer, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, currentZoom, rampTexFileDialog,
+		RenderUIWindow(uiWindow, window, fractalDrawer, fractalFourier, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, currentZoom, rampTexFileDialog,
 			fractalCommandDelegates, commandListBuilderStart, commandListBuilderRecr);
 	}
 	delete fractalDrawer;

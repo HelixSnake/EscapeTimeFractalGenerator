@@ -47,7 +47,9 @@ public:
 	int GetMipLevel();
 	bool Draw(bool update, ZoomTransform transform, ComplexFloat* extraValues, CF_Float power); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
-	void CopyBuffer(CF_Float* dest, size_t bufferSize);
+	void CopyBuffer(CF_Float* dest, int bufferSize);
+	const CF_Float* GetBuffer();
+	int GetBufferLength();
 protected:
 
 	std::atomic<CF_Float>* pixelBuffer = nullptr;
