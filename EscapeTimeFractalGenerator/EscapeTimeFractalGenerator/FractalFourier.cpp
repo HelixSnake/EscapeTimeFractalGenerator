@@ -2,6 +2,9 @@
 #include <math.h>
 #include <algorithm>
 
+const long double E_CONSTANT = 2.71828182845904523536028747135266249775724709369995;
+const long double PI_CONSTANT = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068;
+
 FractalFourier::FractalFourier(int width, int height)
 {
 	this->complexBufferWidth = width;
@@ -18,17 +21,125 @@ void FractalFourier::FillFromBuffer(const CF_Float* buffer, int bufferLength)
 		(*currentBuffer)[i] = ComplexFloat(buffer[i], 0);
 	}
 }
-void FractalFourier::Execute() // Placeholder function
+void FractalFourier::Execute()
 {
 	std::swap(currentBuffer, otherBuffer);
 	for (int i = 0; i < complexBufferWidth; i++)
 	{
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
-			(*currentBuffer)[i + j * complexBufferWidth] = (*otherBuffer)[(i * 2 % complexBufferWidth + i * 2 / complexBufferWidth) + j * complexBufferWidth];
+			ComplexFloat sum = ComplexFloat(0, 0);
+			for (int i2 = 0; i2 < complexBufferWidth; i2++)
+			{
+				ComplexFloat fk = (*otherBuffer)[i2 + j * complexBufferWidth];
+				CF_Float kOverN = (CF_Float)i2 / complexBufferWidth;
+				//sum = sum + fk * ComplexFloat::Power(E_CONSTANT, ComplexFloat(0, 1) * -2 * PI_CONSTANT * i * kOverN);
+				CF_Float core = i * 2 * PI_CONSTANT * kOverN;
+				sum = sum + fk * ComplexFloat(cosl(core), -sinl(core));
+			}
+			(*currentBuffer)[i + j * complexBufferWidth] = sum;
+		}
+	}
+	std::swap(currentBuffer, otherBuffer);
+	for (int i = 0; i < complexBufferWidth; i++)
+	{
+		for (int j = 0; j < complexBufferHeight; j++)
+		{
+			ComplexFloat sum = ComplexFloat(0, 0);
+			for (int j2 = 0; j2 < complexBufferHeight; j2++)
+			{
+				ComplexFloat fk = (*otherBuffer)[i + j2 * complexBufferWidth];
+				CF_Float kOverN = (CF_Float)j2 / complexBufferHeight;
+				//sum = sum + fk * ComplexFloat::Power(E_CONSTANT, ComplexFloat(0, 1) * -2 * PI_CONSTANT * j * kOverN);
+				CF_Float core = j * 2 * PI_CONSTANT * kOverN;
+				sum = sum + fk * ComplexFloat(cosl(core), -sinl(core));
+			}
+			(*currentBuffer)[i + j * complexBufferWidth] = sum;
 		}
 	}
 }
+
+void FractalFourier::Reverse()
+{
+	std::swap(currentBuffer, otherBuffer);
+	for (int i = 0; i < complexBufferWidth; i++)
+	{
+		for (int j = 0; j < complexBufferHeight; j++)
+		{
+			ComplexFloat sum = ComplexFloat(0, 0);
+			for (int i2 = 0; i2 < complexBufferWidth; i2++)
+			{
+				ComplexFloat fn = (*otherBuffer)[i2 + j * complexBufferWidth];
+				CF_Float kOverN = (CF_Float)i2 / complexBufferWidth;
+				CF_Float core = -i * 2 * PI_CONSTANT * kOverN;
+				sum = sum + fn * ComplexFloat(cosl(core), -sinl(core));
+			}
+			(*currentBuffer)[i + j * complexBufferWidth] = sum / complexBufferWidth;
+		}
+	}
+	std::swap(currentBuffer, otherBuffer);
+	for (int i = 0; i < complexBufferWidth; i++)
+	{
+		for (int j = 0; j < complexBufferHeight; j++)
+		{
+			ComplexFloat sum = ComplexFloat(0, 0);
+			for (int j2 = 0; j2 < complexBufferHeight; j2++)
+			{
+				ComplexFloat fn = (*otherBuffer)[i + j2 * complexBufferWidth];
+				CF_Float kOverN = (CF_Float)j2 / complexBufferHeight;
+				//sum = sum + fk * ComplexFloat::Power(E_CONSTANT, ComplexFloat(0, 1) * -2 * PI_CONSTANT * j * kOverN);
+				CF_Float core = -j * 2 * PI_CONSTANT * kOverN;
+				sum = sum + fn * ComplexFloat(cosl(core), -sinl(core));
+			}
+			(*currentBuffer)[i + j * complexBufferWidth] = sum / complexBufferHeight;
+		}
+	}
+}
+
+void FractalFourier::ClearImaginary()
+{
+	for (int i = 0; i < complexBufferWidth; i++)
+	{
+		for (int j = 0; j < complexBufferHeight; j++)
+		{
+			(*currentBuffer)[i + j * complexBufferWidth].imaginary = 0;
+		}
+	}
+}
+
+void FractalFourier::Magnitude()
+{
+	for (int i = 0; i < complexBufferWidth; i++)
+	{
+		for (int j = 0; j < complexBufferHeight; j++)
+		{
+			(*currentBuffer)[i + j * complexBufferWidth].real = (*currentBuffer)[i + j * complexBufferWidth].AbsoluteValue();
+		}
+	}
+}
+
+void FractalFourier::ClearReal()
+{
+	for (int i = 0; i < complexBufferWidth; i++)
+	{
+		for (int j = 0; j < complexBufferHeight; j++)
+		{
+			(*currentBuffer)[i + j * complexBufferWidth].real = 0;
+		}
+	}
+}
+
+void FractalFourier::Timesi()
+{
+	for (int i = 0; i < complexBufferWidth; i++)
+	{
+		for (int j = 0; j < complexBufferHeight; j++)
+		{
+			(*currentBuffer)[i + j * complexBufferWidth] = ComplexFloat::MultByi((*currentBuffer)[i + j * complexBufferWidth]);
+		}
+	}
+}
+
 void FractalFourier::CopyBuffer(CF_Float* dest, int bufferSize)
 {
 	int length = bufferSize;

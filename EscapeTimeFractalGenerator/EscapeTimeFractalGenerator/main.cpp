@@ -687,6 +687,16 @@ void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fra
 			fractalFourier->Execute();
 			updateInterpreter = true;
 		}
+		if (ImGui::Button("Reverse"))
+		{
+			fractalFourier->Reverse();
+			updateInterpreter = true;
+		}
+		if (ImGui::Button("Magnitude"))
+		{
+			fractalFourier->Magnitude();
+			updateInterpreter = true;
+		}
 	}
 
 	ImGui::Checkbox("Live Rendering", &fractalInfo.liveUpdate);

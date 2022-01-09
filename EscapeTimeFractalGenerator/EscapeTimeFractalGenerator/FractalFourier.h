@@ -12,6 +12,11 @@ public:
 
 	void FillFromBuffer(const CF_Float* buffer, int bufferLength);
 	void Execute();
+	void Reverse();
+	void ClearImaginary();
+	void Magnitude();
+	void ClearReal();
+	void Timesi();
 	void CopyBuffer(CF_Float* dest, int bufferSize);
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	void Resize(int width, int height, double sizeMult);
