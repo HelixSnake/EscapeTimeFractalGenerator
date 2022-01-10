@@ -5,6 +5,8 @@
 const long double E_CONSTANT = 2.71828182845904523536028747135266249775724709369995;
 const long double PI_CONSTANT = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068;
 
+const unsigned int FractalFourier::primes[3] = { 2, 3, 5 }; // more primes means more possible ideal dimensions but slower fft
+
 FractalFourier::FractalFourier(int width, int height)
 {
 	this->complexBufferWidth = width;
@@ -21,60 +23,32 @@ void FractalFourier::FillFromBuffer(const CF_Float* buffer, int bufferLength)
 		(*currentBuffer)[i] = ComplexFloat(buffer[i], 0);
 	}
 }
-void FractalFourier::Execute()
+
+ComplexFloat FractalFourier::ExecutePoint(bool inverted, int length, int rowOrColumn, int currentIndex, ComplexFloat* source, 
+	int(*getCFIndex)(int n, int rowOrColumn, int rowWidth))
 {
-	std::swap(currentBuffer, otherBuffer);
-	for (int i = 0; i < complexBufferWidth; i++)
+	ComplexFloat sum = ComplexFloat(0,0);
+	for (int i = 0; i < length; i++)
 	{
-		for (int j = 0; j < complexBufferHeight; j++)
-		{
-			ComplexFloat sum = ComplexFloat(0, 0);
-			for (int i2 = 0; i2 < complexBufferWidth; i2++)
-			{
-				ComplexFloat fk = (*otherBuffer)[i2 + j * complexBufferWidth];
-				CF_Float kOverN = (CF_Float)i2 / complexBufferWidth;
-				//sum = sum + fk * ComplexFloat::Power(E_CONSTANT, ComplexFloat(0, 1) * -2 * PI_CONSTANT * i * kOverN);
-				CF_Float core = i * 2 * PI_CONSTANT * kOverN;
-				sum = sum + fk * ComplexFloat(cosl(core), -sinl(core));
-			}
-			(*currentBuffer)[i + j * complexBufferWidth] = sum;
-		}
+		ComplexFloat fk = source[getCFIndex(i, rowOrColumn, complexBufferWidth)];
+		CF_Float kOverN = (CF_Float)i / length;
+		CF_Float core = currentIndex * 2 * PI_CONSTANT * kOverN;
+		if (inverted) core = -core;
+		sum = sum + fk * ComplexFloat(cosl(core), -sinl(core));
 	}
-	std::swap(currentBuffer, otherBuffer);
-	for (int i = 0; i < complexBufferWidth; i++)
-	{
-		for (int j = 0; j < complexBufferHeight; j++)
-		{
-			ComplexFloat sum = ComplexFloat(0, 0);
-			for (int j2 = 0; j2 < complexBufferHeight; j2++)
-			{
-				ComplexFloat fk = (*otherBuffer)[i + j2 * complexBufferWidth];
-				CF_Float kOverN = (CF_Float)j2 / complexBufferHeight;
-				//sum = sum + fk * ComplexFloat::Power(E_CONSTANT, ComplexFloat(0, 1) * -2 * PI_CONSTANT * j * kOverN);
-				CF_Float core = j * 2 * PI_CONSTANT * kOverN;
-				sum = sum + fk * ComplexFloat(cosl(core), -sinl(core));
-			}
-			(*currentBuffer)[i + j * complexBufferWidth] = sum;
-		}
-	}
+	if (inverted) return sum / length;
+	else return sum;
 }
 
-void FractalFourier::Reverse()
+void FractalFourier::Execute(bool inverted) // fast fourier transform
 {
 	std::swap(currentBuffer, otherBuffer);
 	for (int i = 0; i < complexBufferWidth; i++)
 	{
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
-			ComplexFloat sum = ComplexFloat(0, 0);
-			for (int i2 = 0; i2 < complexBufferWidth; i2++)
-			{
-				ComplexFloat fn = (*otherBuffer)[i2 + j * complexBufferWidth];
-				CF_Float kOverN = (CF_Float)i2 / complexBufferWidth;
-				CF_Float core = -i * 2 * PI_CONSTANT * kOverN;
-				sum = sum + fn * ComplexFloat(cosl(core), -sinl(core));
-			}
-			(*currentBuffer)[i + j * complexBufferWidth] = sum / complexBufferWidth;
+			(*currentBuffer)[i + j * complexBufferWidth] = ExecutePoint(inverted, complexBufferWidth, j, i, *otherBuffer,
+				[](int n, int roworcolumn, int width) {return n + roworcolumn * width; });
 		}
 	}
 	std::swap(currentBuffer, otherBuffer);
@@ -82,16 +56,8 @@ void FractalFourier::Reverse()
 	{
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
-			ComplexFloat sum = ComplexFloat(0, 0);
-			for (int j2 = 0; j2 < complexBufferHeight; j2++)
-			{
-				ComplexFloat fn = (*otherBuffer)[i + j2 * complexBufferWidth];
-				CF_Float kOverN = (CF_Float)j2 / complexBufferHeight;
-				//sum = sum + fk * ComplexFloat::Power(E_CONSTANT, ComplexFloat(0, 1) * -2 * PI_CONSTANT * j * kOverN);
-				CF_Float core = -j * 2 * PI_CONSTANT * kOverN;
-				sum = sum + fn * ComplexFloat(cosl(core), -sinl(core));
-			}
-			(*currentBuffer)[i + j * complexBufferWidth] = sum / complexBufferHeight;
+			(*currentBuffer)[i + j * complexBufferWidth] = ExecutePoint(inverted, complexBufferHeight, i, j, *otherBuffer,
+				[](int n, int roworcolumn, int width) {return roworcolumn + n * width; });
 		}
 	}
 }
@@ -170,4 +136,37 @@ FractalFourier::~FractalFourier()
 {
 	delete[] complexBuffer1;
 	delete[] complexBuffer2;
+}
+
+unsigned int FractalFourier::FindClosestIdealFactorization(unsigned int input)
+{
+	int i = 0;
+	bool solved = false;
+	while (!solved) // guaranteed to break eventually, since as the while loop goes on newinput will work its way towards 0 and is guaranteed to hit a candidate
+	{
+		int newInput = input + i;
+		if (newInput < 1) return 0; // this should never happen but we need this edge case to prevent infinite loops
+		bool notCandidate = false;
+		while (!solved && !notCandidate) // guaranteed to exit eventually since we will either find a solution or prove it's not a solution
+		{
+			bool foundPrime = false;
+			for (unsigned int prime : primes)
+			{
+				if (newInput == 1) // prime factorization includes only primes from our list
+				{
+					solved = true;
+					return input + i;
+				}
+				if (newInput % prime == 0)
+				{
+					newInput /= prime;
+					foundPrime = true; // continue the loop
+					break;
+				}
+			}
+			if (!foundPrime) // our number is not a candidate since it has a prime factor outside our list of primes
+				notCandidate = true;
+		}
+		i = i < 1 ? -i + 1 : -i; // intended sequence: 0 1 -1 2 -2 3 -3 4 -4 etc.
+	}
 }

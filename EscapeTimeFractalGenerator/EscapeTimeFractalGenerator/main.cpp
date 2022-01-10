@@ -486,6 +486,16 @@ void SetExecutorsFromBuilders(FractalDrawer *fractalDrawer, FractalCommandDelega
 		}
 }
 
+bool AreDimensionsIdealForFFT(GLFWwindow* window)
+{
+	int windowWidth = 0;
+	int windowHeight = 0;
+	glfwGetWindowSize(window, &windowWidth, &windowHeight);
+	return windowWidth == FractalFourier::FindClosestIdealFactorization(windowWidth) &&
+		windowHeight == FractalFourier::FindClosestIdealFactorization(windowHeight);
+
+}
+
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
 void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fractalDrawer, FractalFourier* fractalFourier, bool& updateDrawer, 
 	bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, 
@@ -682,15 +692,41 @@ void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fra
 			glfwGetWindowSize(window, &windowWidth, &windowHeight);
 			glfwSetWindowSize(window, (int)pow(2, std::roundf(log2f(windowWidth))), (int)pow(2, std::roundf(log2f(windowHeight))));
 		}
+		if (ImGui::Button("Set dimensions to ideal factorization"))
+		{
+			int windowWidth = 0;
+			int windowHeight = 0;
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+			glfwSetWindowSize(window, FractalFourier::FindClosestIdealFactorization(windowWidth), FractalFourier::FindClosestIdealFactorization(windowHeight));
+		}
 		if (ImGui::Button("Execute"))
 		{
-			fractalFourier->Execute();
-			updateInterpreter = true;
+			if (AreDimensionsIdealForFFT(window))
+			{
+				fractalFourier->Execute(false);
+				updateInterpreter = true;
+			}
+			else
+			{
+				ImGui::OpenPopup("FFTDimensionErrorPopup");
+			}
 		}
 		if (ImGui::Button("Reverse"))
 		{
-			fractalFourier->Reverse();
+			if (AreDimensionsIdealForFFT(window))
+			{
+			fractalFourier->Execute(true);
 			updateInterpreter = true;
+			}
+			else
+			{
+				ImGui::OpenPopup("FFTDimensionErrorPopup");
+			}
+		}
+		if (ImGui::BeginPopup("FFTDimensionErrorPopup"))
+		{
+			ImGui::Text("Error: dimensions not ideal for FFT");
+			ImGui::EndPopup();
 		}
 		if (ImGui::Button("Magnitude"))
 		{
