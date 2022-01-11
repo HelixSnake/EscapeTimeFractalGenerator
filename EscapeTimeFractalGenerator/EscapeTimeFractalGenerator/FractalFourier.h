@@ -1,6 +1,7 @@
 #pragma once
 #include "ComplexFloat.h"
 #include "RecursiveFunctor.h"
+#include <iostream>
 class FractalFourier
 {
 public:
@@ -14,6 +15,7 @@ public:
 
 	void FillFromBuffer(const CF_Float* buffer, int bufferLength);
 	void Execute(bool inverted);
+	void Reverse();
 	void ClearImaginary();
 	void Magnitude();
 	void ClearReal();
@@ -22,16 +24,21 @@ public:
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	static unsigned int FindClosestIdealFactorization(unsigned int input);
 private:
+	static const int MAX_FINAL_CHUNK_SIZE = 10;
 	ComplexFloat* complexBuffer = nullptr;
-	ComplexFloat* rowOrColumnStorage = nullptr;
+	ComplexFloat* rowStorage1 = nullptr;
+	ComplexFloat* rowStorage2 = nullptr;
+	ComplexFloat** sourceRowStorage = &rowStorage1;
+	ComplexFloat** destRowStorage = &rowStorage2;
+	ComplexFloat* chunkStorageSource = nullptr;
+	ComplexFloat* chunkStorageDest = nullptr;
 	unsigned int complexBufferHeight;
 	unsigned int complexBufferWidth;
-	static const unsigned int primes[3]; // more higher primes = slower fft but more likely to find closer ideal factorization
 
-	typedef RecursiveFunctor<int, int, int, int> GetIndexFunc; // output: index, inputs: n, rowOrColumn, bufferWidth
+	void ExecuteFinalChunk(bool inverted, int length);
+	void ExecuteRowOrColumn(bool inverted, int length);
+	int GetReorderStorageOneStep(int index, int chunkSize);
+	void ReorderStorage(int length, bool inverse = false);
 
-	ComplexFloat ComputePoint(bool inverted, int length, int rowOrColumn, int currentIndex,
-		GetIndexFunc &getIndexFunction);
-	void ExecuteRowOrColumnRecursive(bool inverted, int length, int rowOrColumn,
-		GetIndexFunc &getIndexFunction);
+	void SwapStorageBuffers();
 };
