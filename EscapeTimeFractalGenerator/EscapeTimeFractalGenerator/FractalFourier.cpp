@@ -11,8 +11,24 @@ FractalFourier::FractalFourier(int width, int height)
 {
 	this->complexBufferWidth = width;
 	this->complexBufferHeight = height;
-	this->complexBuffer1 = new ComplexFloat[width * height];
-	this->complexBuffer2 = new ComplexFloat[width * height];
+	this->complexBuffer = new ComplexFloat[width * height];
+	this->rowOrColumnStorage = new ComplexFloat[std::max(width, height)];
+}
+
+FractalFourier::~FractalFourier()
+{
+	delete[] complexBuffer;
+	delete[] rowOrColumnStorage;
+}
+
+void FractalFourier::Resize(int width, int height, double sizeMult)
+{
+	delete[] complexBuffer;
+	delete[] rowOrColumnStorage;
+	complexBuffer = new ComplexFloat[width * sizeMult * height * sizeMult];
+	complexBufferWidth = width * sizeMult;
+	complexBufferHeight = height * sizeMult;
+	this->rowOrColumnStorage = new ComplexFloat[std::max(width * sizeMult, height * sizeMult)];
 }
 
 void FractalFourier::FillFromBuffer(const CF_Float* buffer, int bufferLength)
@@ -20,19 +36,94 @@ void FractalFourier::FillFromBuffer(const CF_Float* buffer, int bufferLength)
 	int length = std::min(bufferLength, (int)(this->complexBufferWidth * this->complexBufferHeight));
 	for (int i = 0; i < length; i++)
 	{
-		(*currentBuffer)[i] = ComplexFloat(buffer[i], 0);
+		complexBuffer[i] = ComplexFloat(buffer[i], 0);
 	}
 }
 
-ComplexFloat FractalFourier::ExecutePoint(bool inverted, int length, int rowOrColumn, int currentIndex, ComplexFloat* source, 
-	int(*getCFIndex)(int n, int rowOrColumn, int rowWidth))
+void FractalFourier::ExecuteRowOrColumnRecursive(bool inverted, int length, int rowOrColumn, 
+	GetIndexFunc &getIndexFunction)
 {
-	ComplexFloat sum = ComplexFloat(0,0);
+	// approximate a split into a 2D array; quick algorithm to find dimensions closest to each other
+	bool isPrime = false;
+	int factor = 1;
+	int divisor = length;
+	while (factor < divisor && !isPrime)
+	{
+		isPrime = true;
+		for (unsigned int prime : primes)
+		{
+			if (length % prime == 0)
+			{
+				factor *= prime;
+				divisor /= prime;
+				isPrime = false;
+				break;
+			}
+		}
+	}
+	if (true) //core loop
+	{
+		for (int i = 0; i < length; i++)
+		{
+			rowOrColumnStorage[i] = ComputePoint(inverted, length, rowOrColumn, i, getIndexFunction);
+		}
+		for (int i = 0; i < length; i++)
+		{
+			complexBuffer[getIndexFunction(i, rowOrColumn, complexBufferWidth)] = rowOrColumnStorage[i];
+		}
+	}
+	else
+	{
+		int matrixHeight = divisor;
+		int matrixWidth = factor;
+		// pretend the row is split into a 2D matrix with dimensions factor x divisor laid out like this:
+		//0 3 6
+		//1 4 7
+		//2 5 8
+		for (int y = 0; y < matrixHeight; y++) // rows
+		{
+			int row = y;
+			int bufferHeight = matrixHeight;
+			int rowLength = matrixWidth;
+			GetIndexFunc nextIndexFunction = GetIndexFunc::MakeInstance(&getIndexFunction,
+				[](const GetIndexFunc* parentFunction, int n, int row, int bufferHeight) {
+					int index = n * bufferHeight + row;
+					int parentsRowOrColumn = std::get<1>(parentFunction->inputStorage);
+					int parentsBufferWidth = std::get<2>(parentFunction->inputStorage);
+					return (*parentFunction)(index, parentsRowOrColumn, parentsBufferWidth); // run the parent function from the parent's row/column with our index
+				});
+			nextIndexFunction.inputStorage = { 0, row, bufferHeight };
+			ExecuteRowOrColumnRecursive(inverted, rowLength, row,
+				nextIndexFunction);
+		}
+		for (int x = 0; x < matrixWidth; x++) // columns
+		{
+			int column = x;
+			int bufferHeight = matrixHeight;
+			int columnLength = matrixHeight;
+			GetIndexFunc nextIndexFunction = GetIndexFunc::MakeInstance(&getIndexFunction,
+				[](const GetIndexFunc* parentFunction, int n, int column, int bufferHeight) {
+					int index = n + column * bufferHeight;
+					int parentsRowOrColumn = std::get<1>(parentFunction->inputStorage);
+					int parentsBufferWidth = std::get<2>(parentFunction->inputStorage);
+					return (*parentFunction)(index, parentsRowOrColumn, parentsBufferWidth); // run the parent function from the parent's row/column with our index
+				});
+			nextIndexFunction.inputStorage = { 0, column, bufferHeight };
+			ExecuteRowOrColumnRecursive(inverted, columnLength, column,
+				nextIndexFunction);
+		}
+	}
+}
+
+ComplexFloat FractalFourier::ComputePoint(bool inverted, int length, int rowOrColumn, int currentIndex,
+	GetIndexFunc &getIndexFunction)
+{
+	ComplexFloat sum = ComplexFloat(0, 0);
+	CF_Float constCore = currentIndex * 2 * PI_CONSTANT / length;
 	for (int i = 0; i < length; i++)
 	{
-		ComplexFloat fk = source[getCFIndex(i, rowOrColumn, complexBufferWidth)];
-		CF_Float kOverN = (CF_Float)i / length;
-		CF_Float core = currentIndex * 2 * PI_CONSTANT * kOverN;
+		ComplexFloat fk = complexBuffer[getIndexFunction(i, rowOrColumn, complexBufferWidth)];
+		CF_Float core = constCore * i;
 		if (inverted) core = -core;
 		sum = sum + fk * ComplexFloat(cosl(core), -sinl(core));
 	}
@@ -42,23 +133,25 @@ ComplexFloat FractalFourier::ExecutePoint(bool inverted, int length, int rowOrCo
 
 void FractalFourier::Execute(bool inverted) // fast fourier transform
 {
-	std::swap(currentBuffer, otherBuffer);
-	for (int i = 0; i < complexBufferWidth; i++)
+	GetIndexFunc getIndexFunctionRows = GetIndexFunc::MakeInstance(nullptr,
+		[](const GetIndexFunc* parentFunction, int n, int row, int bufferWidth) {return n + row * bufferWidth; });
+	for (int y = 0; y < complexBufferHeight; y++)
 	{
-		for (int j = 0; j < complexBufferHeight; j++)
-		{
-			(*currentBuffer)[i + j * complexBufferWidth] = ExecutePoint(inverted, complexBufferWidth, j, i, *otherBuffer,
-				[](int n, int roworcolumn, int width) {return n + roworcolumn * width; });
-		}
+		int row = y;
+		int bufferWidth = complexBufferWidth;
+		int rowLength = complexBufferWidth;
+		getIndexFunctionRows.inputStorage = { 0, row, bufferWidth };
+		ExecuteRowOrColumnRecursive(inverted, rowLength, row, getIndexFunctionRows);
 	}
-	std::swap(currentBuffer, otherBuffer);
-	for (int i = 0; i < complexBufferWidth; i++)
+	GetIndexFunc getIndexFunctionColumns = GetIndexFunc::MakeInstance(nullptr,
+		[](const GetIndexFunc* parentFunction, int n, int column, int bufferWidth) {return column + n * bufferWidth; });
+	for (int x = 0; x < complexBufferWidth; x++)
 	{
-		for (int j = 0; j < complexBufferHeight; j++)
-		{
-			(*currentBuffer)[i + j * complexBufferWidth] = ExecutePoint(inverted, complexBufferHeight, i, j, *otherBuffer,
-				[](int n, int roworcolumn, int width) {return roworcolumn + n * width; });
-		}
+		int column = x;
+		int bufferWidth = complexBufferWidth;
+		int columnLength = complexBufferHeight;
+		getIndexFunctionColumns.inputStorage = { 0, column, bufferWidth };
+		ExecuteRowOrColumnRecursive(inverted, columnLength, column, getIndexFunctionColumns);
 	}
 }
 
@@ -68,7 +161,7 @@ void FractalFourier::ClearImaginary()
 	{
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
-			(*currentBuffer)[i + j * complexBufferWidth].imaginary = 0;
+			complexBuffer[i + j * complexBufferWidth].imaginary = 0;
 		}
 	}
 }
@@ -79,7 +172,7 @@ void FractalFourier::Magnitude()
 	{
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
-			(*currentBuffer)[i + j * complexBufferWidth].real = (*currentBuffer)[i + j * complexBufferWidth].AbsoluteValue();
+			complexBuffer[i + j * complexBufferWidth].real = complexBuffer[i + j * complexBufferWidth].AbsoluteValue();
 		}
 	}
 }
@@ -90,7 +183,7 @@ void FractalFourier::ClearReal()
 	{
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
-			(*currentBuffer)[i + j * complexBufferWidth].real = 0;
+			complexBuffer[i + j * complexBufferWidth].real = 0;
 		}
 	}
 }
@@ -101,7 +194,7 @@ void FractalFourier::Timesi()
 	{
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
-			(*currentBuffer)[i + j * complexBufferWidth] = ComplexFloat::MultByi((*currentBuffer)[i + j * complexBufferWidth]);
+			complexBuffer[i + j * complexBufferWidth] = ComplexFloat::MultByi(complexBuffer[i + j * complexBufferWidth]);
 		}
 	}
 }
@@ -112,7 +205,7 @@ void FractalFourier::CopyBuffer(CF_Float* dest, int bufferSize)
 	length = std::min(length, (int)(complexBufferHeight * complexBufferWidth));
 	for (int i = 0; i < length; i++)
 	{
-		dest[i] = (*currentBuffer)[i].real;
+		dest[i] = complexBuffer[i].real;
 	}
 }
 
@@ -120,22 +213,6 @@ void FractalFourier::GetBufferDimensions(int& bufferWidth, int& bufferHeight)
 {
 	bufferWidth = complexBufferWidth;
 	bufferHeight = complexBufferHeight;
-}
-
-void FractalFourier::Resize(int width, int height, double sizeMult)
-{
-	delete[] complexBuffer1;
-	delete[] complexBuffer2;
-	complexBuffer1 = new ComplexFloat[width * sizeMult * height * sizeMult];
-	complexBuffer2 = new ComplexFloat[width * sizeMult * height * sizeMult];
-	complexBufferWidth = width * sizeMult;
-	complexBufferHeight = height * sizeMult;
-}
-
-FractalFourier::~FractalFourier()
-{
-	delete[] complexBuffer1;
-	delete[] complexBuffer2;
 }
 
 unsigned int FractalFourier::FindClosestIdealFactorization(unsigned int input)
