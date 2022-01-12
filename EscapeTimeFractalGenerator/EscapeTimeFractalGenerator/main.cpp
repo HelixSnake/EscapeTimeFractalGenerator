@@ -733,6 +733,11 @@ void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fra
 			fractalFourier->Magnitude();
 			updateInterpreter = true;
 		}
+		if (ImGui::Button("Rebase"))
+		{
+			fractalFourier->RebaseBuffer();
+			updateInterpreter = true;
+		}
 	}
 
 	ImGui::Checkbox("Live Rendering", &fractalInfo.liveUpdate);

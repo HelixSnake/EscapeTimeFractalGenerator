@@ -92,15 +92,18 @@ void FractalFourier::ExecuteRowOrColumn(bool inverted, int length) // fft
 	{
 		int halfChunkLength = chunkLength;
 		chunkLength *= 2;
+		CF_Float twiddleConst = -2 * PI_CONSTANT / chunkLength;
 		//ReorderStorage(length, true, false, chunkLength); // reverse reorder storage one step
 		for (int i = 0; i < length / chunkLength; i++) // for each chunk
 		{
+			int chunkStart = i * chunkLength;
 			for (int k = 0; k < halfChunkLength; k++) //both loops = linear complexity
 			{
-				int firstHalfIndex = k + i * chunkLength;
-				int secondHalfIndex = k + halfChunkLength + i * chunkLength;
-				CF_Float twiddleFactorCore = -k * 2 * PI_CONSTANT / chunkLength;
-				CF_Float twiddleFactorCore2 = -(k + halfChunkLength) * 2 * PI_CONSTANT / chunkLength;
+
+				int firstHalfIndex = k + chunkStart;
+				int secondHalfIndex = k + halfChunkLength + chunkStart;
+				CF_Float twiddleFactorCore = k * twiddleConst;
+				CF_Float twiddleFactorCore2 = (k + halfChunkLength) * twiddleConst;
 				if (inverted)
 				{
 					twiddleFactorCore = -twiddleFactorCore;
@@ -110,12 +113,8 @@ void FractalFourier::ExecuteRowOrColumn(bool inverted, int length) // fft
 				ComplexFloat twiddleFactor2 = ComplexFloat(cosl(twiddleFactorCore2), sinl(twiddleFactorCore2));
 				ComplexFloat Ek = (*sourceRowStorage)[firstHalfIndex]; // evens
 				ComplexFloat Ok = (*sourceRowStorage)[secondHalfIndex]; // odds
-				//std::cout << firstHalfIndex << " ";
-				//std::cout << secondHalfIndex << ", ";
 				(*destRowStorage)[firstHalfIndex] = Ek + twiddleFactor * Ok;
 				(*destRowStorage)[secondHalfIndex] = Ek + twiddleFactor2 * Ok;
-				//(*destRowStorage)[firstHalfIndex] = Ek;
-				//(*destRowStorage)[secondHalfIndex] = Ok;
 			}
 			//std::cout << std::endl;
 		}
@@ -146,7 +145,7 @@ int FractalFourier::GetReorderStorageOneStep(int index, int chunkSize)
 	index += offset;
 	return index;
 }
-void FractalFourier::ReorderStorage(int length, bool inverse) // complexity: nlogn
+void FractalFourier::ReorderStorage(int length) // complexity: nlogn
 {
 	//pseudocode:
 	//length = length of row
@@ -170,10 +169,7 @@ void FractalFourier::ReorderStorage(int length, bool inverse) // complexity: nlo
 			//std::cout << index << " ";
 		}
 		//std::cout << std::endl;
-		if (inverse)
-			(*destRowStorage)[i] = (*sourceRowStorage)[index];
-		else
-			(*destRowStorage)[index] = (*sourceRowStorage)[i];
+		(*destRowStorage)[index] = (*sourceRowStorage)[i];
 	}
 	SwapStorageBuffers();
 }
@@ -208,14 +204,7 @@ void FractalFourier::Execute(bool inverted) // fast fourier transform
 		for (int i = 0; i < rowLength; i++)
 			(*destRowStorage)[i] = complexBuffer[i + y * bufferWidth];
 		SwapStorageBuffers();
-		if (!inverted)
-		{
-			ExecuteRowOrColumn(inverted, rowLength);
-		}
-		else
-		{
-			ExecuteRowOrColumn(inverted, rowLength);
-		}
+		ExecuteRowOrColumn(inverted, rowLength);
 		for (int i = 0; i < rowLength; i++)
 			complexBuffer[i + y * bufferWidth] = (*sourceRowStorage)[i];
 	}
@@ -233,14 +222,29 @@ void FractalFourier::Execute(bool inverted) // fast fourier transform
 	}
 }
 
-void FractalFourier::ClearImaginary()
+void FractalFourier::RebaseBuffer()
 {
-	for (int i = 0; i < complexBufferWidth; i++)
+
+	for (int y = 0; y < complexBufferHeight; y++)
 	{
-		for (int j = 0; j < complexBufferHeight; j++)
-		{
-			complexBuffer[i + j * complexBufferWidth].imaginary = 0;
-		}
+		int bufferWidth = complexBufferWidth;
+		int rowLength = complexBufferWidth;
+		for (int i = 0; i < rowLength; i++)
+			(*destRowStorage)[i] = complexBuffer[i + y * bufferWidth];
+		SwapStorageBuffers();
+		for (int i = 0; i < rowLength; i++)
+			complexBuffer[i + y * bufferWidth] = (*sourceRowStorage)[(i + rowLength / 2) % rowLength];
+	}
+
+	for (int x = 0; x < complexBufferWidth; x++)
+	{
+		int bufferWidth = complexBufferWidth;
+		int columnHeight = complexBufferHeight;
+		for (int i = 0; i < columnHeight; i++)
+			(*destRowStorage)[i] = complexBuffer[x + i * bufferWidth];
+		SwapStorageBuffers();
+		for (int i = 0; i < columnHeight; i++)
+			complexBuffer[x + i * bufferWidth] = (*sourceRowStorage)[(i+ columnHeight/2) % columnHeight];
 	}
 }
 
@@ -251,28 +255,7 @@ void FractalFourier::Magnitude()
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
 			complexBuffer[i + j * complexBufferWidth].real = complexBuffer[i + j * complexBufferWidth].AbsoluteValue();
-		}
-	}
-}
-
-void FractalFourier::ClearReal()
-{
-	for (int i = 0; i < complexBufferWidth; i++)
-	{
-		for (int j = 0; j < complexBufferHeight; j++)
-		{
-			complexBuffer[i + j * complexBufferWidth].real = 0;
-		}
-	}
-}
-
-void FractalFourier::Timesi()
-{
-	for (int i = 0; i < complexBufferWidth; i++)
-	{
-		for (int j = 0; j < complexBufferHeight; j++)
-		{
-			complexBuffer[i + j * complexBufferWidth] = ComplexFloat::MultByi(complexBuffer[i + j * complexBufferWidth]);
+			complexBuffer[i + j * complexBufferWidth].imaginary = 0;
 		}
 	}
 }

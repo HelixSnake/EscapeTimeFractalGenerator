@@ -15,11 +15,8 @@ public:
 
 	void FillFromBuffer(const CF_Float* buffer, int bufferLength);
 	void Execute(bool inverted);
-	void Reverse();
-	void ClearImaginary();
 	void Magnitude();
-	void ClearReal();
-	void Timesi();
+	void RebaseBuffer();
 	void CopyBuffer(CF_Float* dest, int bufferSize);
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
 	static unsigned int FindClosestIdealFactorization(unsigned int input);
@@ -39,7 +36,6 @@ private:
 	void ExecuteRowOrColumn(bool inverted, int length);
 	void ExecuteRowOrColumnSlow(bool inverted, int length);
 	int GetReorderStorageOneStep(int index, int chunkSize);
-	void ReorderStorage(int length, bool inverse = false);
-
+	void ReorderStorage(int length);
 	void SwapStorageBuffers();
 };
