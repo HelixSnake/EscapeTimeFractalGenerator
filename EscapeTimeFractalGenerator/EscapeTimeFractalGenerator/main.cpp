@@ -2,6 +2,11 @@
 #include <thread>
 #include <math.h>
 
+
+//STB  
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 //SOIL
 #include <SOIL.h>
 
@@ -499,7 +504,7 @@ bool AreDimensionsIdealForFFT(GLFWwindow* window)
 //TODO: Long argument list is sign of code smell - find way to move this to its own class
 void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fractalDrawer, FractalFourier* fractalFourier, bool& updateDrawer, 
 	bool& updateInterpreter, bool& regenBuffer, FractalInfo& fractalInfo, FractalInterpreter& fractalInterpreter, FractalSmoothZoomer &smoothZoomer, 
-	ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser, FractalCommandDelegates *delegates, 
+	ZoomTransform &zoomTransform, ImGui::FileBrowser &rampTexFileBrowser, ImGui::FileBrowser &saveImageFileBrowser, FractalCommandDelegates *delegates, 
 	FractalCommandListBuilder &commandListBuilderStart, FractalCommandListBuilder &commandListBuilderRecr)
 {
 	glfwMakeContextCurrent(uiWindow);
@@ -526,8 +531,8 @@ void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fra
 	fractalInfo.iterations = min(fractalInfo.iterations, 10000000); //Too many iterations will cause the program to hang, since threads are halted on a per pixel basis
 
 	ImGui::InputDouble("Upsample", &fractalInfo.upscale);
-	DisplayToolTip("Upsample can be any value between 0 and 1, or 2.0, or 4.0 \nRendering speed scales roughly with the upsample value squared");
-	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0, 4.0);
+	DisplayToolTip("Upsample can be any value between 0 and 1, or 2.0, 4.0, or 8.0 \nRendering speed scales roughly with the upsample value squared");
+	fractalInfo.upscale = glm::clamp(fractalInfo.upscale, 0.0, 8.0);
 	//keep upscale a power of 2 if it's more than 1
 	if (fractalInfo.upscale > 1.0f)
 	{
@@ -682,6 +687,11 @@ void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fra
 		ImGui::Checkbox("Show Deviation Iterations", &fractalInfo.debugDeviations);
 	}
 
+	if (ImGui::Button("Save Image"))
+	{
+		saveImageFileBrowser.Open();
+	}
+
 	ImGui::Checkbox("Fast Fourier Transform", &fractalInfo.fastFourierTransform);
 	if (fractalInfo.fastFourierTransform)
 	{
@@ -757,6 +767,26 @@ void RenderUIWindow(GLFWwindow* uiWindow, GLFWwindow* window, FractalDrawer* fra
 		glDeleteTextures(1, &rampTexture);
 		rampTexFileBrowser.ClearSelected();
 		updateInterpreter = true;
+	}
+
+	saveImageFileBrowser.SetWindowSize(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT);
+	ImGui::SetWindowPos(ImVec2(0, 0));
+	saveImageFileBrowser.Display();
+	if (saveImageFileBrowser.HasSelected())
+	{
+		int width;
+		int height;
+		const float* colorBuffer = fractalInterpreter.GetColors(width, height);
+		int bufferLength = width * height * 3;
+		unsigned char* tempBuffer = new unsigned char[bufferLength];
+		for (int i = 0; i < bufferLength; i++)
+		{
+			tempBuffer[i] = (unsigned char)(std::clamp(colorBuffer[i], 0.f, 1.f) * 255);
+			//tempBuffer[i] = 0;
+		}
+		stbi_write_png((saveImageFileBrowser.GetSelected().string() + ".png").c_str(), width, height, 3, tempBuffer, width * 3);
+		delete[] tempBuffer;
+		saveImageFileBrowser.ClearSelected();
 	}
 
 	// Render dear imgui into screen
@@ -870,7 +900,12 @@ int main(int argc, char* argv[])
 	rampTexFileDialog.SetTitle("Custom Ramp Texture");
 	rampTexFileDialog.SetTypeFilters({ ".png" });
 
+	ImGui::FileBrowser saveImageFileDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
+	saveImageFileDialog.SetTitle("Save Image");
+	saveImageFileDialog.SetTypeFilters({ ".png" });
+
 	bool firstDraw = true;
+	bool lastFastFourierTransformEnabled = false;
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(uiWindow))
 	{
 		glfwMakeContextCurrent(window);
@@ -995,10 +1030,11 @@ int main(int argc, char* argv[])
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer->IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
 		shouldRenderInterpreter = shouldRenderInterpreter || updateInterpreter; // render if we've change a UI thing that affects the interpreter
 		//shouldRenderInterpreter = shouldRenderInterpreter && !fractalInterpreter.IsBusy(); // don't render the interpreter if it's already busy
-		if (fractalDrawerReady && fracInfo.fastFourierTransform)
+		if (fractalDrawerReady && fracInfo.fastFourierTransform || !fractalDrawer->IsBusy() && fracInfo.fastFourierTransform && !lastFastFourierTransformEnabled)
 		{
 			fractalFourier->FillFromBuffer(fractalDrawer->GetBuffer(), fractalDrawer->GetBufferLength());
 		}
+		lastFastFourierTransformEnabled = fracInfo.fastFourierTransform;
 		if (shouldRenderInterpreter)
 		{
 			if (fracInfo.fastFourierTransform)
@@ -1055,7 +1091,7 @@ int main(int argc, char* argv[])
 		//Render IMGUI stuff
 		fracInfo.constChanged = false;
 		RenderUIWindow(uiWindow, window, fractalDrawer, fractalFourier, updateDrawer, updateInterpreter, regenBuffer, fracInfo, fractalInterpreter, smoothZoomer, currentZoom, rampTexFileDialog,
-			fractalCommandDelegates, commandListBuilderStart, commandListBuilderRecr);
+			saveImageFileDialog, fractalCommandDelegates, commandListBuilderStart, commandListBuilderRecr);
 	}
 	delete fractalDrawer;
 	delete[] extraValues;

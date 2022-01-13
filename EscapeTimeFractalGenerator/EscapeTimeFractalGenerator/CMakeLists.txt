@@ -14,7 +14,7 @@ add_executable(Escape
   FractalSmoothZoomer.cpp
   MandelbrotFractal.cpp
   QuadDrawer.cpp
-  Test.cpp "HammerslySequence.h" "HammerslySequence.cpp" "FractalFourier.h" "FractalFourier.cpp" "RecursiveFunctor.h" "RecursiveFunctor.cpp") 
+  Test.cpp "HammerslySequence.h" "HammerslySequence.cpp" "FractalFourier.h" "FractalFourier.cpp" "RecursiveFunctor.h" "RecursiveFunctor.cpp"  ) 
 
 target_link_libraries(Escape
   soil
@@ -23,6 +23,8 @@ target_link_libraries(Escape
   glm
   glew
   opengl32)
+  
+  target_link_options(Escape PUBLIC "/FORCE:multiple")
 
 set(LIB "${PROJECT_SOURCE_DIR}/lib/")
 target_include_directories(Escape PUBLIC
