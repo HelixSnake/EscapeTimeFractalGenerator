@@ -35,7 +35,6 @@ private:
 	void ExecuteFinalChunk(bool inverted, int length);
 	void ExecuteRowOrColumn(bool inverted, int length);
 	void ExecuteRowOrColumnSlow(bool inverted, int length);
-	int GetReorderStorageOneStep(int index, int chunkSize);
 	void ReorderStorage(int length);
 	void SwapStorageBuffers();
 };

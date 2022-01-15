@@ -72,9 +72,9 @@ void FractalFourier::ExecuteRowOrColumnSlow(bool inverted, int length)
 void FractalFourier::ExecuteRowOrColumn(bool inverted, int length) // fft
 {
 	ReorderStorage(length); // reorder storage
-	int chunkLength = length;
-	while (chunkLength % 2 == 0)
-		chunkLength /= 2;
+	unsigned int chunkLength = length;
+	while ((chunkLength & 1) == 0)
+		chunkLength >>= 1;
 	for (int i = 0; i < length / chunkLength; i++) // evaluate all the smallest chunks whose length is not a multiple of 2
 	{
 		for (int j = 0; j < chunkLength; j++)
@@ -90,8 +90,8 @@ void FractalFourier::ExecuteRowOrColumn(bool inverted, int length) // fft
 	SwapStorageBuffers();
 	while (chunkLength != length) // log 2 complexity
 	{
-		int halfChunkLength = chunkLength;
-		chunkLength *= 2;
+		unsigned int halfChunkLength = chunkLength;
+		chunkLength <<= 1;
 		CF_Float twiddleConst = -2 * PI_CONSTANT / chunkLength;
 		//ReorderStorage(length, true, false, chunkLength); // reverse reorder storage one step
 		for (int i = 0; i < length / chunkLength; i++) // for each chunk
@@ -103,18 +103,15 @@ void FractalFourier::ExecuteRowOrColumn(bool inverted, int length) // fft
 				int firstHalfIndex = k + chunkStart;
 				int secondHalfIndex = k + halfChunkLength + chunkStart;
 				CF_Float twiddleFactorCore = k * twiddleConst;
-				CF_Float twiddleFactorCore2 = (k + halfChunkLength) * twiddleConst;
 				if (inverted)
 				{
 					twiddleFactorCore = -twiddleFactorCore;
-					twiddleFactorCore2 = -twiddleFactorCore2;
 				}
 				ComplexFloat twiddleFactor = ComplexFloat(cosl(twiddleFactorCore), sinl(twiddleFactorCore));
-				ComplexFloat twiddleFactor2 = ComplexFloat(cosl(twiddleFactorCore2), sinl(twiddleFactorCore2));
 				ComplexFloat Ek = (*sourceRowStorage)[firstHalfIndex]; // evens
 				ComplexFloat Ok = (*sourceRowStorage)[secondHalfIndex]; // odds
 				(*destRowStorage)[firstHalfIndex] = Ek + twiddleFactor * Ok;
-				(*destRowStorage)[secondHalfIndex] = Ek + twiddleFactor2 * Ok;
+				(*destRowStorage)[secondHalfIndex] = Ek - twiddleFactor * Ok;
 			}
 			//std::cout << std::endl;
 		}
@@ -135,16 +132,6 @@ void FractalFourier::ExecuteRowOrColumn(bool inverted, int length) // fft
 //00 04 08 12|02 06 10 14|01 05 09 13|03 07 11 15 oldlen = 4
 //00 08|04 12|02 10|06 14|01 09|05 13|03 11|07 15 oldlen = 2
 //etc.
-int FractalFourier::GetReorderStorageOneStep(int index, int chunkSize)
-{
-	int newLength = chunkSize;
-	int offset = index - index % newLength;
-	newLength /= 2;
-	index -= offset;
-	index = index % 2 * newLength + index / 2;
-	index += offset;
-	return index;
-}
 void FractalFourier::ReorderStorage(int length) // complexity: nlogn
 {
 	//pseudocode:
@@ -159,14 +146,17 @@ void FractalFourier::ReorderStorage(int length) // complexity: nlogn
 
 	for (int i = 0; i < length; i++)
 	{
-		int newLength = length;
-		int index = i;
+		unsigned int newLength = length;
+		unsigned int index = i;
 		//std::cout << index << " ";
-		while (newLength % 2 == 0)
+		while ((newLength & 1) == 0)
 		{
-			index = GetReorderStorageOneStep(index, newLength);
-			newLength /= 2;
-			//std::cout << index << " ";
+			int offset = index - index % newLength;
+			newLength >>= 1;
+			index -= offset;
+			//index = index % 2 * newLength + index / 2;
+			index = (index & 1) == 0 ? index >> 1 : newLength + (index >> 1);
+			index += offset;
 		}
 		//std::cout << std::endl;
 		(*destRowStorage)[index] = (*sourceRowStorage)[i];
@@ -201,24 +191,33 @@ void FractalFourier::Execute(bool inverted) // fast fourier transform
 	{
 		int bufferWidth = complexBufferWidth;
 		int rowLength = complexBufferWidth;
+		int stride = y * bufferWidth;
 		for (int i = 0; i < rowLength; i++)
-			(*destRowStorage)[i] = complexBuffer[i + y * bufferWidth];
+			(*destRowStorage)[i] = complexBuffer[i + stride];
 		SwapStorageBuffers();
 		ExecuteRowOrColumn(inverted, rowLength);
 		for (int i = 0; i < rowLength; i++)
-			complexBuffer[i + y * bufferWidth] = (*sourceRowStorage)[i];
+			complexBuffer[i + stride] = (*sourceRowStorage)[i];
 	}
 
 	for (int x = 0; x < complexBufferWidth; x++)
 	{
 		int bufferWidth = complexBufferWidth;
 		int columnHeight = complexBufferHeight;
+		int strideOffset = 0;
 		for (int i = 0; i < columnHeight; i++)
-			(*destRowStorage)[i] = complexBuffer[x + i * bufferWidth];
+		{
+			(*destRowStorage)[i] = complexBuffer[x + strideOffset];
+			strideOffset += bufferWidth;
+		}
 		SwapStorageBuffers();
 		ExecuteRowOrColumn(inverted, columnHeight);
+		strideOffset = 0;
 		for (int i = 0; i < columnHeight; i++)
-			complexBuffer[x + i * bufferWidth] = (*sourceRowStorage)[i];
+		{
+			complexBuffer[x + strideOffset] = (*sourceRowStorage)[i];
+			strideOffset += bufferWidth;
+		}
 	}
 }
 

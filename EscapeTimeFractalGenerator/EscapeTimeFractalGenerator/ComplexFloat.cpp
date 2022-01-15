@@ -26,8 +26,8 @@ ComplexFloat ComplexFloat::operator+(const ComplexFloat other) const
 ComplexFloat ComplexFloat::operator-(const ComplexFloat other) const
 {
 	ComplexFloat output;
-	output.real = other.real - this->real;
-	output.imaginary = other.imaginary - this->imaginary;
+	output.real = this->real - other.real;
+	output.imaginary = this->imaginary - other.imaginary;
 	return output;
 }
 ComplexFloat ComplexFloat::operator-() const
