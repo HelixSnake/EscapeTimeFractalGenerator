@@ -1027,10 +1027,9 @@ int main(int argc, char* argv[])
 		shouldRenderInterpreter = shouldRenderInterpreter || (liveUpdate && fractalDrawer.IsBusy()); // render if the fractalDrawer is busy if liveupdate is enabled
 		shouldRenderInterpreter = shouldRenderInterpreter || updateInterpreter; // render if we've change a UI thing that affects the interpreter
 		//shouldRenderInterpreter = shouldRenderInterpreter && !fractalInterpreter.IsBusy(); // don't render the interpreter if it's already busy
-		if (fractalDrawerReady)
+		if (fractalDrawerReady || (liveUpdate && fractalDrawer.IsBusy() && !fractalInterpreter.IsBusy()))
 		{
 			fractalDrawer.OutputToBuffer(&fractalBuffer);
-			//fractalFourier.FillFromBuffer(fractalDrawer.GetBuffer(), fractalDrawer.GetBufferLength());
 		}
 		lastFastFourierTransformEnabled = fracInfo.fastFourierTransform;
 
