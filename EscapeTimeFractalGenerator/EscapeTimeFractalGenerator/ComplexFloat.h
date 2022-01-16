@@ -13,6 +13,8 @@ struct ComplexFloat
 	ComplexFloat operator+(const CF_Float other) const;
 	ComplexFloat operator-(const CF_Float other) const;
 	ComplexFloat operator-() const;
+	void operator+=(const ComplexFloat other);
+	void operator-=(const ComplexFloat other);
 	ComplexFloat operator*(const ComplexFloat other) const;
 	ComplexFloat operator*(const CF_Float other) const; 
 	ComplexFloat operator/(const CF_Float other) const;

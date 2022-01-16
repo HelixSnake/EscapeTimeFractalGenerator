@@ -47,36 +47,36 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 
 	CCC_Functions[(int)FractalCommand::power] = [](ComplexFloat first, ComplexFloat second) { return ComplexFloat::Power(first, second); };
 	CFC_Functions[(int)FractalCommand::power] = [](CF_Float first, ComplexFloat second) { return ComplexFloat::Power(first, second); };
-	FFF_Functions[(int)FractalCommand::power] = [](CF_Float first, CF_Float second) { return powl(first, second); };
+	FFF_Functions[(int)FractalCommand::power] = [](CF_Float first, CF_Float second) { return (CF_Float)powl(first, second); };
 	CCF_Functions[(int)FractalCommand::power] = [](ComplexFloat first, CF_Float second) { return ComplexFloat::Power(first, second); };
 
-	FFF_Functions[(int)FractalCommand::ln] = [](CF_Float first, CF_Float second) { return logl(first); };
+	FFF_Functions[(int)FractalCommand::ln] = [](CF_Float first, CF_Float second) { return (CF_Float)logl(first); };
 	CCC_Functions[(int)FractalCommand::ln] = [](ComplexFloat first, ComplexFloat second) { return ComplexFloat::Ln(first); };
 
 	CCC_Functions[(int)FractalCommand::sin] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Sin(first); };
-	FFF_Functions[(int)FractalCommand::sin] = [](CF_Float first, CF_Float second) {return sinl(first); };
+	FFF_Functions[(int)FractalCommand::sin] = [](CF_Float first, CF_Float second) {return (CF_Float)sinl(first); };
 
 	CCC_Functions[(int)FractalCommand::cos] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Cos(first); };
-	FFF_Functions[(int)FractalCommand::cos] = [](CF_Float first, CF_Float second) {return cosl(first); };
+	FFF_Functions[(int)FractalCommand::cos] = [](CF_Float first, CF_Float second) {return (CF_Float)cosl(first); };
 
 	CCC_Functions[(int)FractalCommand::tan] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Sin(first) / ComplexFloat::Cos(first); };
-	FFF_Functions[(int)FractalCommand::tan] = [](CF_Float first, CF_Float second) {return tanl(first); };
+	FFF_Functions[(int)FractalCommand::tan] = [](CF_Float first, CF_Float second) {return (CF_Float)tanl(first); };
 
 	CCC_Functions[(int)FractalCommand::sinh] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Sinh(first); };
-	FFF_Functions[(int)FractalCommand::sinh] = [](CF_Float first, CF_Float second) {return sinhl(first); };
+	FFF_Functions[(int)FractalCommand::sinh] = [](CF_Float first, CF_Float second) {return (CF_Float)sinhl(first); };
 
 	CCC_Functions[(int)FractalCommand::cosh] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Cosh(first); };
-	FFF_Functions[(int)FractalCommand::cosh] = [](CF_Float first, CF_Float second) {return coshl(first); };
+	FFF_Functions[(int)FractalCommand::cosh] = [](CF_Float first, CF_Float second) {return (CF_Float)coshl(first); };
 
 	CCC_Functions[(int)FractalCommand::tanh] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Sinh(first) / ComplexFloat::Cosh(first); };
-	FFF_Functions[(int)FractalCommand::tanh] = [](CF_Float first, CF_Float second) {return tanhl(first); };
+	FFF_Functions[(int)FractalCommand::tanh] = [](CF_Float first, CF_Float second) {return (CF_Float)tanhl(first); };
 
 	//CCC_Functions[(int)FractalCommand::asin] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Asin(first); };
 	//FFF_Functions[(int)FractalCommand::asin] = [](CF_Float first, CF_Float second) {return asinl(first); };
 
 	FCC_Functions[(int)FractalCommand::magnitude] = [](ComplexFloat first, ComplexFloat second) {return first.AbsoluteValue(); };
 	FCC_Functions[(int)FractalCommand::magnitudesqr] = [](ComplexFloat first, ComplexFloat second) {return first.AbsoluteValueSqr(); };
-	FFF_Functions[(int)FractalCommand::magnitude] = [](CF_Float first, CF_Float second) {return fabsl(first); };
+	FFF_Functions[(int)FractalCommand::magnitude] = [](CF_Float first, CF_Float second) {return (CF_Float)fabsl(first); };
 	FFF_Functions[(int)FractalCommand::magnitudesqr] = [](CF_Float first, CF_Float second) {return first*first; };
 
 	CCC_Functions[(int)FractalCommand::normalize] = [](ComplexFloat first, ComplexFloat second) {return first.Normalized(); };
@@ -87,7 +87,7 @@ void FractalCommandDelegates::GenerateKnownCommandDelegates() // Todo: generate 
 	CFF_Functions[(int)FractalCommand::toimaginary] = [](CF_Float first, CF_Float second) {return ComplexFloat(0, first); };
 	FCC_Functions[(int)FractalCommand::dot] = [](ComplexFloat first, ComplexFloat second) {return ComplexFloat::Dot(first, second); };
 	FCC_Functions[(int)FractalCommand::arg] = [](ComplexFloat first, ComplexFloat second) {return first.Arg(); };
-	FFF_Functions[(int)FractalCommand::step] = [](CF_Float first, CF_Float second) {return first >= second ? 1.0L : 0.0L; };
+	FFF_Functions[(int)FractalCommand::step] = [](CF_Float first, CF_Float second) {return first >= second ? (CF_Float)1.0 : (CF_Float)0.0; };
 }
 void FractalCommandDelegates::GenerateKnownCommandNames()
 {

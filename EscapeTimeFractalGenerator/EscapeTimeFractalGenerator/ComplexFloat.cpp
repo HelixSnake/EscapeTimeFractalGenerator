@@ -46,6 +46,17 @@ ComplexFloat ComplexFloat::operator-(const CF_Float other) const
 	return ComplexFloat(this->real - other, this->imaginary);
 }
 
+void ComplexFloat::operator+=(const ComplexFloat other)
+{
+	this->real += other.real;
+	this->imaginary += other.imaginary;
+}
+void ComplexFloat::operator-=(const ComplexFloat other)
+{
+	this->real -= other.real;
+	this->imaginary -= other.imaginary;
+}
+
 ComplexFloat ComplexFloat::operator*(const ComplexFloat other) const
 {
 	ComplexFloat output;

@@ -27,12 +27,10 @@ private:
 	ComplexFloat* rowStorage2 = nullptr;
 	ComplexFloat** sourceRowStorage = &rowStorage1;
 	ComplexFloat** destRowStorage = &rowStorage2;
-	ComplexFloat* chunkStorageSource = nullptr;
-	ComplexFloat* chunkStorageDest = nullptr;
 	unsigned int complexBufferHeight;
 	unsigned int complexBufferWidth;
 
-	void ExecuteFinalChunk(bool inverted, int length);
+	void ExecuteFinalChunk(bool inverted, int start, int length);
 	void ExecuteRowOrColumn(bool inverted, int length);
 	void ExecuteRowOrColumnSlow(bool inverted, int length);
 	void ReorderStorage(int length);

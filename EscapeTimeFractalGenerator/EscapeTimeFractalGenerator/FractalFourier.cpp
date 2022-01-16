@@ -1,6 +1,7 @@
 #include "FractalFourier.h"
 #include <math.h>
 #include <algorithm>
+#include <chrono>
 
 const long double E_CONSTANT = 2.71828182845904523536028747135266249775724709369995;
 const long double PI_CONSTANT = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068;
@@ -12,8 +13,6 @@ FractalFourier::FractalFourier(int width, int height)
 	this->complexBuffer = new ComplexFloat[width * height];
 	this->rowStorage1 = new ComplexFloat[std::max(width, height)];
 	this->rowStorage2 = new ComplexFloat[std::max(width, height)];
-	this->chunkStorageSource = new ComplexFloat[MAX_FINAL_CHUNK_SIZE];
-	this->chunkStorageDest = new ComplexFloat[MAX_FINAL_CHUNK_SIZE];
 }
 
 FractalFourier::~FractalFourier()
@@ -21,8 +20,6 @@ FractalFourier::~FractalFourier()
 	delete[] complexBuffer;
 	delete[] rowStorage1;
 	delete[] rowStorage2;
-	delete[] chunkStorageSource;
-	delete[] chunkStorageDest;
 }
 
 void FractalFourier::Resize(int width, int height, double sizeMult)
@@ -75,31 +72,28 @@ void FractalFourier::ExecuteRowOrColumn(bool inverted, int length) // fft
 	unsigned int chunkLength = length;
 	while ((chunkLength & 1) == 0)
 		chunkLength >>= 1;
-	for (int i = 0; i < length / chunkLength; i++) // evaluate all the smallest chunks whose length is not a multiple of 2
+	if (chunkLength > 1)
 	{
-		for (int j = 0; j < chunkLength; j++)
+		for (int i = 0; i < length; i += chunkLength) // evaluate all the smallest chunks whose length is not a multiple of 2
 		{
-			chunkStorageSource[j] = (*sourceRowStorage)[j + i * chunkLength];
+			ExecuteFinalChunk(inverted, i, chunkLength);
 		}
-		ExecuteFinalChunk(inverted, chunkLength);
-		for (int j = 0; j < chunkLength; j++)
-		{
-			(*destRowStorage)[j + i * chunkLength] = chunkStorageDest[j];
-		}
+		SwapStorageBuffers();
 	}
-	SwapStorageBuffers();
 	while (chunkLength != length) // log 2 complexity
 	{
 		unsigned int halfChunkLength = chunkLength;
 		chunkLength <<= 1;
 		CF_Float twiddleConst = -2 * PI_CONSTANT / chunkLength;
-		//ReorderStorage(length, true, false, chunkLength); // reverse reorder storage one step
 		for (int i = 0; i < length / chunkLength; i++) // for each chunk
 		{
 			int chunkStart = i * chunkLength;
+			for (int k = chunkStart; k < halfChunkLength + chunkStart; k++) //both loops = linear complexity
+			{
+				(*destRowStorage)[k] = (*sourceRowStorage)[k];
+			}
 			for (int k = 0; k < halfChunkLength; k++) //both loops = linear complexity
 			{
-
 				int firstHalfIndex = k + chunkStart;
 				int secondHalfIndex = k + halfChunkLength + chunkStart;
 				CF_Float twiddleFactorCore = k * twiddleConst;
@@ -108,14 +102,17 @@ void FractalFourier::ExecuteRowOrColumn(bool inverted, int length) // fft
 					twiddleFactorCore = -twiddleFactorCore;
 				}
 				ComplexFloat twiddleFactor = ComplexFloat(cosl(twiddleFactorCore), sinl(twiddleFactorCore));
-				ComplexFloat Ek = (*sourceRowStorage)[firstHalfIndex]; // evens
-				ComplexFloat Ok = (*sourceRowStorage)[secondHalfIndex]; // odds
-				(*destRowStorage)[firstHalfIndex] = Ek + twiddleFactor * Ok;
-				(*destRowStorage)[secondHalfIndex] = Ek - twiddleFactor * Ok;
+				ComplexFloat Ok = twiddleFactor * (*sourceRowStorage)[secondHalfIndex]; // odds
+				(*destRowStorage)[firstHalfIndex] += Ok;
+				(*destRowStorage)[secondHalfIndex] = -Ok;
 			}
-			//std::cout << std::endl;
+			int otherIndex = chunkStart;
+			for (int k = halfChunkLength + chunkStart; k < chunkLength + chunkStart; k++) //both loops = linear complexity
+			{
+				(*destRowStorage)[k] += (*sourceRowStorage)[otherIndex];
+				otherIndex++;
+			}
 		}
-		//std::cout << std::endl;
 		SwapStorageBuffers();
 	}
 	if (inverted)
@@ -164,29 +161,26 @@ void FractalFourier::ReorderStorage(int length) // complexity: nlogn
 	SwapStorageBuffers();
 }
 
-void FractalFourier::ExecuteFinalChunk(bool inverted, int length) // O(n^2) for the chunk size
+void FractalFourier::ExecuteFinalChunk(bool inverted, int start, int length) // O(n^2) for the chunk size
 {
-	if (length == 1)
-	{
-		chunkStorageDest[0] = chunkStorageSource[0];
-	}
 	for (int i = 0; i < length; i++)
 	{
 		ComplexFloat sum = ComplexFloat(0, 0);
 		CF_Float constCore = -i * 2 * PI_CONSTANT / length;
 		for (int j = 0; j < length; j++)
 		{
-			ComplexFloat fk = chunkStorageSource[j];
+			ComplexFloat fk = (*sourceRowStorage)[j + start];
 			CF_Float core = constCore * j;
 			if (inverted) core = -core;
 			sum = sum + fk * ComplexFloat(cosl(core), sinl(core));
 		}
-		chunkStorageDest[i] = sum;
+		(*destRowStorage)[i + start] = sum;
 	}
 }
 
 void FractalFourier::Execute(bool inverted) // fast fourier transform
 {
+	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int y = 0; y < complexBufferHeight; y++)
 	{
 		int bufferWidth = complexBufferWidth;
@@ -219,6 +213,10 @@ void FractalFourier::Execute(bool inverted) // fast fourier transform
 			strideOffset += bufferWidth;
 		}
 	}
+	auto t2 = std::chrono::high_resolution_clock::now();
+	std::cout << "fft took "
+		<< std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+		<< " milliseconds\n";
 }
 
 void FractalFourier::RebaseBuffer()
