@@ -110,10 +110,10 @@ bool FractalInterpreter::Draw_Threaded(ThreadSafeBuffer<ComplexFloat>* buffer)
 			int colorBufferPos = valueBufferPos * 4;
 			double newValue = 0; 
 			unsigned char color[4] = { 0, 0, 0, 1 };
-			if ((*buffer)[valueBufferPos].real >= 0.0000000001)
+			if ((*buffer)[valueBufferPos].load().real >= 0.0000000001)
 			{
 				//logarithmic function keeps period similar at all zoom levels
-				newValue = glm::fract(log((*buffer)[valueBufferPos].real) * oneDivPeriod + offset);
+				newValue = glm::fract(log((*buffer)[valueBufferPos].load().real) * oneDivPeriod + offset);
 				if (rampColors != nullptr)
 				{
 					int rampIndex = ((int)((double)rampColorsLength * (1 - newValue)));
