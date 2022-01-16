@@ -10,7 +10,7 @@ class QuadDrawer
 public:
 	QuadDrawer();
 	~QuadDrawer();
-	bool DrawBuffer(GLFWwindow* window, const float* colors, GLenum format, int width, int height, int x1, int y1, int x2, int y2, int miplevel, bool generateTexture); //returns whether or not the drawing succeeded
+	bool DrawBuffer(GLFWwindow* window, const unsigned char* colors, GLenum format, int width, int height, int x1, int y1, int x2, int y2, int miplevel, bool generateTexture); //returns whether or not the drawing succeeded
 protected:
 	GLuint drawingTexture = 0;
 	GLuint vertexShader = 0;

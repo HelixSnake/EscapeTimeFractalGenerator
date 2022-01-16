@@ -9,13 +9,13 @@ QuadDrawer::~QuadDrawer()
 {
 	glDeleteTextures(1, &drawingTexture);
 }
-bool QuadDrawer::DrawBuffer(GLFWwindow* window, const float* colors, GLenum format, int width, int height, int x1, int y1, int x2, int y2, int miplevel, bool generateTexture)
+bool QuadDrawer::DrawBuffer(GLFWwindow* window, const unsigned char* colors, GLenum format, int width, int height, int x1, int y1, int x2, int y2, int miplevel, bool generateTexture)
 {
 	if (format != GL_RGB && format != GL_RGBA) return false; // currently supported formats
 	glBindTexture(GL_TEXTURE_2D, drawingTexture);
 	if (generateTexture)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, colors);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, colors);
 		if (miplevel != 0)
 		{
 			glGenerateTextureMipmap(drawingTexture);

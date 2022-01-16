@@ -18,6 +18,7 @@
 #include "ZoomTransform.h"
 #include "FractalDictionary.h"
 #include "FractalCommandListExecutor.h"
+#include "ThreadSafeBuffer.h"
 
 using namespace std::chrono;
 
@@ -47,7 +48,9 @@ public:
 	int GetMipLevel();
 	bool Draw(bool update, ZoomTransform transform, ComplexFloat* extraValues, CF_Float power); //Returns true when you should continue drawing afterwards. LiveUpdate will result in true during rendering, unless zooming in or out.
 	void GetBufferDimensions(int& bufferWidth, int& bufferHeight);
-	void CopyBuffer(CF_Float* dest, int bufferSize);
+	//void CopyBuffer(CF_Float* dest, int bufferSize); // no! bad! waste of memory! don't do this
+	void OutputToBuffer(ThreadSafeBuffer<ComplexFloat> *buffer);
+	CF_Float GetValueForInterpreter(int index);
 	const CF_Float* GetBuffer();
 	int GetBufferLength();
 protected:

@@ -271,7 +271,7 @@ void FractalDrawer::GetBufferDimensions(int& bufferWidth, int& bufferHeight)
 	bufferWidth = pixelBufferWidth;
 	bufferHeight = pixelBufferHeight;
 }
-
+/*
 void FractalDrawer::CopyBuffer(CF_Float* dest, int bufferSize)
 {
 	int length = bufferSize;
@@ -280,6 +280,22 @@ void FractalDrawer::CopyBuffer(CF_Float* dest, int bufferSize)
 	{
 		dest[i] = pixelBuffer[i].load();
 	}
+}
+*/
+
+void FractalDrawer::OutputToBuffer(ThreadSafeBuffer<ComplexFloat>* buffer)
+{
+	int length = buffer->GetWidth() * buffer->GetHeight();
+	length = glm::min(length, pixelBufferHeight * pixelBufferWidth);
+	for (int i = 0; i < length; i++)
+	{
+		(*buffer)[i] = ComplexFloat(pixelBuffer[i], 0);
+	}
+}
+
+CF_Float FractalDrawer::GetValueForInterpreter(int index)
+{
+	return pixelBuffer[index].load();
 }
 
 const CF_Float* FractalDrawer::GetBuffer()

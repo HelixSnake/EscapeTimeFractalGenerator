@@ -8,40 +8,24 @@ const long double PI_CONSTANT = 3.1415926535897932384626433832795028841971693993
 
 FractalFourier::FractalFourier(int width, int height)
 {
-	this->complexBufferWidth = width;
-	this->complexBufferHeight = height;
-	this->complexBuffer = new ComplexFloat[width * height];
 	this->rowStorage1 = new ComplexFloat[std::max(width, height)];
 	this->rowStorage2 = new ComplexFloat[std::max(width, height)];
 }
 
 FractalFourier::~FractalFourier()
 {
-	delete[] complexBuffer;
 	delete[] rowStorage1;
 	delete[] rowStorage2;
 }
 
 void FractalFourier::Resize(int width, int height, double sizeMult)
 {
-	delete[] complexBuffer;
 	delete[] rowStorage1;
 	delete[] rowStorage2;
-	complexBuffer = new ComplexFloat[width * sizeMult * height * sizeMult];
-	complexBufferWidth = width * sizeMult;
-	complexBufferHeight = height * sizeMult;
 	rowStorage1 = new ComplexFloat[std::max(width * sizeMult, height * sizeMult)];
 	rowStorage2 = new ComplexFloat[std::max(width * sizeMult, height * sizeMult)];
 }
 
-void FractalFourier::FillFromBuffer(const CF_Float* buffer, int bufferLength)
-{
-	int length = std::min(bufferLength, (int)(this->complexBufferWidth * this->complexBufferHeight));
-	for (int i = 0; i < length; i++)
-	{
-		complexBuffer[i] = ComplexFloat(buffer[i], 0);
-	}
-}
 void FractalFourier::SwapStorageBuffers()
 {
 	std::swap(sourceRowStorage, destRowStorage);
@@ -178,8 +162,10 @@ void FractalFourier::ExecuteFinalChunk(bool inverted, int start, int length) // 
 	}
 }
 
-void FractalFourier::Execute(bool inverted) // fast fourier transform
+void FractalFourier::Execute(bool inverted, ThreadSafeBuffer<ComplexFloat>* buffer) // fast fourier transform
 {
+	int complexBufferHeight = buffer->GetHeight();
+	int complexBufferWidth = buffer->GetWidth();
 	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int y = 0; y < complexBufferHeight; y++)
 	{
@@ -187,11 +173,11 @@ void FractalFourier::Execute(bool inverted) // fast fourier transform
 		int rowLength = complexBufferWidth;
 		int stride = y * bufferWidth;
 		for (int i = 0; i < rowLength; i++)
-			(*destRowStorage)[i] = complexBuffer[i + stride];
+			(*destRowStorage)[i] = (*buffer)[i + stride];
 		SwapStorageBuffers();
 		ExecuteRowOrColumn(inverted, rowLength);
 		for (int i = 0; i < rowLength; i++)
-			complexBuffer[i + stride] = (*sourceRowStorage)[i];
+			(*buffer)[i + stride] = (*sourceRowStorage)[i];
 	}
 
 	for (int x = 0; x < complexBufferWidth; x++)
@@ -201,7 +187,7 @@ void FractalFourier::Execute(bool inverted) // fast fourier transform
 		int strideOffset = 0;
 		for (int i = 0; i < columnHeight; i++)
 		{
-			(*destRowStorage)[i] = complexBuffer[x + strideOffset];
+			(*destRowStorage)[i] = (*buffer)[x + strideOffset];
 			strideOffset += bufferWidth;
 		}
 		SwapStorageBuffers();
@@ -209,7 +195,7 @@ void FractalFourier::Execute(bool inverted) // fast fourier transform
 		strideOffset = 0;
 		for (int i = 0; i < columnHeight; i++)
 		{
-			complexBuffer[x + strideOffset] = (*sourceRowStorage)[i];
+			(*buffer)[x + strideOffset] = (*sourceRowStorage)[i];
 			strideOffset += bufferWidth;
 		}
 	}
@@ -219,18 +205,19 @@ void FractalFourier::Execute(bool inverted) // fast fourier transform
 		<< " milliseconds\n";
 }
 
-void FractalFourier::RebaseBuffer()
+void FractalFourier::RebaseBuffer(ThreadSafeBuffer<ComplexFloat>* buffer)
 {
-
+	int complexBufferHeight = buffer->GetHeight();
+	int complexBufferWidth = buffer->GetWidth();
 	for (int y = 0; y < complexBufferHeight; y++)
 	{
 		int bufferWidth = complexBufferWidth;
 		int rowLength = complexBufferWidth;
 		for (int i = 0; i < rowLength; i++)
-			(*destRowStorage)[i] = complexBuffer[i + y * bufferWidth];
+			(*destRowStorage)[i] = (*buffer)[i + y * bufferWidth];
 		SwapStorageBuffers();
 		for (int i = 0; i < rowLength; i++)
-			complexBuffer[i + y * bufferWidth] = (*sourceRowStorage)[(i + rowLength / 2) % rowLength];
+			(*buffer)[i + y * bufferWidth] = (*sourceRowStorage)[(i + rowLength / 2) % rowLength];
 	}
 
 	for (int x = 0; x < complexBufferWidth; x++)
@@ -238,25 +225,27 @@ void FractalFourier::RebaseBuffer()
 		int bufferWidth = complexBufferWidth;
 		int columnHeight = complexBufferHeight;
 		for (int i = 0; i < columnHeight; i++)
-			(*destRowStorage)[i] = complexBuffer[x + i * bufferWidth];
+			(*destRowStorage)[i] = (*buffer)[x + i * bufferWidth];
 		SwapStorageBuffers();
 		for (int i = 0; i < columnHeight; i++)
-			complexBuffer[x + i * bufferWidth] = (*sourceRowStorage)[(i+ columnHeight/2) % columnHeight];
+			(*buffer)[x + i * bufferWidth] = (*sourceRowStorage)[(i+ columnHeight/2) % columnHeight];
 	}
 }
 
-void FractalFourier::Magnitude()
+void FractalFourier::Magnitude(ThreadSafeBuffer<ComplexFloat>* buffer)
 {
+	int complexBufferHeight = buffer->GetHeight();
+	int complexBufferWidth = buffer->GetWidth();
 	for (int i = 0; i < complexBufferWidth; i++)
 	{
 		for (int j = 0; j < complexBufferHeight; j++)
 		{
-			complexBuffer[i + j * complexBufferWidth].real = complexBuffer[i + j * complexBufferWidth].AbsoluteValue();
-			complexBuffer[i + j * complexBufferWidth].imaginary = 0;
+			ComplexFloat bufferValue = (*buffer)[i + j * complexBufferWidth];
+			(*buffer)[i + j * complexBufferWidth] = ComplexFloat(bufferValue.AbsoluteValue(), 0);
 		}
 	}
 }
-
+/*
 void FractalFourier::CopyBuffer(CF_Float* dest, int bufferSize)
 {
 	int length = bufferSize;
@@ -268,12 +257,7 @@ void FractalFourier::CopyBuffer(CF_Float* dest, int bufferSize)
 			dest[i] = 0;
 	}
 }
-
-void FractalFourier::GetBufferDimensions(int& bufferWidth, int& bufferHeight)
-{
-	bufferWidth = complexBufferWidth;
-	bufferHeight = complexBufferHeight;
-}
+*/
 
 unsigned int FractalFourier::FindClosestIdealFactorization(unsigned int input)
 {
